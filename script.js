@@ -79,6 +79,7 @@ const promptCard     = document.getElementById('promptCard');
 const nextBtn        = document.getElementById('nextBtn');
 const timerDisplay   = document.getElementById('timerDisplay');
 const customTimer    = document.getElementById('customTimer');
+const customTimerRow = document.getElementById('customTimerRow');
 const metroBpmInput  = document.getElementById('metroBpm');
 const tapBtn         = document.getElementById('tapBtn');
 const metroPanel     = document.getElementById('metroPanel');
@@ -260,6 +261,7 @@ function generatePrompt() {
 function renderPrompt(prompt) {
   promptCard.classList.add('flash');
   setTimeout(() => {
+    promptCard.classList.toggle('empty', !prompt);
     promptLine1.textContent = prompt ? prompt.line1 : 'Enable a category and at least one note';
     promptLine2.textContent = prompt ? prompt.line2 : '';
     promptCard.classList.remove('flash');
@@ -473,6 +475,7 @@ function syncUI() {
 
   const mode = getTimerMode();
   customTimer.disabled = mode !== 'custom';
+  customTimerRow.classList.toggle('hidden', mode !== 'custom');
   metroPanel.classList.toggle('hidden', mode !== 'metronome');
 }
 
@@ -577,6 +580,15 @@ metroBpmInput.addEventListener('input', () => {
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+
+// Collapsible settings groups
+document.querySelectorAll('.group-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const expanded = btn.getAttribute('aria-expanded') === 'true';
+    btn.setAttribute('aria-expanded', String(!expanded));
+    btn.nextElementSibling.classList.toggle('group-collapsed', expanded);
+  });
+});
 
 loadSettings();
 syncUI();
