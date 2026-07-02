@@ -596,6 +596,78 @@ select:focus {
   transform: scale(0.98);
 }
 
+/* ── Undo toast ──────────────────────────────────────────────────────────────── */
+
+.undo-toast {
+  position: fixed;
+  bottom: 28px;
+  left: 50%;
+  transform: translateX(-50%) translateY(90px);
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  padding: 12px 12px 12px 18px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  box-shadow: 0 8px 32px rgba(0,0,0,0.55), 0 2px 8px rgba(0,0,0,0.3);
+  transition: transform 0.25s ease, opacity 0.25s ease;
+  opacity: 0;
+  pointer-events: none;
+  z-index: 100;
+  white-space: nowrap;
+  overflow: hidden;
+}
+
+.undo-toast.visible {
+  transform: translateX(-50%) translateY(0);
+  opacity: 1;
+  pointer-events: auto;
+}
+
+/* Shrinking progress bar */
+.undo-toast::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 100%;
+  background: var(--accent);
+  border-radius: 0 0 12px 12px;
+  transform-origin: left;
+  transform: scaleX(0);
+}
+
+.undo-toast.visible::after {
+  animation: toast-progress 4s linear forwards;
+}
+
+@keyframes toast-progress {
+  from { transform: scaleX(1); }
+  to   { transform: scaleX(0); }
+}
+
+#undoBtn {
+  background: var(--accent);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 14px;
+  font-family: inherit;
+  font-size: 0.825rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: filter 0.15s;
+  flex-shrink: 0;
+}
+
+#undoBtn:hover {
+  filter: brightness(1.15);
+}
+
 /* ── Mobile ──────────────────────────────────────────────────────────────────── */
 
 @media (max-width: 600px) {

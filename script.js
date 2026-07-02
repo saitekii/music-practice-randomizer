@@ -96,6 +96,9 @@ let metroCount      = 0;  // quarter-note beats since last chord change
 let tapTimes        = [];
 let audioCtx        = null;
 
+let prevSettings  = null;
+let undoTimeout   = null;
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function pick(arr) {
@@ -479,9 +482,41 @@ function syncUI() {
   metroPanel.classList.toggle('hidden', mode !== 'metronome');
 }
 
+// ── Undo toast ────────────────────────────────────────────────────────────────
+
+const undoToast = document.getElementById('undoToast');
+
+function showUndoToast() {
+  clearTimeout(undoTimeout);
+  undoToast.classList.remove('visible');
+  // Force reflow so the progress bar animation restarts cleanly
+  void undoToast.offsetWidth;
+  undoToast.classList.add('visible');
+  undoTimeout = setTimeout(() => undoToast.classList.remove('visible'), 4000);
+}
+
+function hideUndoToast() {
+  clearTimeout(undoTimeout);
+  undoToast.classList.remove('visible');
+}
+
+document.getElementById('undoBtn').addEventListener('click', () => {
+  if (prevSettings !== null) {
+    localStorage.setItem('mpr_settings', prevSettings);
+    loadSettings();
+    syncUI();
+    showPrompt();
+    prevSettings = null;
+  }
+  hideUndoToast();
+});
+
 // ── Shuffle settings ─────────────────────────────────────────────────────────
 
 function randomizeSettings() {
+  saveSettings();  // flush current UI state before capturing snapshot
+  prevSettings = localStorage.getItem('mpr_settings');
+
   function pickN(arr, min, max) {
     const n = min + Math.floor(Math.random() * (max - min + 1));
     return [...arr].sort(() => Math.random() - 0.5).slice(0, Math.min(n, arr.length));
@@ -538,6 +573,7 @@ function randomizeSettings() {
   saveSettings();
   syncUI();
   showPrompt();
+  showUndoToast();
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
