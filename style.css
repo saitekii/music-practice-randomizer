@@ -150,6 +150,13 @@ header h1 {
   margin-bottom: 14px;
 }
 
+.settings-hint {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+  opacity: 0.6;
+}
+
 /* Timer */
 .timer-options {
   display: flex;
