@@ -355,10 +355,15 @@ function timerSeconds() {
   return parseInt(val);
 }
 
+const HOLD_ICON_PAUSE = '<rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/>';
+const HOLD_ICON_PLAY  = '<polygon points="5 3 19 12 5 21 5 3"/>';
+
 function clearHold() {
   isHeld = false;
   holdBtn.setAttribute('aria-pressed', 'false');
+  holdBtn.setAttribute('aria-label', 'Hold current prompt');
   holdBtn.classList.remove('active');
+  holdBtn.querySelector('svg').innerHTML = HOLD_ICON_PAUSE;
 }
 
 function stopTimer() {
@@ -401,7 +406,9 @@ function holdTimer() {
   clearInterval(timerInterval);
   timerInterval = null;
   holdBtn.setAttribute('aria-pressed', 'true');
+  holdBtn.setAttribute('aria-label', 'Resume timer');
   holdBtn.classList.add('active');
+  holdBtn.querySelector('svg').innerHTML = HOLD_ICON_PLAY;
 }
 
 function resumeTimer() {
