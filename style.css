@@ -401,6 +401,30 @@ input[type="checkbox"] {
   flex-shrink: 0;
 }
 
+/* Shuffle Settings button */
+#shuffleBtn {
+  width: 100%;
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  color: var(--text-muted);
+  padding: 11px 20px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+  letter-spacing: 0.01em;
+}
+
+#shuffleBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#shuffleBtn:active {
+  background: var(--surface);
+}
+
 /* ── Mobile ──────────────────────────────────────────────────────────────── */
 
 /* Tablet / large phone — make button fill remaining space next to timer */

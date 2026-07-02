@@ -476,6 +476,67 @@ function syncUI() {
   metroPanel.classList.toggle('hidden', mode !== 'metronome');
 }
 
+// ── Shuffle settings ─────────────────────────────────────────────────────────
+
+function randomizeSettings() {
+  function pickN(arr, min, max) {
+    const n = min + Math.floor(Math.random() * (max - min + 1));
+    return [...arr].sort(() => Math.random() - 0.5).slice(0, Math.min(n, arr.length));
+  }
+
+  // Categories — at least 1, up to 3
+  const allCats = ['catChords', 'catScales', 'catFunctional', 'catIntervals', 'catDiatonic'];
+  const onCats  = new Set(pickN(allCats, 1, 3));
+  allCats.forEach(id => { document.getElementById(id).checked = onCats.has(id); });
+
+  // Root notes — 30% chance of all 12, otherwise 4–10 random
+  const allNoteNames = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+  const onNotes = Math.random() < 0.3 ? allNoteNames : pickN(allNoteNames, 4, 10);
+  const onNoteSet = new Set(onNotes);
+  allNoteNames.forEach(n => {
+    document.querySelector(`input[data-note="${n}"]`).checked = onNoteSet.has(n);
+  });
+
+  // Chords
+  if (onCats.has('catChords')) {
+    const basic = ['chordMajor','chordMinor','chordDiminished','chordAugmented','chordMaj7','chordMin7','chordDom7'];
+    const jazz  = ['chordSus2','chordSus4','chord7sus4','chordDom9','chordMaj9','chordMin9','chordDom13','chord7b9','chord7s9','chord7s11','chordHalfDim','chordDim7'];
+    const onBasic = new Set(pickN(basic, 2, basic.length));
+    basic.forEach(id => { document.getElementById(id).checked = onBasic.has(id); });
+    const includeJazz = Math.random() < 0.4;
+    const onJazz = includeJazz ? new Set(pickN(jazz, 1, 4)) : new Set();
+    jazz.forEach(id => { document.getElementById(id).checked = onJazz.has(id); });
+    document.getElementById('inversions').checked = Math.random() < 0.3;
+  }
+
+  // Scales
+  if (onCats.has('catScales')) {
+    const all = ['scaleMajor','scaleNatMinor','scaleHarmMinor','scaleMelMinor','scaleMajPent','scaleMinPent','scaleModes'];
+    const on  = new Set(pickN(all, 2, all.length));
+    all.forEach(id => { document.getElementById(id).checked = on.has(id); });
+  }
+
+  // Intervals
+  if (onCats.has('catIntervals')) {
+    const all = ['intMin2','intMaj2','intMin3','intMaj3','intPerf4','intTT','intPerf5','intMin6','intMaj6','intMin7','intMaj7','intOct'];
+    const on  = new Set(pickN(all, 3, all.length));
+    all.forEach(id => { document.getElementById(id).checked = on.has(id); });
+    const dir = Math.random();
+    document.getElementById('intDirUp').checked   = dir < 0.8;
+    document.getElementById('intDirDown').checked = dir > 0.2;
+  }
+
+  // Diatonic key
+  if (onCats.has('catDiatonic')) {
+    document.getElementById('diatonicRoot').value = allNoteNames[Math.floor(Math.random() * 12)];
+    document.getElementById('diatonicMode').value = Math.random() < 0.6 ? 'major' : 'minor';
+  }
+
+  saveSettings();
+  syncUI();
+  showPrompt();
+}
+
 // ── Event listeners ───────────────────────────────────────────────────────────
 
 nextBtn.addEventListener('click', showPrompt);
@@ -505,6 +566,7 @@ document.querySelectorAll('select').forEach(el => {
 });
 
 tapBtn.addEventListener('click', handleTap);
+document.getElementById('shuffleBtn').addEventListener('click', randomizeSettings);
 
 metroBpmInput.addEventListener('input', () => {
   saveSettings();
