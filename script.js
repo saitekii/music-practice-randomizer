@@ -8,6 +8,19 @@ const CHORD_TYPES = [
   { id: 'chordMaj7',       label: 'Major 7',     seventh: true  },
   { id: 'chordMin7',       label: 'Minor 7',     seventh: true  },
   { id: 'chordDom7',       label: 'Dominant 7',  seventh: true  },
+  // Jazz extensions
+  { id: 'chordSus2',    label: 'sus2',         seventh: false },
+  { id: 'chordSus4',    label: 'sus4',         seventh: false },
+  { id: 'chord7sus4',   label: '7sus4',        seventh: true  },
+  { id: 'chordDom9',    label: 'Dominant 9',   seventh: true  },
+  { id: 'chordMaj9',    label: 'Major 9',      seventh: true  },
+  { id: 'chordMin9',    label: 'Minor 9',      seventh: true  },
+  { id: 'chordDom13',   label: 'Dominant 13',  seventh: true  },
+  { id: 'chord7b9',     label: '7♭9',          seventh: true  },
+  { id: 'chord7s9',     label: '7♯9',          seventh: true  },
+  { id: 'chord7s11',    label: '7♯11',         seventh: true  },
+  { id: 'chordHalfDim', label: 'Minor 7♭5',    seventh: true  },
+  { id: 'chordDim7',    label: 'Diminished 7', seventh: true  },
 ];
 
 const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
@@ -230,7 +243,11 @@ function saveSettings() {
   const ids = [
     'catChords', 'catScales', 'catFunctional', 'catDiatonic',
     'chordMajor', 'chordMinor', 'chordDiminished', 'chordAugmented',
-    'chordMaj7', 'chordMin7', 'chordDom7', 'inversions',
+    'chordMaj7', 'chordMin7', 'chordDom7',
+    'chordSus2', 'chordSus4', 'chord7sus4',
+    'chordDom9', 'chordMaj9', 'chordMin9', 'chordDom13',
+    'chord7b9', 'chord7s9', 'chord7s11', 'chordHalfDim', 'chordDim7',
+    'inversions',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
     'scaleMajPent', 'scaleMinPent', 'scaleModes',
   ];

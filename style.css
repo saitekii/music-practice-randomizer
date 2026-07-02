@@ -276,6 +276,19 @@ select:focus {
   pointer-events: none;
 }
 
+.option-divider {
+  width: 100%;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-muted);
+  opacity: 0.6;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border);
+}
+
 .inversion-toggle {
   margin-top: 6px;
   width: 100%;
