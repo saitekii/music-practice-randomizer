@@ -40,6 +40,32 @@
             <input type="radio" name="timer" value="custom"> Custom:
             <input type="number" id="customTimer" min="1" max="300" value="10" disabled> s
           </label>
+          <label class="radio-label"><input type="radio" name="timer" value="metronome"> Metronome</label>
+        </div>
+
+        <div id="metroPanel" class="metro-panel hidden">
+          <div class="metro-row">
+            <span class="metro-label">BPM</span>
+            <input type="number" id="metroBpm" min="20" max="300" value="120">
+            <button id="tapBtn" type="button">Tap</button>
+          </div>
+          <div class="metro-row">
+            <span class="metro-label">Change every</span>
+            <select id="metroNoteDuration">
+              <option value="4">Whole note</option>
+              <option value="2">Half note</option>
+              <option value="1">Quarter note</option>
+              <option value="8">2 bars</option>
+            </select>
+          </div>
+          <div class="metro-row">
+            <span class="metro-label">Time sig</span>
+            <select id="metroTimeSig">
+              <option value="4">4 / 4</option>
+              <option value="3">3 / 4</option>
+              <option value="5">5 / 4</option>
+            </select>
+          </div>
         </div>
       </div>
 

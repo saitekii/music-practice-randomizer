@@ -204,6 +204,85 @@ header h1 {
   cursor: not-allowed;
 }
 
+/* Metronome panel */
+.metro-panel {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metro-panel.hidden {
+  display: none;
+}
+
+.metro-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.metro-label {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  min-width: 100px;
+}
+
+#metroBpm {
+  width: 68px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 0.95rem;
+  text-align: center;
+  outline: none;
+}
+
+#metroBpm:focus {
+  border-color: var(--accent);
+}
+
+#tapBtn {
+  background: transparent;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  color: var(--text-muted);
+  padding: 5px 14px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+}
+
+#tapBtn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+#tapBtn:active {
+  background: var(--card);
+}
+
+/* Beat display in timer area */
+@keyframes metro-pulse {
+  from { transform: scale(1.35); opacity: 0.5; }
+  to   { transform: scale(1);    opacity: 1;   }
+}
+
+.timer-display.metro-accent {
+  color: var(--accent);
+  animation: metro-pulse 0.12s ease-out;
+}
+
+.timer-display.metro-beat {
+  color: var(--text-muted);
+  animation: metro-pulse 0.12s ease-out;
+}
+
 /* Key selector (Diatonic Chords) */
 .key-selector {
   display: flex;

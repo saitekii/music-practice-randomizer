@@ -27,13 +27,13 @@ const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
 const SEVENTH_INVERSIONS = ['Root position', '1st inversion', '2nd inversion', '3rd inversion'];
 
 const SCALE_TYPES = [
-  { id: 'scaleMajor',    label: 'Major'             },
-  { id: 'scaleNatMinor', label: 'Natural minor'     },
-  { id: 'scaleHarmMinor',label: 'Harmonic minor'    },
-  { id: 'scaleMelMinor', label: 'Melodic minor'     },
-  { id: 'scaleMajPent',  label: 'Major pentatonic'  },
-  { id: 'scaleMinPent',  label: 'Minor pentatonic'  },
-  { id: 'scaleModes',    label: null                }, // special — picks a mode name
+  { id: 'scaleMajor',     label: 'Major'            },
+  { id: 'scaleNatMinor',  label: 'Natural minor'    },
+  { id: 'scaleHarmMinor', label: 'Harmonic minor'   },
+  { id: 'scaleMelMinor',  label: 'Melodic minor'    },
+  { id: 'scaleMajPent',   label: 'Major pentatonic' },
+  { id: 'scaleMinPent',   label: 'Minor pentatonic' },
+  { id: 'scaleModes',     label: null               },
 ];
 
 const MODES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
@@ -71,19 +71,31 @@ const FUNCTIONAL = {
   minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V'],
 };
 
-// DOM
-const promptLine1  = document.getElementById('promptLine1');
-const promptLine2  = document.getElementById('promptLine2');
-const promptCard   = document.getElementById('promptCard');
-const nextBtn      = document.getElementById('nextBtn');
-const timerDisplay = document.getElementById('timerDisplay');
-const customTimer  = document.getElementById('customTimer');
+// ── DOM ───────────────────────────────────────────────────────────────────────
+
+const promptLine1    = document.getElementById('promptLine1');
+const promptLine2    = document.getElementById('promptLine2');
+const promptCard     = document.getElementById('promptCard');
+const nextBtn        = document.getElementById('nextBtn');
+const timerDisplay   = document.getElementById('timerDisplay');
+const customTimer    = document.getElementById('customTimer');
+const metroBpmInput  = document.getElementById('metroBpm');
+const tapBtn         = document.getElementById('tapBtn');
+const metroPanel     = document.getElementById('metroPanel');
+
+// ── State ─────────────────────────────────────────────────────────────────────
 
 let lastPromptKey  = null;
 let timerInterval  = null;
 let timerRemaining = 0;
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+let metroIntervalId = null;
+let metroBeat       = 0;  // position within bar (0-indexed)
+let metroCount      = 0;  // quarter-note beats since last chord change
+let tapTimes        = [];
+let audioCtx        = null;
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 function pick(arr) {
   return arr[Math.floor(Math.random() * arr.length)];
@@ -97,6 +109,35 @@ function checked(id) {
   return document.getElementById(id).checked;
 }
 
+function getTimerMode() {
+  return document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
+}
+
+// ── Audio ─────────────────────────────────────────────────────────────────────
+
+function getAudioCtx() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  if (audioCtx.state === 'suspended') audioCtx.resume();
+  return audioCtx;
+}
+
+function playClick(accented) {
+  try {
+    const ctx  = getAudioCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.connect(gain);
+    gain.connect(ctx.destination);
+    osc.type = 'sine';
+    osc.frequency.value = accented ? 1100 : 800;
+    const now = ctx.currentTime;
+    gain.gain.setValueAtTime(accented ? 0.55 : 0.3, now);
+    gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
+    osc.start(now);
+    osc.stop(now + 0.08);
+  } catch (_) {}
+}
+
 // ── Generators ───────────────────────────────────────────────────────────────
 
 function genChord() {
@@ -104,15 +145,15 @@ function genChord() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const type = pick(types);
-  const note = pick(notes);
+  const type   = pick(types);
+  const note   = pick(notes);
   const useInv = checked('inversions');
-  const inv = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
+  const inv    = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
 
   return {
     line1: `${note} ${type.label}`,
     line2: inv,
-    key: `chord|${note}|${type.label}|${inv}`,
+    key:   `chord|${note}|${type.label}|${inv}`,
   };
 }
 
@@ -121,14 +162,14 @@ function genScale() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const type = pick(types);
-  const note = pick(notes);
+  const type  = pick(types);
+  const note  = pick(notes);
   const label = type.label === null ? pick(MODES) : type.label;
 
   return {
     line1: `${note} ${label}`,
     line2: '',
-    key: `scale|${note}|${label}`,
+    key:   `scale|${note}|${label}`,
   };
 }
 
@@ -144,7 +185,7 @@ function genFunctional() {
   return {
     line1: `Key: ${note} ${mode}`,
     line2: `Play: ${pattern}`,
-    key: `func|${note}|${mode}|${pattern}`,
+    key:   `func|${note}|${mode}|${pattern}`,
   };
 }
 
@@ -206,7 +247,6 @@ function generatePrompt() {
     }
   }
 
-  // Fallback if we can't avoid a repeat (very small pool)
   for (const fn of pool) {
     const result = fn();
     if (result) { lastPromptKey = result.key; return result; }
@@ -217,39 +257,47 @@ function generatePrompt() {
 
 // ── Display ───────────────────────────────────────────────────────────────────
 
-function showPrompt() {
-  const prompt = generatePrompt();
-
+function renderPrompt(prompt) {
   promptCard.classList.add('flash');
-
   setTimeout(() => {
-    if (!prompt) {
-      promptLine1.textContent = 'Enable a category and at least one note';
-      promptLine2.textContent = '';
-    } else {
-      promptLine1.textContent = prompt.line1;
-      promptLine2.textContent = prompt.line2;
-    }
+    promptLine1.textContent = prompt ? prompt.line1 : 'Enable a category and at least one note';
+    promptLine2.textContent = prompt ? prompt.line2 : '';
     promptCard.classList.remove('flash');
   }, 120);
-
-  restartTimer();
 }
 
-// ── Timer ─────────────────────────────────────────────────────────────────────
+function showPrompt() {
+  renderPrompt(generatePrompt());
+
+  if (getTimerMode() === 'metronome') {
+    if (!metroIntervalId) {
+      startMetronome();
+    } else {
+      metroBeat  = 0;
+      metroCount = 0;
+      pulseBeat(true);
+    }
+  } else {
+    stopMetronome();
+    restartTimer();
+  }
+}
+
+// ── Seconds timer ─────────────────────────────────────────────────────────────
 
 function timerSeconds() {
-  const val = document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
-  if (val === 'off') return 0;
+  const val = getTimerMode();
+  if (val === 'off' || val === 'metronome') return 0;
   if (val === 'custom') return Math.max(1, parseInt(customTimer.value) || 10);
   return parseInt(val);
 }
 
 function stopTimer() {
   clearInterval(timerInterval);
-  timerInterval = null;
+  timerInterval  = null;
+  timerRemaining = 0;
   timerDisplay.textContent = '';
-  timerDisplay.className = 'timer-display';
+  timerDisplay.className   = 'timer-display';
 }
 
 function restartTimer() {
@@ -262,9 +310,8 @@ function restartTimer() {
 
   timerInterval = setInterval(() => {
     timerRemaining -= 1;
-
     if (timerRemaining <= 0) {
-      showPrompt(); // also calls restartTimer inside
+      showPrompt();
     } else {
       timerDisplay.textContent = timerRemaining;
       timerDisplay.classList.toggle('warning', timerRemaining <= 3);
@@ -272,11 +319,89 @@ function restartTimer() {
   }, 1000);
 }
 
+// ── Metronome ─────────────────────────────────────────────────────────────────
+
+function getBpm() {
+  return Math.min(300, Math.max(20, parseInt(metroBpmInput.value) || 120));
+}
+
+function getBeatsPerBar() {
+  return parseInt(document.getElementById('metroTimeSig').value) || 4;
+}
+
+function getBeatsPerChange() {
+  return parseFloat(document.getElementById('metroNoteDuration').value) || 4;
+}
+
+function pulseBeat(accented) {
+  // Remove and re-add class to retrigger CSS animation on every beat
+  timerDisplay.className = 'timer-display';
+  void timerDisplay.offsetWidth;
+  timerDisplay.textContent = metroBeat + 1;
+  timerDisplay.classList.add(accented ? 'metro-accent' : 'metro-beat');
+}
+
+function metroTick() {
+  metroBeat = (metroBeat + 1) % getBeatsPerBar();
+  metroCount++;
+
+  const accented = metroBeat === 0;
+  playClick(accented);
+  pulseBeat(accented);
+
+  if (metroCount >= getBeatsPerChange()) {
+    metroCount = 0;
+    renderPrompt(generatePrompt());
+  }
+}
+
+function startMetronome() {
+  stopTimer();
+  stopMetronome();
+  metroBeat  = 0;
+  metroCount = 0;
+  playClick(true);
+  pulseBeat(true);
+  metroIntervalId = setInterval(metroTick, 60000 / getBpm());
+}
+
+function stopMetronome() {
+  clearInterval(metroIntervalId);
+  metroIntervalId = null;
+  metroBeat  = 0;
+  metroCount = 0;
+  timerDisplay.textContent = '';
+  timerDisplay.className   = 'timer-display';
+}
+
+// ── Tap tempo ─────────────────────────────────────────────────────────────────
+
+function handleTap() {
+  const now = performance.now();
+
+  // Discard taps older than 3 s — user paused and is starting fresh
+  tapTimes = tapTimes.filter(t => now - t < 3000);
+  tapTimes.push(now);
+
+  if (tapTimes.length >= 2) {
+    const gaps = [];
+    for (let i = 1; i < tapTimes.length; i++) gaps.push(tapTimes[i] - tapTimes[i - 1]);
+    const avg = gaps.reduce((a, b) => a + b) / gaps.length;
+    const bpm = Math.round(60000 / avg);
+    metroBpmInput.value = Math.min(300, Math.max(20, bpm));
+    saveSettings();
+
+    // Hot-swap interval if metronome is already running
+    if (metroIntervalId) {
+      clearInterval(metroIntervalId);
+      metroIntervalId = setInterval(metroTick, 60000 / getBpm());
+    }
+  }
+}
+
 // ── Settings persistence ──────────────────────────────────────────────────────
 
 function saveSettings() {
-  const timerVal = document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
-
   const ids = [
     'catChords', 'catScales', 'catFunctional', 'catIntervals', 'catDiatonic',
     'chordMajor', 'chordMinor', 'chordDiminished', 'chordAugmented',
@@ -292,18 +417,17 @@ function saveSettings() {
     'intDirUp', 'intDirDown',
   ];
 
-  const settings = {
-    timer: timerVal,
-    customTimer: customTimer.value,
-    checks: Object.fromEntries(ids.map(id => [id, checked(id)])),
-    notes: Object.fromEntries(
-      NOTES.map(n => [n, document.querySelector(`input[data-note="${n}"]`).checked])
-    ),
-    diatonicRoot: document.getElementById('diatonicRoot').value,
-    diatonicMode: document.getElementById('diatonicMode').value,
-  };
-
-  localStorage.setItem('mpr_settings', JSON.stringify(settings));
+  localStorage.setItem('mpr_settings', JSON.stringify({
+    timer:            getTimerMode(),
+    customTimer:      customTimer.value,
+    checks:           Object.fromEntries(ids.map(id => [id, checked(id)])),
+    notes:            Object.fromEntries(NOTES.map(n => [n, document.querySelector(`input[data-note="${n}"]`).checked])),
+    diatonicRoot:     document.getElementById('diatonicRoot').value,
+    diatonicMode:     document.getElementById('diatonicMode').value,
+    metroBpm:         metroBpmInput.value,
+    metroNoteDuration:document.getElementById('metroNoteDuration').value,
+    metroTimeSig:     document.getElementById('metroTimeSig').value,
+  }));
 }
 
 function loadSettings() {
@@ -324,18 +448,19 @@ function loadSettings() {
       });
     }
 
-    if (s.diatonicRoot) document.getElementById('diatonicRoot').value = s.diatonicRoot;
-    if (s.diatonicMode) document.getElementById('diatonicMode').value = s.diatonicMode;
-
     if (s.notes) {
       NOTES.forEach(n => {
         const el = document.querySelector(`input[data-note="${n}"]`);
         if (el && s.notes[n] !== undefined) el.checked = s.notes[n];
       });
     }
-  } catch (_) {
-    // ignore corrupt data
-  }
+
+    if (s.diatonicRoot) document.getElementById('diatonicRoot').value = s.diatonicRoot;
+    if (s.diatonicMode) document.getElementById('diatonicMode').value = s.diatonicMode;
+    if (s.metroBpm)          metroBpmInput.value = s.metroBpm;
+    if (s.metroNoteDuration) document.getElementById('metroNoteDuration').value = s.metroNoteDuration;
+    if (s.metroTimeSig)      document.getElementById('metroTimeSig').value = s.metroTimeSig;
+  } catch (_) {}
 }
 
 // ── UI sync ───────────────────────────────────────────────────────────────────
@@ -345,7 +470,10 @@ function syncUI() {
   document.getElementById('scalesOptions').classList.toggle('disabled', !checked('catScales'));
   document.getElementById('intervalsOptions').classList.toggle('disabled', !checked('catIntervals'));
   document.getElementById('diatonicOptions').classList.toggle('disabled', !checked('catDiatonic'));
-  customTimer.disabled = document.querySelector('input[name="timer"]:checked')?.value !== 'custom';
+
+  const mode = getTimerMode();
+  customTimer.disabled = mode !== 'custom';
+  metroPanel.classList.toggle('hidden', mode !== 'metronome');
 }
 
 // ── Event listeners ───────────────────────────────────────────────────────────
@@ -361,20 +489,29 @@ document.addEventListener('keydown', e => {
 
 document.querySelectorAll('input').forEach(el => {
   el.addEventListener('change', () => {
-    // Stop timer when timer setting changes so it doesn't fire mid-change
-    const isTimerInput = el.name === 'timer' || el.id === 'customTimer';
-    if (isTimerInput) stopTimer();
-
+    if (el.name === 'timer' || el.id === 'customTimer') {
+      stopTimer();
+      stopMetronome();
+    }
     saveSettings();
     syncUI();
   });
 });
 
-// Custom timer value changes should also save
 customTimer.addEventListener('input', saveSettings);
 
 document.querySelectorAll('select').forEach(el => {
   el.addEventListener('change', () => { saveSettings(); });
+});
+
+tapBtn.addEventListener('click', handleTap);
+
+metroBpmInput.addEventListener('input', () => {
+  saveSettings();
+  if (metroIntervalId) {
+    clearInterval(metroIntervalId);
+    metroIntervalId = setInterval(metroTick, 60000 / getBpm());
+  }
 });
 
 // ── Init ──────────────────────────────────────────────────────────────────────
