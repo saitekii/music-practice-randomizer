@@ -38,6 +38,21 @@ const SCALE_TYPES = [
 
 const MODES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
+const INTERVALS = [
+  { id: 'intMin2',  label: 'Minor 2nd'   },
+  { id: 'intMaj2',  label: 'Major 2nd'   },
+  { id: 'intMin3',  label: 'Minor 3rd'   },
+  { id: 'intMaj3',  label: 'Major 3rd'   },
+  { id: 'intPerf4', label: 'Perfect 4th' },
+  { id: 'intTT',    label: 'Tritone'     },
+  { id: 'intPerf5', label: 'Perfect 5th' },
+  { id: 'intMin6',  label: 'Minor 6th'   },
+  { id: 'intMaj6',  label: 'Major 6th'   },
+  { id: 'intMin7',  label: 'Minor 7th'   },
+  { id: 'intMaj7',  label: 'Major 7th'   },
+  { id: 'intOct',   label: 'Octave'      },
+];
+
 const DIATONIC = {
   major: {
     intervals: [0, 2, 4, 5, 7, 9, 11],
@@ -133,6 +148,27 @@ function genFunctional() {
   };
 }
 
+function genInterval() {
+  const types = INTERVALS.filter(i => checked(i.id));
+  const notes = enabledNotes();
+  const dirs  = [
+    checked('intDirUp')   && 'above',
+    checked('intDirDown') && 'below',
+  ].filter(Boolean);
+
+  if (!types.length || !notes.length || !dirs.length) return null;
+
+  const interval = pick(types);
+  const note     = pick(notes);
+  const dir      = pick(dirs);
+
+  return {
+    line1: interval.label,
+    line2: `${dir} ${note}`,
+    key:   `interval|${interval.label}|${note}|${dir}`,
+  };
+}
+
 function genDiatonic() {
   const root    = document.getElementById('diatonicRoot').value;
   const mode    = document.getElementById('diatonicMode').value;
@@ -157,6 +193,7 @@ function generatePrompt() {
   if (checked('catChords'))     pool.push(genChord);
   if (checked('catScales'))     pool.push(genScale);
   if (checked('catFunctional')) pool.push(genFunctional);
+  if (checked('catIntervals'))  pool.push(genInterval);
   if (checked('catDiatonic'))   pool.push(genDiatonic);
 
   if (!pool.length) return null;
@@ -241,7 +278,7 @@ function saveSettings() {
   const timerVal = document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
 
   const ids = [
-    'catChords', 'catScales', 'catFunctional', 'catDiatonic',
+    'catChords', 'catScales', 'catFunctional', 'catIntervals', 'catDiatonic',
     'chordMajor', 'chordMinor', 'chordDiminished', 'chordAugmented',
     'chordMaj7', 'chordMin7', 'chordDom7',
     'chordSus2', 'chordSus4', 'chord7sus4',
@@ -250,6 +287,9 @@ function saveSettings() {
     'inversions',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
     'scaleMajPent', 'scaleMinPent', 'scaleModes',
+    'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
+    'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
+    'intDirUp', 'intDirDown',
   ];
 
   const settings = {
@@ -303,6 +343,7 @@ function loadSettings() {
 function syncUI() {
   document.getElementById('chordsOptions').classList.toggle('disabled', !checked('catChords'));
   document.getElementById('scalesOptions').classList.toggle('disabled', !checked('catScales'));
+  document.getElementById('intervalsOptions').classList.toggle('disabled', !checked('catIntervals'));
   document.getElementById('diatonicOptions').classList.toggle('disabled', !checked('catDiatonic'));
   customTimer.disabled = document.querySelector('input[name="timer"]:checked')?.value !== 'custom';
 }
