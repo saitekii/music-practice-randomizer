@@ -194,6 +194,30 @@ header h1 {
   cursor: not-allowed;
 }
 
+/* Key selector (Diatonic Chords) */
+.key-selector {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+}
+
+select {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  color: var(--text);
+  padding: 4px 8px;
+  font-size: 0.9rem;
+  cursor: pointer;
+  outline: none;
+}
+
+select:focus {
+  border-color: var(--accent);
+}
+
 /* Categories */
 .category {
   margin-bottom: 18px;

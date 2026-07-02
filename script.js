@@ -25,6 +25,19 @@ const SCALE_TYPES = [
 
 const MODES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
 
+const DIATONIC = {
+  major: {
+    intervals: [0, 2, 4, 5, 7, 9, 11],
+    qualities: ['Major', 'Minor', 'Minor', 'Major', 'Major', 'Minor', 'Diminished'],
+    numerals:  ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'],
+  },
+  minor: {
+    intervals: [0, 2, 3, 5, 7, 8, 10],
+    qualities: ['Minor', 'Diminished', 'Major', 'Minor', 'Minor', 'Major', 'Major'],
+    numerals:  ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
+  },
+};
+
 const FUNCTIONAL = {
   major: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°', 'ii–V–I', 'I–IV–V', 'vi–IV–I–V', 'I–V–vi–IV', 'IV–V–I'],
   minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V'],
@@ -107,11 +120,31 @@ function genFunctional() {
   };
 }
 
+function genDiatonic() {
+  const root    = document.getElementById('diatonicRoot').value;
+  const mode    = document.getElementById('diatonicMode').value;
+  const data    = DIATONIC[mode];
+  const rootIdx = NOTES.indexOf(root);
+  const degree  = Math.floor(Math.random() * 7);
+
+  const chordRoot = NOTES[(rootIdx + data.intervals[degree]) % 12];
+  const quality   = data.qualities[degree];
+  const numeral   = data.numerals[degree];
+  const modeLabel = mode === 'major' ? 'Major' : 'Minor';
+
+  return {
+    line1: `${chordRoot} ${quality}`,
+    line2: `${numeral} in ${root} ${modeLabel}`,
+    key:   `diatonic|${root}|${mode}|${degree}`,
+  };
+}
+
 function generatePrompt() {
   const pool = [];
   if (checked('catChords'))     pool.push(genChord);
   if (checked('catScales'))     pool.push(genScale);
   if (checked('catFunctional')) pool.push(genFunctional);
+  if (checked('catDiatonic'))   pool.push(genDiatonic);
 
   if (!pool.length) return null;
 
@@ -195,7 +228,7 @@ function saveSettings() {
   const timerVal = document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
 
   const ids = [
-    'catChords', 'catScales', 'catFunctional',
+    'catChords', 'catScales', 'catFunctional', 'catDiatonic',
     'chordMajor', 'chordMinor', 'chordDiminished', 'chordAugmented',
     'chordMaj7', 'chordMin7', 'chordDom7', 'inversions',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
@@ -209,6 +242,8 @@ function saveSettings() {
     notes: Object.fromEntries(
       NOTES.map(n => [n, document.querySelector(`input[data-note="${n}"]`).checked])
     ),
+    diatonicRoot: document.getElementById('diatonicRoot').value,
+    diatonicMode: document.getElementById('diatonicMode').value,
   };
 
   localStorage.setItem('mpr_settings', JSON.stringify(settings));
@@ -232,6 +267,9 @@ function loadSettings() {
       });
     }
 
+    if (s.diatonicRoot) document.getElementById('diatonicRoot').value = s.diatonicRoot;
+    if (s.diatonicMode) document.getElementById('diatonicMode').value = s.diatonicMode;
+
     if (s.notes) {
       NOTES.forEach(n => {
         const el = document.querySelector(`input[data-note="${n}"]`);
@@ -248,6 +286,7 @@ function loadSettings() {
 function syncUI() {
   document.getElementById('chordsOptions').classList.toggle('disabled', !checked('catChords'));
   document.getElementById('scalesOptions').classList.toggle('disabled', !checked('catScales'));
+  document.getElementById('diatonicOptions').classList.toggle('disabled', !checked('catDiatonic'));
   customTimer.disabled = document.querySelector('input[name="timer"]:checked')?.value !== 'custom';
 }
 
@@ -256,7 +295,7 @@ function syncUI() {
 nextBtn.addEventListener('click', showPrompt);
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'Space' && e.target.tagName !== 'INPUT') {
+  if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
     e.preventDefault();
     showPrompt();
   }
@@ -275,6 +314,10 @@ document.querySelectorAll('input').forEach(el => {
 
 // Custom timer value changes should also save
 customTimer.addEventListener('input', saveSettings);
+
+document.querySelectorAll('select').forEach(el => {
+  el.addEventListener('change', () => { saveSettings(); });
+});
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 
