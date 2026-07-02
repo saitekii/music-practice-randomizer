@@ -43,11 +43,44 @@
         <div class="timer-display" id="timerDisplay"></div>
       </div>
       <p class="kbd-hint">or press <kbd>Space</kbd></p>
+
+      <div id="sessionCountdown" class="session-countdown hidden" role="timer" aria-live="off">
+        <div class="session-cd-row">
+          <span id="sessionTimeDisplay" class="session-cd-time">5:00</span>
+          <span class="session-cd-label">remaining</span>
+          <button id="sessionStopBtn" class="session-cd-stop" type="button">Stop</button>
+        </div>
+        <div class="session-cd-track">
+          <div id="sessionProgressFill" class="session-cd-fill"></div>
+        </div>
+      </div>
     </main>
 
     <section class="settings">
 
-      <!-- Timer -->
+      <!-- Practice session timer -->
+      <div class="settings-group">
+        <button class="group-toggle" aria-expanded="true">
+          <span>Practice Timer</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="group-body">
+          <div class="group-body-inner">
+            <div class="duration-pills" role="group" aria-label="Practice session duration">
+              <button class="duration-pill selected" data-mins="5" type="button">5 min</button>
+              <button class="duration-pill" data-mins="10" type="button">10 min</button>
+              <button class="duration-pill" data-mins="15" type="button">15 min</button>
+              <button class="duration-pill" data-mins="20" type="button">20 min</button>
+              <button class="duration-pill" data-mins="30" type="button">30 min</button>
+            </div>
+            <button id="sessionStartBtn" class="session-start-btn" type="button">Start</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Prompt timer (auto-advance per prompt) -->
       <div class="settings-group">
         <button class="group-toggle" aria-expanded="true">
           <span>Timer</span>

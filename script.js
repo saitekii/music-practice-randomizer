@@ -580,6 +580,99 @@ function randomizeSettings() {
   showUndoToast();
 }
 
+// ── Practice session timer ────────────────────────────────────────────────────
+
+const sessionCountdown   = document.getElementById('sessionCountdown');
+const sessionTimeDisplay = document.getElementById('sessionTimeDisplay');
+const sessionProgressFill = document.getElementById('sessionProgressFill');
+const sessionStartBtn    = document.getElementById('sessionStartBtn');
+const sessionStopBtn     = document.getElementById('sessionStopBtn');
+const durationPills      = document.querySelectorAll('.duration-pill');
+
+let sessionDuration  = 5 * 60;
+let sessionRemaining = 5 * 60;
+let sessionInterval  = null;
+
+function formatSessionTime(secs) {
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
+}
+
+function beepDone() {
+  try {
+    const ctx = getAudioCtx();
+    const t = ctx.currentTime;
+    [[659, 0, 0.2], [784, 0.25, 0.2], [988, 0.5, 0.5]].forEach(([freq, start, dur]) => {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0.3, t + start);
+      gain.gain.exponentialRampToValueAtTime(0.001, t + start + dur);
+      osc.start(t + start);
+      osc.stop(t + start + dur);
+    });
+  } catch (_) {}
+}
+
+function updateSessionDisplay() {
+  sessionTimeDisplay.textContent = formatSessionTime(sessionRemaining);
+  const pct = ((sessionDuration - sessionRemaining) / sessionDuration) * 100;
+  sessionProgressFill.style.width = pct + '%';
+}
+
+function stopSession() {
+  clearInterval(sessionInterval);
+  sessionInterval = null;
+  sessionCountdown.classList.add('hidden');
+  sessionStartBtn.textContent = 'Start';
+  sessionRemaining = sessionDuration;
+  sessionProgressFill.style.width = '0%';
+  sessionTimeDisplay.textContent = formatSessionTime(sessionDuration);
+}
+
+function startSession() {
+  clearInterval(sessionInterval);
+  sessionRemaining = sessionDuration;
+  updateSessionDisplay();
+  sessionCountdown.classList.remove('hidden');
+  sessionStartBtn.textContent = 'Restart';
+
+  sessionInterval = setInterval(() => {
+    sessionRemaining--;
+    if (sessionRemaining <= 0) {
+      clearInterval(sessionInterval);
+      sessionInterval = null;
+      sessionProgressFill.style.width = '100%';
+      sessionTimeDisplay.textContent = 'Done!';
+      beepDone();
+      setTimeout(stopSession, 3000);
+    } else {
+      updateSessionDisplay();
+    }
+  }, 1000);
+}
+
+durationPills.forEach(pill => {
+  pill.addEventListener('click', () => {
+    durationPills.forEach(p => p.classList.remove('selected'));
+    pill.classList.add('selected');
+    sessionDuration  = parseInt(pill.dataset.mins) * 60;
+    sessionRemaining = sessionDuration;
+    if (sessionInterval) {
+      startSession();
+    } else {
+      sessionTimeDisplay.textContent = formatSessionTime(sessionDuration);
+    }
+  });
+});
+
+sessionStartBtn.addEventListener('click', startSession);
+sessionStopBtn.addEventListener('click', stopSession);
+
 // ── Event listeners ───────────────────────────────────────────────────────────
 
 nextBtn.addEventListener('click', showPrompt);
