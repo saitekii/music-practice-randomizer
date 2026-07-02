@@ -43,7 +43,7 @@
         </button>
         <div class="group-body">
           <div class="group-body-inner">
-            <div class="timer-options">
+            <div class="timer-options" role="group" aria-label="Timer interval">
               <label class="radio-pill"><input type="radio" name="timer" value="off" checked> Off</label>
               <label class="radio-pill"><input type="radio" name="timer" value="3"> 3s</label>
               <label class="radio-pill"><input type="radio" name="timer" value="5"> 5s</label>
@@ -101,7 +101,7 @@
               <label class="category-header">
                 <input type="checkbox" id="catChords" checked> Chords
               </label>
-              <div class="category-options" id="chordsOptions">
+              <div class="category-options" id="chordsOptions" role="group" aria-label="Chord types">
                 <label><input type="checkbox" id="chordMajor" checked> Major</label>
                 <label><input type="checkbox" id="chordMinor" checked> Minor</label>
                 <label><input type="checkbox" id="chordDiminished" checked> Diminished</label>
@@ -130,7 +130,7 @@
               <label class="category-header">
                 <input type="checkbox" id="catScales" checked> Scales
               </label>
-              <div class="category-options" id="scalesOptions">
+              <div class="category-options" id="scalesOptions" role="group" aria-label="Scale types">
                 <label><input type="checkbox" id="scaleMajor" checked> Major</label>
                 <label><input type="checkbox" id="scaleNatMinor" checked> Natural minor</label>
                 <label><input type="checkbox" id="scaleHarmMinor" checked> Harmonic minor</label>
@@ -151,7 +151,7 @@
               <label class="category-header">
                 <input type="checkbox" id="catIntervals"> Intervals
               </label>
-              <div class="category-options" id="intervalsOptions">
+              <div class="category-options" id="intervalsOptions" role="group" aria-label="Interval types">
                 <label><input type="checkbox" id="intMin2"  checked> Minor 2nd</label>
                 <label><input type="checkbox" id="intMaj2"  checked> Major 2nd</label>
                 <label><input type="checkbox" id="intMin3"  checked> Minor 3rd</label>
@@ -174,7 +174,7 @@
               <label class="category-header">
                 <input type="checkbox" id="catDiatonic"> Diatonic Chords
               </label>
-              <div class="category-options" id="diatonicOptions">
+              <div class="category-options" id="diatonicOptions" role="group" aria-label="Diatonic key">
                 <div class="key-selector">
                   <span>Key:</span>
                   <select id="diatonicRoot">
@@ -204,7 +204,7 @@
         </button>
         <div class="group-body">
           <div class="group-body-inner">
-            <div class="notes-grid">
+            <div class="notes-grid" role="group" aria-label="Root notes">
               <label><input type="checkbox" data-note="C" checked> C</label>
               <label><input type="checkbox" data-note="C#" checked> C#</label>
               <label><input type="checkbox" data-note="D" checked> D</label>

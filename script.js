@@ -261,14 +261,18 @@ function generatePrompt() {
 
 // ── Display ───────────────────────────────────────────────────────────────────
 
+const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+
 function renderPrompt(prompt) {
-  promptCard.classList.add('flash');
+  const noMotion = reducedMotion.matches;
+  if (!noMotion) promptCard.classList.add('flash');
+
   setTimeout(() => {
     promptCard.classList.toggle('empty', !prompt);
     promptLine1.textContent = prompt ? prompt.line1 : 'Enable a category and at least one note';
     promptLine2.textContent = prompt ? prompt.line2 : '';
-    promptCard.classList.remove('flash');
-  }, 120);
+    if (!noMotion) promptCard.classList.remove('flash');
+  }, noMotion ? 0 : 120);
 }
 
 function showPrompt() {
