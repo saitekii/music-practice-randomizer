@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Music Practice Randomizer</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>Music Practice Randomizer</h1>
+    </header>
+
+    <main>
+      <div class="prompt-card" id="promptCard">
+        <div class="prompt-text">
+          <span class="prompt-line" id="promptLine1"></span>
+          <span class="prompt-line secondary" id="promptLine2"></span>
+        </div>
+      </div>
+
+      <div class="controls">
+        <button class="next-btn" id="nextBtn">Next Prompt</button>
+        <div class="timer-display" id="timerDisplay"></div>
+      </div>
+    </main>
+
+    <section class="settings">
+
+      <div class="settings-group">
+        <h2>Timer</h2>
+        <div class="timer-options">
+          <label class="radio-label"><input type="radio" name="timer" value="off" checked> Off</label>
+          <label class="radio-label"><input type="radio" name="timer" value="3"> 3s</label>
+          <label class="radio-label"><input type="radio" name="timer" value="5"> 5s</label>
+          <label class="radio-label"><input type="radio" name="timer" value="10"> 10s</label>
+          <label class="radio-label"><input type="radio" name="timer" value="15"> 15s</label>
+          <label class="radio-label">
+            <input type="radio" name="timer" value="custom"> Custom:
+            <input type="number" id="customTimer" min="1" max="300" value="10" disabled> s
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Categories</h2>
+
+        <div class="category">
+          <label class="category-header">
+            <input type="checkbox" id="catChords" checked> Chords
+          </label>
+          <div class="category-options" id="chordsOptions">
+            <label><input type="checkbox" id="chordMajor" checked> Major</label>
+            <label><input type="checkbox" id="chordMinor" checked> Minor</label>
+            <label><input type="checkbox" id="chordDiminished" checked> Diminished</label>
+            <label><input type="checkbox" id="chordAugmented" checked> Augmented</label>
+            <label><input type="checkbox" id="chordMaj7" checked> Major 7</label>
+            <label><input type="checkbox" id="chordMin7" checked> Minor 7</label>
+            <label><input type="checkbox" id="chordDom7" checked> Dominant 7</label>
+            <label class="inversion-toggle"><input type="checkbox" id="inversions"> Enable Inversions</label>
+          </div>
+        </div>
+
+        <div class="category">
+          <label class="category-header">
+            <input type="checkbox" id="catScales" checked> Scales
+          </label>
+          <div class="category-options" id="scalesOptions">
+            <label><input type="checkbox" id="scaleMajor" checked> Major</label>
+            <label><input type="checkbox" id="scaleNatMinor" checked> Natural minor</label>
+            <label><input type="checkbox" id="scaleHarmMinor" checked> Harmonic minor</label>
+            <label><input type="checkbox" id="scaleMelMinor" checked> Melodic minor</label>
+            <label><input type="checkbox" id="scaleMajPent" checked> Major pentatonic</label>
+            <label><input type="checkbox" id="scaleMinPent" checked> Minor pentatonic</label>
+            <label><input type="checkbox" id="scaleModes" checked> Modes</label>
+          </div>
+        </div>
+
+        <div class="category">
+          <label class="category-header">
+            <input type="checkbox" id="catFunctional" checked> Functional Harmony
+          </label>
+        </div>
+      </div>
+
+      <div class="settings-group">
+        <h2>Root Notes</h2>
+        <div class="notes-grid">
+          <label><input type="checkbox" data-note="C" checked> C</label>
+          <label><input type="checkbox" data-note="C#" checked> C#</label>
+          <label><input type="checkbox" data-note="D" checked> D</label>
+          <label><input type="checkbox" data-note="Eb" checked> Eb</label>
+          <label><input type="checkbox" data-note="E" checked> E</label>
+          <label><input type="checkbox" data-note="F" checked> F</label>
+          <label><input type="checkbox" data-note="F#" checked> F#</label>
+          <label><input type="checkbox" data-note="G" checked> G</label>
+          <label><input type="checkbox" data-note="Ab" checked> Ab</label>
+          <label><input type="checkbox" data-note="A" checked> A</label>
+          <label><input type="checkbox" data-note="Bb" checked> Bb</label>
+          <label><input type="checkbox" data-note="B" checked> B</label>
+        </div>
+      </div>
+
+    </section>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>
