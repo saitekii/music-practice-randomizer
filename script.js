@@ -99,6 +99,30 @@ let audioCtx        = null;
 let prevSettings  = null;
 let undoTimeout   = null;
 
+let wakeLock = null;
+
+async function acquireWakeLock() {
+  if (!('wakeLock' in navigator) || wakeLock) return;
+  try {
+    wakeLock = await navigator.wakeLock.request('screen');
+    wakeLock.addEventListener('release', () => { wakeLock = null; });
+  } catch (_) {}
+}
+
+function releaseWakeLock() {
+  if (wakeLock) { wakeLock.release(); wakeLock = null; }
+}
+
+function syncWakeLock() {
+  const active = timerInterval || metroIntervalId || sessionInterval;
+  if (active) acquireWakeLock(); else releaseWakeLock();
+}
+
+// Re-acquire after tab becomes visible again (OS releases the lock on hide)
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') syncWakeLock();
+});
+
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 function pick(arr) {
@@ -307,6 +331,7 @@ function stopTimer() {
   timerRemaining = 0;
   timerDisplay.textContent = '';
   timerDisplay.className   = 'timer-display';
+  syncWakeLock();
 }
 
 function restartTimer() {
@@ -326,6 +351,7 @@ function restartTimer() {
       timerDisplay.classList.toggle('warning', timerRemaining <= 3);
     }
   }, 1000);
+  syncWakeLock();
 }
 
 // ── Metronome ─────────────────────────────────────────────────────────────────
@@ -372,6 +398,7 @@ function startMetronome() {
   playClick(true);
   pulseBeat(true);
   metroIntervalId = setInterval(metroTick, 60000 / getBpm());
+  syncWakeLock();
 }
 
 function stopMetronome() {
@@ -381,6 +408,7 @@ function stopMetronome() {
   metroCount = 0;
   timerDisplay.textContent = '';
   timerDisplay.className   = 'timer-display';
+  syncWakeLock();
 }
 
 // ── Tap tempo ─────────────────────────────────────────────────────────────────
@@ -632,6 +660,7 @@ function stopSession() {
   sessionRemaining = sessionDuration;
   sessionProgressFill.style.width = '0%';
   sessionTimeDisplay.textContent = formatSessionTime(sessionDuration);
+  syncWakeLock();
 }
 
 function startSession() {
@@ -654,6 +683,7 @@ function startSession() {
       updateSessionDisplay();
     }
   }, 1000);
+  syncWakeLock();
 }
 
 durationPills.forEach(pill => {
