@@ -211,9 +211,44 @@ header h1 {
   filter: brightness(0.95);
 }
 
-.timer-display {
+.back-btn {
+  grid-column: 1;
+  justify-self: end;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+
+.back-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
+.back-btn:disabled {
+  opacity: 0.22;
+  cursor: not-allowed;
+}
+
+.right-controls {
   grid-column: 3;
   padding-left: 16px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.timer-display {
   font-size: 2.2rem;
   font-weight: 700;
   color: var(--accent);
@@ -227,6 +262,37 @@ header h1 {
 
 /* Hide the timer display when empty so Next Prompt stays truly centered */
 .timer-display:empty {
+  display: none;
+}
+
+.hold-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.hold-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hold-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hold-btn.hidden {
   display: none;
 }
 
@@ -937,7 +1003,7 @@ input[type="number"]:focus-visible {
   .controls {
     display: flex;
     justify-content: space-between;
-    gap: 12px;
+    gap: 10px;
   }
 
   .next-btn {
@@ -948,12 +1014,21 @@ input[type="number"]:focus-visible {
     border-radius: 14px;
   }
 
-  .timer-display {
+  .right-controls {
     grid-column: unset;
     padding-left: 0;
+    gap: 6px;
+  }
+
+  .timer-display {
     font-size: 2rem;
-    min-width: 44px;
+    min-width: 2ch;
     text-align: center;
+  }
+
+  .back-btn {
+    width: 44px;
+    height: 44px;
   }
 }
 

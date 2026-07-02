@@ -77,6 +77,8 @@ const promptLine1    = document.getElementById('promptLine1');
 const promptLine2    = document.getElementById('promptLine2');
 const promptCard     = document.getElementById('promptCard');
 const nextBtn        = document.getElementById('nextBtn');
+const backBtn        = document.getElementById('backBtn');
+const holdBtn        = document.getElementById('holdBtn');
 const timerDisplay   = document.getElementById('timerDisplay');
 const customTimer    = document.getElementById('customTimer');
 const customTimerRow = document.getElementById('customTimerRow');
@@ -89,6 +91,10 @@ const metroPanel     = document.getElementById('metroPanel');
 let lastPromptKey  = null;
 let timerInterval  = null;
 let timerRemaining = 0;
+
+let promptHistory = [];
+let historyIndex  = 0;
+let isHeld        = false;
 
 let metroIntervalId = null;
 let metroBeat       = 0;  // position within bar (0-indexed)
@@ -299,10 +305,34 @@ function renderPrompt(prompt) {
   }, noMotion ? 0 : 120);
 }
 
+function addToHistory(prompt) {
+  if (!prompt) return;
+  promptHistory.push(prompt);
+  if (promptHistory.length > 10) promptHistory.shift();
+}
+
+function updateBackBtn() {
+  backBtn.disabled = historyIndex >= promptHistory.length - 1;
+}
+
+function goBack() {
+  if (historyIndex >= promptHistory.length - 1) return;
+  historyIndex++;
+  renderPrompt(promptHistory[promptHistory.length - 1 - historyIndex]);
+  updateBackBtn();
+}
+
 function showPrompt() {
-  renderPrompt(generatePrompt());
+  const prompt = generatePrompt();
+  clearHold();
+  historyIndex = 0;
+  addToHistory(prompt);
+  updateBackBtn();
+  if (sessionInterval) sessionPromptCount++;
+  renderPrompt(prompt);
 
   if (getTimerMode() === 'metronome') {
+    holdBtn.classList.add('hidden');
     if (!metroIntervalId) {
       startMetronome();
     } else {
@@ -325,13 +355,31 @@ function timerSeconds() {
   return parseInt(val);
 }
 
+function clearHold() {
+  isHeld = false;
+  holdBtn.setAttribute('aria-pressed', 'false');
+  holdBtn.classList.remove('active');
+}
+
 function stopTimer() {
+  clearHold();
+  holdBtn.classList.add('hidden');
   clearInterval(timerInterval);
   timerInterval  = null;
   timerRemaining = 0;
   timerDisplay.textContent = '';
   timerDisplay.className   = 'timer-display';
   syncWakeLock();
+}
+
+function timerTick() {
+  timerRemaining--;
+  if (timerRemaining <= 0) {
+    showPrompt();
+  } else {
+    timerDisplay.textContent = timerRemaining;
+    timerDisplay.classList.toggle('warning', timerRemaining <= 3);
+  }
 }
 
 function restartTimer() {
@@ -341,17 +389,28 @@ function restartTimer() {
 
   timerRemaining = secs;
   timerDisplay.textContent = timerRemaining;
+  holdBtn.classList.remove('hidden');
 
-  timerInterval = setInterval(() => {
-    timerRemaining -= 1;
-    if (timerRemaining <= 0) {
-      showPrompt();
-    } else {
-      timerDisplay.textContent = timerRemaining;
-      timerDisplay.classList.toggle('warning', timerRemaining <= 3);
-    }
-  }, 1000);
+  timerInterval = setInterval(timerTick, 1000);
   syncWakeLock();
+}
+
+function holdTimer() {
+  if (!timerRemaining || isHeld) return;
+  isHeld = true;
+  clearInterval(timerInterval);
+  timerInterval = null;
+  holdBtn.setAttribute('aria-pressed', 'true');
+  holdBtn.classList.add('active');
+}
+
+function resumeTimer() {
+  if (!isHeld) return;
+  clearHold();
+  if (timerRemaining > 0) {
+    timerInterval = setInterval(timerTick, 1000);
+    syncWakeLock();
+  }
 }
 
 // ── Metronome ─────────────────────────────────────────────────────────────────
@@ -610,16 +669,18 @@ function randomizeSettings() {
 
 // ── Practice session timer ────────────────────────────────────────────────────
 
-const sessionCountdown   = document.getElementById('sessionCountdown');
-const sessionTimeDisplay = document.getElementById('sessionTimeDisplay');
+const sessionCountdown    = document.getElementById('sessionCountdown');
+const sessionTimeDisplay  = document.getElementById('sessionTimeDisplay');
 const sessionProgressFill = document.getElementById('sessionProgressFill');
-const sessionStartBtn    = document.getElementById('sessionStartBtn');
-const sessionStopBtn     = document.getElementById('sessionStopBtn');
-const durationPills      = document.querySelectorAll('.duration-pill');
+const sessionCdMeta       = document.getElementById('sessionCdMeta');
+const sessionStartBtn     = document.getElementById('sessionStartBtn');
+const sessionStopBtn      = document.getElementById('sessionStopBtn');
+const durationPills       = document.querySelectorAll('.duration-pill');
 
-let sessionDuration  = 5 * 60;
-let sessionRemaining = 5 * 60;
-let sessionInterval  = null;
+let sessionDuration    = 5 * 60;
+let sessionRemaining   = 5 * 60;
+let sessionInterval    = null;
+let sessionPromptCount = 0;
 
 function formatSessionTime(secs) {
   const m = Math.floor(secs / 60);
@@ -658,15 +719,21 @@ function stopSession() {
   sessionCountdown.classList.add('hidden');
   sessionStartBtn.textContent = 'Start';
   sessionRemaining = sessionDuration;
+  sessionPromptCount = 0;
   sessionProgressFill.style.width = '0%';
   sessionTimeDisplay.textContent = formatSessionTime(sessionDuration);
+  sessionCdMeta.textContent = 'remaining';
+  sessionStopBtn.classList.remove('hidden');
   syncWakeLock();
 }
 
 function startSession() {
   clearInterval(sessionInterval);
-  sessionRemaining = sessionDuration;
+  sessionRemaining   = sessionDuration;
+  sessionPromptCount = 0;
   updateSessionDisplay();
+  sessionCdMeta.textContent = 'remaining';
+  sessionStopBtn.classList.remove('hidden');
   sessionCountdown.classList.remove('hidden');
   sessionStartBtn.textContent = 'Restart';
 
@@ -677,8 +744,12 @@ function startSession() {
       sessionInterval = null;
       sessionProgressFill.style.width = '100%';
       sessionTimeDisplay.textContent = 'Done!';
+      const mins = Math.round(sessionDuration / 60);
+      const p = sessionPromptCount;
+      sessionCdMeta.textContent = `${p} prompt${p !== 1 ? 's' : ''} · ${mins} min`;
+      sessionStopBtn.classList.add('hidden');
       beepDone();
-      setTimeout(stopSession, 3000);
+      setTimeout(stopSession, 3500);
     } else {
       updateSessionDisplay();
     }
@@ -706,6 +777,8 @@ sessionStopBtn.addEventListener('click', stopSession);
 // ── Event listeners ───────────────────────────────────────────────────────────
 
 nextBtn.addEventListener('click', showPrompt);
+backBtn.addEventListener('click', goBack);
+holdBtn.addEventListener('click', () => { if (isHeld) resumeTimer(); else holdTimer(); });
 
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
