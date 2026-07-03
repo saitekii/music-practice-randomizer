@@ -1,15 +1,15 @@
 :root {
-  --bg: #0a0b12;
-  --surface: #12131e;
-  --card: #191b2a;
-  --border: #20223a;
-  --border-light: #2c2f4a;
-  --accent: #7c6dfa;
-  --accent-dim: rgba(124, 109, 250, 0.12);
-  --accent-hover: #9183fb;
-  --text: #eceef8;
-  --text-muted: #6b7091;
-  --text-dim: #3e4160;
+  --bg: #0D0A07;
+  --surface: #1A1210;
+  --card: #221816;
+  --border: #2E2218;
+  --border-light: #3D2E1E;
+  --accent: #E8930A;
+  --accent-dim: rgba(232, 147, 10, 0.12);
+  --accent-hover: #F5A623;
+  --text: #F5E6C8;
+  --text-muted: #8A7050;
+  --text-dim: #4A3828;
   --warning: #ff6b6b;
 }
 
@@ -22,8 +22,8 @@
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
   background:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(100, 80, 255, 0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(80, 60, 240, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(232, 147, 10, 0.06) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(180, 100, 5, 0.04) 0%, transparent 60%),
     var(--bg);
   color: var(--text);
   min-height: 100vh;
@@ -40,31 +40,35 @@ body {
 /* ── Light mode ──────────────────────────────────────────────────────────────── */
 
 [data-theme="light"] {
-  --bg: #eef0f8;
-  --surface: #f7f8fc;
-  --card: #ffffff;
-  --border: #dde0f0;
-  --border-light: #c6cadf;
-  --accent: #6c5fff;
-  --accent-dim: rgba(108, 95, 255, 0.1);
-  --accent-hover: #7c6dfa;
-  --text: #1a1b2e;
-  --text-muted: #555870;
-  --text-dim: #8890a8;
+  --bg: #FAF6EE;
+  --surface: #F5EFE3;
+  --card: #FFFDF5;
+  --border: #E8D8B8;
+  --border-light: #D4BF95;
+  --accent: #B86A08;
+  --accent-dim: rgba(184, 106, 8, 0.1);
+  --accent-hover: #E8930A;
+  --text: #1C1410;
+  --text-muted: #6B5030;
+  --text-dim: #A08060;
   --warning: #e03535;
 }
 
 [data-theme="light"] body {
   background:
-    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(108, 95, 255, 0.07) 0%, transparent 65%),
-    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(80, 60, 240, 0.04) 0%, transparent 60%),
+    radial-gradient(ellipse 70% 50% at 15% 20%, rgba(184, 106, 8, 0.08) 0%, transparent 65%),
+    radial-gradient(ellipse 50% 40% at 85% 80%, rgba(180, 100, 5, 0.05) 0%, transparent 60%),
     var(--bg);
 }
 
 [data-theme="light"] .prompt-card {
+  background:
+    linear-gradient(var(--card), var(--card)) padding-box,
+    linear-gradient(135deg, rgba(184,106,8,0.25), rgba(184,106,8,0.04) 50%, rgba(184,106,8,0.12)) border-box;
   box-shadow:
     0 2px 4px rgba(0,0,0,0.05),
     0 8px 32px rgba(0,0,0,0.1),
+    0 0 60px rgba(184, 106, 8, 0.05),
     inset 0 1px 0 rgba(255,255,255,0.8);
 }
 
@@ -119,7 +123,7 @@ header h1 {
 .prompt-card {
   background:
     linear-gradient(var(--card), var(--card)) padding-box,
-    linear-gradient(135deg, rgba(124,109,250,0.4), rgba(124,109,250,0.05) 50%, rgba(124,109,250,0.2)) border-box;
+    linear-gradient(135deg, rgba(232,147,10,0.35), rgba(232,147,10,0.05) 50%, rgba(232,147,10,0.18)) border-box;
   border: 1px solid transparent;
   border-radius: 24px;
   padding: 60px 48px;
@@ -129,9 +133,10 @@ header h1 {
   align-items: center;
   justify-content: center;
   box-shadow:
-    0 2px 4px rgba(0,0,0,0.3),
-    0 16px 48px rgba(0,0,0,0.45),
-    inset 0 1px 0 rgba(255,255,255,0.04);
+    0 2px 4px rgba(0,0,0,0.4),
+    0 16px 48px rgba(0,0,0,0.55),
+    0 0 80px rgba(232, 147, 10, 0.07),
+    inset 0 1px 0 rgba(255,255,255,0.03);
   margin-bottom: 20px;
   transition: opacity 0.12s ease;
 }
@@ -182,7 +187,7 @@ header h1 {
 
 .next-btn {
   grid-column: 2;
-  background: linear-gradient(135deg, #6c5fff 0%, #9183fb 100%);
+  background: linear-gradient(135deg, #C47008 0%, #E8930A 100%);
   color: #fff;
   border: none;
   border-radius: 14px;
@@ -194,7 +199,7 @@ header h1 {
   letter-spacing: 0.01em;
   touch-action: manipulation;
   box-shadow:
-    0 4px 16px rgba(108, 95, 255, 0.35),
+    0 4px 16px rgba(232, 147, 10, 0.35),
     inset 0 1px 0 rgba(255,255,255,0.15);
   transition: filter 0.15s, transform 0.1s, box-shadow 0.15s;
 }
@@ -202,7 +207,7 @@ header h1 {
 .next-btn:hover {
   filter: brightness(1.12);
   box-shadow:
-    0 6px 24px rgba(108, 95, 255, 0.5),
+    0 6px 24px rgba(232, 147, 10, 0.5),
     inset 0 1px 0 rgba(255,255,255,0.15);
 }
 
@@ -936,7 +941,7 @@ input[type="number"]:focus-visible {
 
 .session-cd-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6c5fff, #9183fb);
+  background: linear-gradient(90deg, #C47008, #E8930A);
   border-radius: 2px;
   width: 0%;
   transition: width 1s linear;
@@ -975,7 +980,7 @@ input[type="number"]:focus-visible {
 }
 
 .session-start-btn {
-  background: linear-gradient(135deg, #6c5fff 0%, #9183fb 100%);
+  background: linear-gradient(135deg, #C47008 0%, #E8930A 100%);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -986,7 +991,7 @@ input[type="number"]:focus-visible {
   cursor: pointer;
   transition: filter 0.15s;
   touch-action: manipulation;
-  box-shadow: 0 2px 10px rgba(108, 95, 255, 0.3);
+  box-shadow: 0 2px 10px rgba(232, 147, 10, 0.3);
 }
 
 .session-start-btn:hover {
@@ -1010,7 +1015,7 @@ input[type="number"]:focus-visible {
 }
 
 .path-start-btn {
-  background: linear-gradient(135deg, #6c5fff 0%, #9183fb 100%);
+  background: linear-gradient(135deg, #C47008 0%, #E8930A 100%);
   color: #fff;
   border: none;
   border-radius: 10px;
@@ -1021,7 +1026,7 @@ input[type="number"]:focus-visible {
   cursor: pointer;
   transition: filter 0.15s;
   touch-action: manipulation;
-  box-shadow: 0 2px 10px rgba(108, 95, 255, 0.3);
+  box-shadow: 0 2px 10px rgba(232, 147, 10, 0.3);
 }
 
 .path-start-btn:hover  { filter: brightness(1.12); }
@@ -1066,7 +1071,7 @@ input[type="number"]:focus-visible {
 
 .path-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, #6c5fff, #9183fb);
+  background: linear-gradient(90deg, #C47008, #E8930A);
   border-radius: 2px;
   transition: width 0.3s ease;
 }
