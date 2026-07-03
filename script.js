@@ -71,6 +71,59 @@ const FUNCTIONAL = {
   minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V'],
 };
 
+const LEARNING_PATH = [
+  // Phase 1: Note Finder
+  { name: 'Find C',            hint: 'Just find C on your instrument — nothing else',          cats: ['catNotes'], notes: ['C'],                                                                       chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'C and D',           hint: 'Two notes',                                              cats: ['catNotes'], notes: ['C','D'],                                                                   chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'Add E',             hint: 'C, D and E',                                             cats: ['catNotes'], notes: ['C','D','E'],                                                               chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'Add F',             hint: 'C, D, E, F',                                             cats: ['catNotes'], notes: ['C','D','E','F'],                                                           chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'Add G',             hint: 'C through G — the first five natural notes',             cats: ['catNotes'], notes: ['C','D','E','F','G'],                                                       chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'Add A',             hint: 'C, D, E, F, G, A',                                       cats: ['catNotes'], notes: ['C','D','E','F','G','A'],                                                   chords: [],                                                             scales: [],                            timer: 'off' },
+  { name: 'All Natural Notes', hint: 'All seven natural notes — C through B',                  cats: ['catNotes'], notes: ['C','D','E','F','G','A','B'],                                               chords: [],                                                             scales: [],                            timer: 'off' },
+  // Phase 2: Major chords, natural keys, no timer
+  { name: 'First Chord',        hint: 'Just C Major',                                           cats: ['catChords'], notes: ['C'],                                                                     chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'Two Chords',         hint: 'C Major and G Major',                                    cats: ['catChords'], notes: ['C','G'],                                                                  chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'Three Chords',       hint: 'C, F and G — the backbone of most songs',                cats: ['catChords'], notes: ['C','F','G'],                                                              chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'Add D Major',        hint: 'C, D, F, G Major',                                       cats: ['catChords'], notes: ['C','D','F','G'],                                                          chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'Add A Major',        hint: 'C, D, F, G, A Major',                                    cats: ['catChords'], notes: ['C','D','F','G','A'],                                                      chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'Add E Major',        hint: 'C, D, E, F, G, A Major',                                 cats: ['catChords'], notes: ['C','D','E','F','G','A'],                                                  chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  { name: 'All Natural Majors', hint: 'Major chord across all seven natural keys',              cats: ['catChords'], notes: ['C','D','E','F','G','A','B'],                                              chords: ['chordMajor'],                                                 scales: [],                            timer: 'off' },
+  // Phase 3: Introduce minor
+  { name: 'First Minor',        hint: 'C + A — a relative pair (Major and Minor)',              cats: ['catChords'], notes: ['C','A'],                                                                   chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: 'off' },
+  { name: 'More Minors',        hint: 'Six chords: C/G/F Major + A/E/D Minor',                  cats: ['catChords'], notes: ['C','D','E','F','G','A'],                                                  chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: 'off' },
+  { name: 'All Natural Minor',  hint: 'Major and Minor in every natural key',                   cats: ['catChords'], notes: ['C','D','E','F','G','A','B'],                                              chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: 'off' },
+  // Phase 4: Add timer pressure
+  { name: 'Add a Timer',        hint: 'Same chords — 15 seconds to respond',                    cats: ['catChords'], notes: ['C','D','E','F','G','A','B'],                                              chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '15' },
+  { name: 'A Bit Faster',       hint: '10 seconds',                                             cats: ['catChords'], notes: ['C','D','E','F','G','A','B'],                                              chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Faster Still',       hint: '5 seconds',                                              cats: ['catChords'], notes: ['C','D','E','F','G','A','B'],                                              chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '5'  },
+  // Phase 5: Accidentals one at a time
+  { name: 'Add F♯',        hint: 'First accidental — F sharp',                             cats: ['catChords'], notes: ['C','D','E','F','F#','G','A','B'],                                         chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Add B♭',        hint: 'B flat added',                                           cats: ['catChords'], notes: ['C','D','E','F','F#','G','A','Bb','B'],                                    chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Add E♭',        hint: 'E flat added',                                           cats: ['catChords'], notes: ['C','D','Eb','E','F','F#','G','A','Bb','B'],                               chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Add A♭',        hint: 'A flat added',                                           cats: ['catChords'], notes: ['C','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                          chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Add C♯',        hint: 'Last accidental — all 12 keys now',                      cats: ['catChords'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                     chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '10' },
+  { name: 'Speed Up',           hint: 'All 12 keys, 5 seconds',                                 cats: ['catChords'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                     chords: ['chordMajor','chordMinor'],                                     scales: [],                            timer: '5'  },
+  // Phase 6: Major scales
+  { name: 'First Scale',        hint: 'C Major scale — no timer, take your time',               cats: ['catScales'], notes: ['C'],                                                                     chords: [],                                                             scales: ['scaleMajor'],                timer: 'off' },
+  { name: 'Add G Major Scale',  hint: 'C and G Major scales',                                   cats: ['catScales'], notes: ['C','G'],                                                                  chords: [],                                                             scales: ['scaleMajor'],                timer: 'off' },
+  { name: 'Add F Major Scale',  hint: 'C, G and F',                                             cats: ['catScales'], notes: ['C','F','G'],                                                              chords: [],                                                             scales: ['scaleMajor'],                timer: 'off' },
+  { name: 'Common Majors',      hint: 'Six keys: C, G, D, F, A, E Major scales',                cats: ['catScales'], notes: ['C','D','E','F','G','A'],                                                  chords: [],                                                             scales: ['scaleMajor'],                timer: 'off' },
+  { name: 'All Natural Scales', hint: 'Major scale across all seven natural notes',             cats: ['catScales'], notes: ['C','D','E','F','G','A','B'],                                              chords: [],                                                             scales: ['scaleMajor'],                timer: 'off' },
+  { name: 'Scale Timer',        hint: 'Natural keys, 15 seconds',                               cats: ['catScales'], notes: ['C','D','E','F','G','A','B'],                                              chords: [],                                                             scales: ['scaleMajor'],                timer: '15' },
+  { name: 'All 12 Scales',      hint: 'Every key, 15 seconds',                                  cats: ['catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                     chords: [],                                                             scales: ['scaleMajor'],                timer: '15' },
+  // Phase 7: Combine chords + scales
+  { name: 'Mix Chords + Scales',hint: 'Major chords and scales together — natural keys, 15s',  cats: ['catChords','catScales'], notes: ['C','D','E','F','G','A','B'],                                   chords: ['chordMajor','chordMinor'],                                     scales: ['scaleMajor'],                timer: '15' },
+  { name: 'All 12 Combined',    hint: 'Chords and scales in every key, 10 seconds',             cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],          chords: ['chordMajor','chordMinor'],                                     scales: ['scaleMajor'],                timer: '10' },
+  { name: 'Add Minor Scale',    hint: 'Natural Minor scale added to the mix',                   cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],          chords: ['chordMajor','chordMinor'],                                     scales: ['scaleMajor','scaleNatMinor'],timer: '10' },
+  // Phase 8: Seventh chords
+  { name: 'Add Major 7',        hint: 'Introduce Major 7 chords — natural keys',                cats: ['catChords','catScales'], notes: ['C','D','E','F','G','A','B'],                                   chords: ['chordMajor','chordMinor','chordMaj7'],                         scales: ['scaleMajor','scaleNatMinor'],timer: '10' },
+  { name: 'Add Minor 7',        hint: 'Minor 7 added',                                          cats: ['catChords','catScales'], notes: ['C','D','E','F','G','A','B'],                                   chords: ['chordMajor','chordMinor','chordMaj7','chordMin7'],             scales: ['scaleMajor','scaleNatMinor'],timer: '10' },
+  { name: 'Add Dominant 7',     hint: 'Dominant 7 — now you have the core jazz chords',         cats: ['catChords','catScales'], notes: ['C','D','E','F','G','A','B'],                                   chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7'], scales: ['scaleMajor','scaleNatMinor'],timer: '10' },
+  { name: '7ths in All Keys',   hint: 'All seventh chord types across all 12 keys',             cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],          chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7'], scales: ['scaleMajor','scaleNatMinor'],timer: '10' },
+  // Full foundation
+  { name: 'Full Foundation',    hint: 'Everything — all 12 keys, all core chords, both scales, 5 seconds', cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'], chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7'], scales: ['scaleMajor','scaleNatMinor'], timer: '5' },
+];
+
 // ── DOM ───────────────────────────────────────────────────────────────────────
 
 const promptLine1    = document.getElementById('promptLine1');
@@ -85,6 +138,18 @@ const customTimerRow = document.getElementById('customTimerRow');
 const metroBpmInput  = document.getElementById('metroBpm');
 const tapBtn         = document.getElementById('tapBtn');
 const metroPanel     = document.getElementById('metroPanel');
+
+const pathStart          = document.getElementById('pathStart');
+const pathActive         = document.getElementById('pathActive');
+const pathStageNum       = document.getElementById('pathStageNum');
+const pathStageName      = document.getElementById('pathStageName');
+const pathStageHint      = document.getElementById('pathStageHint');
+const pathProgressFill   = document.getElementById('pathProgressFill');
+const startPathBtn       = document.getElementById('startPathBtn');
+const stagePrevBtn       = document.getElementById('stagePrevBtn');
+const stageNextBtn       = document.getElementById('stageNextBtn');
+const leavePathBtn       = document.getElementById('leavePathBtn');
+const learningHeaderLabel = document.getElementById('learningHeaderLabel');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -104,6 +169,7 @@ let audioCtx        = null;
 
 let prevSettings  = null;
 let undoTimeout   = null;
+let learningStage = -1;
 
 let wakeLock = null;
 
@@ -263,8 +329,20 @@ function genDiatonic() {
   };
 }
 
+function genNote() {
+  const notes = enabledNotes();
+  if (!notes.length) return null;
+  const note = pick(notes);
+  return {
+    line1: 'Find',
+    line2: note,
+    key:   `note|${note}`,
+  };
+}
+
 function generatePrompt() {
   const pool = [];
+  if (checked('catNotes'))      pool.push(genNote);
   if (checked('catChords'))     pool.push(genChord);
   if (checked('catScales'))     pool.push(genScale);
   if (checked('catFunctional')) pool.push(genFunctional);
@@ -506,6 +584,7 @@ function handleTap() {
 
 function saveSettings() {
   const ids = [
+    'catNotes',
     'catChords', 'catScales', 'catFunctional', 'catIntervals', 'catDiatonic',
     'chordMajor', 'chordMinor', 'chordDiminished', 'chordAugmented',
     'chordMaj7', 'chordMin7', 'chordDom7',
@@ -612,6 +691,11 @@ document.getElementById('undoBtn').addEventListener('click', () => {
 // ── Shuffle settings ─────────────────────────────────────────────────────────
 
 function randomizeSettings() {
+  if (learningStage >= 0) {
+    learningStage = -1;
+    localStorage.removeItem('mpr_learning_stage');
+    updateLearningUI();
+  }
   saveSettings();  // flush current UI state before capturing snapshot
   prevSettings = localStorage.getItem('mpr_settings');
 
@@ -672,6 +756,51 @@ function randomizeSettings() {
   syncUI();
   showPrompt();
   showUndoToast();
+}
+
+// ── Learning Path ────────────────────────────────────────────────────────────
+
+function applyStage(idx) {
+  const stage = LEARNING_PATH[idx];
+  const ALL_CATS   = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
+  const ALL_CHORDS = CHORD_TYPES.map(c => c.id).concat(['inversions']);
+  const ALL_SCALES = SCALE_TYPES.map(s => s.id);
+  const onCats   = new Set(stage.cats);
+  const onChords = new Set(stage.chords);
+  const onScales = new Set(stage.scales);
+  const onNotes  = new Set(stage.notes);
+
+  ALL_CATS.forEach(id   => { const el = document.getElementById(id);                              if (el) el.checked = onCats.has(id);   });
+  ALL_CHORDS.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onChords.has(id); });
+  ALL_SCALES.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onScales.has(id); });
+  NOTES.forEach(n       => { const el = document.querySelector(`input[data-note="${n}"]`); if (el) el.checked = onNotes.has(n);  });
+
+  const radio = document.querySelector(`input[name="timer"][value="${stage.timer}"]`);
+  if (radio) radio.checked = true;
+
+  saveSettings();
+  syncUI();
+  showPrompt();
+}
+
+function updateLearningUI() {
+  const total  = LEARNING_PATH.length;
+  const active = learningStage >= 0 && learningStage < total;
+  pathStart.classList.toggle('hidden', active);
+  pathActive.classList.toggle('hidden', !active);
+
+  if (active) {
+    const stage = LEARNING_PATH[learningStage];
+    pathStageNum.textContent  = `Stage ${learningStage + 1} of ${total}`;
+    pathStageName.textContent = stage.name;
+    pathStageHint.textContent = stage.hint;
+    pathProgressFill.style.width = ((learningStage + 1) / total * 100) + '%';
+    stagePrevBtn.disabled = learningStage === 0;
+    stageNextBtn.disabled = learningStage === total - 1;
+    learningHeaderLabel.textContent = `· Stage ${learningStage + 1}`;
+  } else {
+    learningHeaderLabel.textContent = '';
+  }
 }
 
 // ── Practice session timer ────────────────────────────────────────────────────
@@ -781,6 +910,35 @@ durationPills.forEach(pill => {
 sessionStartBtn.addEventListener('click', startSession);
 sessionStopBtn.addEventListener('click', stopSession);
 
+startPathBtn.addEventListener('click', () => {
+  learningStage = 0;
+  localStorage.setItem('mpr_learning_stage', '0');
+  updateLearningUI();
+  applyStage(0);
+});
+
+stagePrevBtn.addEventListener('click', () => {
+  if (learningStage <= 0) return;
+  learningStage--;
+  localStorage.setItem('mpr_learning_stage', String(learningStage));
+  updateLearningUI();
+  applyStage(learningStage);
+});
+
+stageNextBtn.addEventListener('click', () => {
+  if (learningStage >= LEARNING_PATH.length - 1) return;
+  learningStage++;
+  localStorage.setItem('mpr_learning_stage', String(learningStage));
+  updateLearningUI();
+  applyStage(learningStage);
+});
+
+leavePathBtn.addEventListener('click', () => {
+  learningStage = -1;
+  localStorage.removeItem('mpr_learning_stage');
+  updateLearningUI();
+});
+
 // ── Event listeners ───────────────────────────────────────────────────────────
 
 nextBtn.addEventListener('click', showPrompt);
@@ -867,4 +1025,11 @@ document.querySelectorAll('.group-toggle').forEach(btn => {
 initTheme();
 loadSettings();
 syncUI();
+
+const _savedStage = parseInt(localStorage.getItem('mpr_learning_stage') ?? '-1');
+if (!isNaN(_savedStage) && _savedStage >= 0 && _savedStage < LEARNING_PATH.length) {
+  learningStage = _savedStage;
+}
+updateLearningUI();
+
 showPrompt();

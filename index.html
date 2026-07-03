@@ -66,6 +66,42 @@
 
     <section class="settings">
 
+      <!-- Learning Path -->
+      <div class="settings-group">
+        <button class="group-toggle" aria-expanded="true">
+          <span>Learning Path <span id="learningHeaderLabel" class="settings-hint"></span></span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="group-body">
+          <div class="group-body-inner">
+
+            <div id="pathStart">
+              <p class="path-intro">New to your instrument? Start here — tiny steps from finding your first note all the way to seventh chords.</p>
+              <button id="startPathBtn" class="path-start-btn" type="button">Start from scratch</button>
+            </div>
+
+            <div id="pathActive" class="hidden">
+              <div class="path-stage-header">
+                <span id="pathStageNum" class="path-stage-num">Stage 1 of 41</span>
+                <span id="pathStageName" class="path-stage-name"></span>
+              </div>
+              <p id="pathStageHint" class="path-stage-hint"></p>
+              <div class="path-progress-track">
+                <div id="pathProgressFill" class="path-progress-fill"></div>
+              </div>
+              <div class="path-nav">
+                <button id="stagePrevBtn" class="path-nav-btn" type="button">← Easier</button>
+                <button id="stageNextBtn" class="path-nav-btn" type="button">Harder →</button>
+              </div>
+              <button id="leavePathBtn" class="path-leave-btn" type="button">Leave path</button>
+            </div>
+
+          </div>
+        </div>
+      </div>
+
       <!-- Practice session timer -->
       <div class="settings-group">
         <button class="group-toggle" aria-expanded="true">
@@ -151,6 +187,12 @@
         </button>
         <div class="group-body">
           <div class="group-body-inner">
+
+            <div class="category">
+              <label class="category-header">
+                <input type="checkbox" id="catNotes"> Note Finder
+              </label>
+            </div>
 
             <div class="category">
               <label class="category-header">
@@ -252,7 +294,7 @@
       <!-- Root Notes -->
       <div class="settings-group">
         <button class="group-toggle" aria-expanded="true">
-          <span>Root Notes <span class="settings-hint">— Chords, Scales &amp; Functional Harmony</span></span>
+          <span>Root Notes <span class="settings-hint">— Chords, Scales, Note Finder &amp; Functional Harmony</span></span>
           <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
             <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
           </svg>
