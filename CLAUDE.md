@@ -1,49 +1,47 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with this repository.
 
-## Project overview
+## Project
 
-Single-page static app — no build step, no framework, no dependencies. Open `index.html` directly in a browser. Everything runs client-side.
+Single-page static app — no build step, no framework, no dependencies. Open `index.html` in a browser. Everything runs client-side. Three files: `index.html` (structure), `style.css` (dark theme, CSS custom properties), `script.js` (all logic, flat file, no classes).
 
-## Running and testing
+## Testing
 
-There is no dev server or test suite. To verify changes:
+No dev server or test suite. For automated testing, Playwright is pre-installed:
 
-- Open `index.html` in a browser directly (`file:///...`)
-- For automated testing, use Playwright via a temporary install:
-  ```
-  npm install playwright --prefix /tmp/pw
-  /tmp/pw/node_modules/.bin/playwright install chromium
-  node test-script.cjs  # write a CJS script, not ESM
-  ```
-- Playwright path on this machine: `C:\Users\John\AppData\Local\Temp\pw\node_modules\playwright`
-- Always write test scripts as `.cjs` (CommonJS), not `.mjs` — ESM absolute Windows paths fail in Node
+- Path: `C:\Users\John\AppData\Local\Temp\pw\node_modules\playwright`
+- Always write test scripts as `.cjs` — ESM absolute Windows paths fail in Node
+- Run: `node test-script.cjs`
 
 ## Architecture
 
-Three files, no module system:
+### Prompt generation
 
-- **`index.html`** — structure only; all settings panels are always visible (no tabs/accordion)
-- **`style.css`** — dark theme with CSS custom properties in `:root`; three mobile breakpoints at 600px, 480px, 360px
-- **`script.js`** — all logic in one flat file, no classes
-
-### How prompt generation works (`script.js`)
-
-1. `generatePrompt()` builds a `pool` of enabled generator functions, picks one at random, calls it, and retries up to 12 times to avoid repeating `lastPromptKey`
-2. Each generator (`genChord`, `genScale`, `genFunctional`, `genDiatonic`) returns `{ line1, line2, key }` or `null` if nothing is enabled
-3. `showPrompt()` triggers a CSS flash transition, then updates `#promptLine1` / `#promptLine2`
-4. `restartTimer()` clears any running interval and starts a new countdown; timer fires `showPrompt()` when it hits 0
+`generatePrompt()` builds a pool of enabled generators (`genNote`, `genChord`, `genScale`, `genFunctional`, `genInterval`, `genDiatonic`), picks one at random, retries up to 12 times to avoid repeating `lastPromptKey`. Each returns `{ line1, line2, key }` or `null`.
 
 ### Settings persistence
 
-`saveSettings()` / `loadSettings()` read and write a single `mpr_settings` JSON object in `localStorage`. Checkbox states are saved by element ID; select values (`diatonicRoot`, `diatonicMode`) are saved separately. `syncUI()` disables sub-option groups when their parent category is unchecked.
+Single `mpr_settings` JSON key in localStorage. Checkbox states by element ID; selects (`diatonicRoot`, `diatonicMode`) saved separately. `syncUI()` disables sub-option groups when their parent category is unchecked.
 
-### Diatonic chord generation
+### Learning Path
 
-`DIATONIC` constant holds intervals, chord qualities, and Roman numerals for major and minor keys. `genDiatonic()` indexes into `NOTES[]` by `(rootIndex + interval) % 12` — enharmonic spellings follow whatever the `NOTES` array uses (mixes sharps and flats).
+`LEARNING_PATH` is a 41-entry array of stage objects. `applyStage(idx)` wipes all categories, chord types, scale types, and root notes, then sets only what the stage specifies plus the timer value. Calls `saveSettings()` + `syncUI()` + `showPrompt()`. Shuffle Settings exits the path. Stage persisted as `mpr_learning_stage` in localStorage.
 
-## Key constants
+### localStorage keys
 
-- `NOTES` — 12-note chromatic array; order and spelling matter (enharmonic choices follow this array throughout)
-- Root Notes checkboxes apply only to Chords, Scales, and Functional Harmony — **not** to Diatonic Chords, which has its own key selector
+| Key | Contents |
+|-----|----------|
+| `mpr_settings` | All checkbox/radio/select state |
+| `mpr_theme` | `"dark"` or `"light"` |
+| `mpr_learning_stage` | Current stage index (absent = not on path) |
+
+### `.hidden` class
+
+Not global — each element has its own scoped rule (`.hold-btn.hidden`, `.session-countdown.hidden`, etc). Add a new rule per element; don't add a global `.hidden`.
+
+## Gotchas
+
+- **Playwright radio inputs**: clicking a `.radio-pill` label times out — the label intercepts pointer events. Use `page.evaluate()` to set `.checked` and dispatch a `change` event instead.
+- **Root Notes vs Diatonic**: Root Notes checkboxes apply to Chords, Scales, Note Finder, and Functional Harmony — not Diatonic Chords, which has its own key selector.
+- **NOTES array spelling**: enharmonic choices throughout the codebase follow whatever `NOTES[]` uses (mixes sharps and flats). Don't introduce alternate spellings.
