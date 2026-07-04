@@ -247,6 +247,11 @@ let sustainedNotes = new Set();
 const demoNotes = new Set();
 let hearItActive = false;
 
+let adaptWeights = (() => {
+  try { return JSON.parse(localStorage.getItem('mpr_weights')) || { roots: {}, types: {} }; }
+  catch (_) { return { roots: {}, types: {} }; }
+})();
+
 let wakeLock = null;
 
 async function acquireWakeLock() {
@@ -287,6 +292,47 @@ function checked(id) {
 
 function getTimerMode() {
   return document.querySelector('input[name="timer"]:checked')?.value ?? 'off';
+}
+
+// ── Adaptive weighting ────────────────────────────────────────────────────────
+
+function adaptiveOn() {
+  return document.getElementById('adaptiveToggle')?.checked ?? false;
+}
+
+function saveAdaptWeights() {
+  localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
+}
+
+function updateAdaptWeight(dim, key, ms) {
+  const g = adaptWeights[dim];
+  if (!g[key]) g[key] = { ema: ms, count: 1 };
+  else { g[key].ema = 0.3 * ms + 0.7 * g[key].ema; g[key].count = Math.min(g[key].count + 1, 9999); }
+}
+
+function weightedPick(items, dim) {
+  if (!adaptiveOn() || items.length <= 1) return pick(items);
+  const g = adaptWeights[dim];
+  const emas = items.map(item => { const e = g[item]; return (e && e.count >= 3) ? e.ema : null; });
+  const withData = emas.filter(v => v !== null);
+  const mean = withData.length ? withData.reduce((a, b) => a + b, 0) / withData.length : null;
+  const weights = emas.map(v => (mean && v) ? Math.max(0.5, Math.min(3.0, v / mean)) : 1.0);
+  const total = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < items.length; i++) { r -= weights[i]; if (r <= 0) return items[i]; }
+  return items[items.length - 1];
+}
+
+function recordAdaptiveResult(key, ms) {
+  if (!adaptiveOn()) return;
+  const parts = key.split('|');
+  const type  = parts[0];
+  if      (type === 'note')     { updateAdaptWeight('roots', parts[1], ms); }
+  else if (type === 'chord')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); }
+  else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); }
+  else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
+  else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
+  saveAdaptWeights();
 }
 
 // ── Audio ─────────────────────────────────────────────────────────────────────
@@ -448,8 +494,9 @@ function genChord() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const type   = pick(types);
-  const note   = pick(notes);
+  const typeLabel = weightedPick(types.map(t => t.label), 'types');
+  const type      = types.find(t => t.label === typeLabel) || pick(types);
+  const note      = weightedPick(notes, 'roots');
   const useInv = checked('inversions');
   const inv    = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
 
@@ -465,9 +512,15 @@ function genScale() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const type  = pick(types);
-  const note  = pick(notes);
-  const label = type.label === null ? pick(MODES) : type.label;
+  let label;
+  if (adaptiveOn()) {
+    const allLabels = types.flatMap(t => t.label === null ? MODES : [t.label]);
+    label = weightedPick(allLabels, 'types');
+  } else {
+    const type = pick(types);
+    label = type.label === null ? pick(MODES) : type.label;
+  }
+  const note = weightedPick(notes, 'roots');
 
   return {
     line1: `${note} ${label}`,
@@ -480,7 +533,7 @@ function genFunctional() {
   const notes = enabledNotes();
   if (!notes.length) return null;
 
-  const note    = pick(notes);
+  const note    = weightedPick(notes, 'roots');
   const isMinor = Math.random() < 0.5;
   const mode    = isMinor ? 'minor' : 'Major';
   const pattern = pick(FUNCTIONAL[isMinor ? 'minor' : 'major']);
@@ -502,8 +555,9 @@ function genInterval() {
 
   if (!types.length || !notes.length || !dirs.length) return null;
 
-  const interval = pick(types);
-  const note     = pick(notes);
+  const intLabel = weightedPick(types.map(i => i.label), 'types');
+  const interval = types.find(i => i.label === intLabel) || pick(types);
+  const note     = weightedPick(notes, 'roots');
   const dir      = pick(dirs);
 
   return {
@@ -535,7 +589,7 @@ function genDiatonic() {
 function genNote() {
   const notes = enabledNotes();
   if (!notes.length) return null;
-  const note = pick(notes);
+  const note = weightedPick(notes, 'roots');
   return {
     line1: 'Find',
     line2: note,
@@ -808,6 +862,7 @@ function saveSettings() {
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
     'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
     'intDirUp', 'intDirDown',
+    'adaptiveToggle',
   ];
 
   localStorage.setItem('mpr_settings', JSON.stringify({
@@ -1352,6 +1407,7 @@ function triggerMidiSuccess() {
   if (promptStartTime) {
     const ms = Date.now() - promptStartTime;
     responseTimes.push(ms);
+    recordAdaptiveResult(currentPromptKey, ms);
     showResponseTime(ms);
     updateMidiStats();
   }
@@ -1603,6 +1659,14 @@ showPrompt();
 
 midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
 hearBtn.addEventListener('click', hearIt);
+
+document.getElementById('resetWeightsBtn').addEventListener('click', () => {
+  adaptWeights = { roots: {}, types: {} };
+  localStorage.removeItem('mpr_weights');
+  const btn = document.getElementById('resetWeightsBtn');
+  btn.textContent = 'Cleared!';
+  setTimeout(() => { btn.textContent = 'Reset learning data'; }, 1800);
+});
 
 synthVolumeSlider.value = localStorage.getItem('mpr_synth_vol') ?? '70';
 synthVolumeSlider.addEventListener('input', () => {

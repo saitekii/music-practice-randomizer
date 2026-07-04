@@ -344,6 +344,26 @@
         </div>
       </div>
 
+      <!-- Adaptive Practice -->
+      <div class="settings-group">
+        <button class="group-toggle" aria-expanded="false">
+          <span>Adaptive Practice</span>
+          <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+            <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+        <div class="group-body group-collapsed">
+          <div class="group-body-inner">
+            <label class="adaptive-row">
+              <input type="checkbox" id="adaptiveToggle">
+              <span>Weight harder prompts more often</span>
+            </label>
+            <p class="adaptive-hint">Tracks response times via MIDI and surfaces the root notes and chord / scale types that take you longest. Needs at least 3 confirmed answers per category to activate.</p>
+            <button id="resetWeightsBtn" class="reset-weights-btn" type="button">Reset learning data</button>
+          </div>
+        </div>
+      </div>
+
       <button id="shuffleBtn" type="button">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <polyline points="16 3 21 3 21 8"></polyline>
