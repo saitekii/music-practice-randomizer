@@ -31,6 +31,8 @@
     </header>
 
     <main>
+      <div id="rtDisplay" class="rt-display" aria-live="polite"></div>
+
       <div class="prompt-card" id="promptCard">
         <div class="prompt-text">
           <span class="prompt-line" id="promptLine1"></span>
@@ -68,6 +70,9 @@
           </label>
         </div>
       </div>
+
+      <div id="midiStats" class="midi-stats hidden"></div>
+      <div id="pianoKeyboard" class="piano-keyboard hidden"></div>
 
       <div id="sessionCountdown" class="session-countdown hidden" role="timer" aria-live="off">
         <div class="session-cd-row">

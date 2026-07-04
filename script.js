@@ -199,6 +199,9 @@ const midiStatus          = document.getElementById('midiStatus');
 const synthVolWrap        = document.getElementById('synthVolWrap');
 const synthVolumeSlider   = document.getElementById('synthVolume');
 const synthPresetSelect   = document.getElementById('synthPreset');
+const rtDisplay           = document.getElementById('rtDisplay');
+const midiStats           = document.getElementById('midiStats');
+const pianoKeyboard       = document.getElementById('pianoKeyboard');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -228,9 +231,14 @@ let scaleNotesPlayed  = new Set();
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
-let synthMasterGain   = null;
-const synthNotes      = new Map();
+let synthMasterGain    = null;
+const synthNotes       = new Map();
 let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
+
+let promptStartTime = null;
+let responseTimes   = [];
+const keyElements   = new Map(); // midiNote → DOM element
+let rtFadeTimer     = null;
 
 let wakeLock = null;
 
@@ -594,6 +602,7 @@ function showPrompt() {
   const prompt = generatePrompt();
   currentPromptKey = prompt ? prompt.key : '';
   scaleNotesPlayed.clear();
+  promptStartTime = Date.now();
   clearHold();
   historyIndex = 0;
   addToHistory(prompt);
@@ -1272,11 +1281,13 @@ function onMidiMessage(e) {
     heldNotes.add(note);
     scaleNotesPlayed.add(note % 12);
     synthNoteOn(note, velocity);
+    updateKeyboard();
     clearTimeout(midiCheckTimer);
     midiCheckTimer = setTimeout(checkMidi, 100);
   } else if (cmd === 0x80 || (cmd === 0x90 && velocity === 0)) {
     heldNotes.delete(note);
     synthNoteOff(note);
+    updateKeyboard();
   }
 }
 
@@ -1310,12 +1321,78 @@ function checkMidi() {
 
 function triggerMidiSuccess() {
   midiSuccessActive = true;
+  if (promptStartTime) {
+    const ms = Date.now() - promptStartTime;
+    responseTimes.push(ms);
+    showResponseTime(ms);
+    updateMidiStats();
+  }
   promptCard.classList.add('midi-success');
   setTimeout(() => {
     promptCard.classList.remove('midi-success');
     midiSuccessActive = false;
     showPrompt();
   }, 700);
+}
+
+function showResponseTime(ms) {
+  const s = (ms / 1000).toFixed(1);
+  clearTimeout(rtFadeTimer);
+  rtDisplay.textContent = s + 's';
+  rtDisplay.classList.remove('fade-out');
+  rtDisplay.classList.add('visible');
+  rtFadeTimer = setTimeout(() => {
+    rtDisplay.classList.add('fade-out');
+    setTimeout(() => rtDisplay.classList.remove('visible', 'fade-out'), 500);
+  }, 1800);
+}
+
+function updateMidiStats() {
+  if (responseTimes.length < 2) { midiStats.classList.add('hidden'); return; }
+  const avg  = responseTimes.reduce((a, b) => a + b, 0) / responseTimes.length;
+  const best = Math.min(...responseTimes);
+  midiStats.textContent = `avg ${(avg/1000).toFixed(1)}s · best ${(best/1000).toFixed(1)}s · ${responseTimes.length} correct`;
+  midiStats.classList.remove('hidden');
+}
+
+const KEYBOARD_START = 36;  // C2
+const KEYBOARD_END   = 84;  // C6
+const IS_BLACK_KEY   = [0, 1, 0, 1, 0, 0, 1, 0, 1, 0, 1, 0];
+const NOTE_NAMES_SHORT = ['C','','D','','E','F','','G','','A','','B'];
+
+function buildKeyboard() {
+  pianoKeyboard.innerHTML = '';
+  keyElements.clear();
+  let whiteCount = 0;
+  for (let n = KEYBOARD_START; n <= KEYBOARD_END; n++) {
+    const pc      = n % 12;
+    const isBlack = IS_BLACK_KEY[pc];
+    const key     = document.createElement('div');
+    key.dataset.midi = n;
+    if (!isBlack) {
+      key.className = 'piano-key white-key';
+      key.style.setProperty('--ki', whiteCount);
+      if (pc === 0) {
+        const label = document.createElement('span');
+        label.className = 'key-label';
+        label.textContent = 'C' + (Math.floor(n / 12) - 1);
+        key.appendChild(label);
+      }
+      whiteCount++;
+    } else {
+      key.className = 'piano-key black-key';
+      key.style.setProperty('--ki', whiteCount);
+    }
+    pianoKeyboard.appendChild(key);
+    keyElements.set(n, key);
+  }
+  pianoKeyboard.style.setProperty('--white-count', whiteCount);
+}
+
+function updateKeyboard() {
+  for (const [n, el] of keyElements) {
+    el.classList.toggle('active', heldNotes.has(n));
+  }
 }
 
 function attachMidiListeners() {
@@ -1349,6 +1426,8 @@ function disableMidi() {
   heldNotes.clear();
   scaleNotesPlayed.clear();
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
+  responseTimes = [];
+  updateKeyboard();
   localStorage.removeItem('mpr_midi');
   updateMidiUI();
 }
@@ -1360,11 +1439,15 @@ function updateMidiUI() {
     midiBtn.classList.add('active');
     midiStatus.textContent = count === 1 ? '1 device' : count > 1 ? `${count} devices` : 'No devices';
     synthVolWrap.classList.remove('hidden');
+    pianoKeyboard.classList.remove('hidden');
+    buildKeyboard();
   } else {
     midiBtn.textContent = 'MIDI';
     midiBtn.classList.remove('active');
     midiStatus.textContent = '';
     synthVolWrap.classList.add('hidden');
+    pianoKeyboard.classList.add('hidden');
+    midiStats.classList.add('hidden');
   }
 }
 
