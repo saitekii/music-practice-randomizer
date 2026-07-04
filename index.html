@@ -362,7 +362,10 @@
               <span>Weight harder prompts more often</span>
             </label>
             <p class="adaptive-hint">Tracks response times via MIDI and surfaces the root notes and chord / scale types that take you longest. Needs at least 3 confirmed answers per category to activate.</p>
-            <button id="resetWeightsBtn" class="reset-weights-btn" type="button">Reset learning data</button>
+            <div class="adaptive-actions">
+              <button id="viewStatsBtn" class="view-stats-btn" type="button">View my stats</button>
+              <button id="resetWeightsBtn" class="reset-weights-btn" type="button">Reset learning data</button>
+            </div>
           </div>
         </div>
       </div>
@@ -383,6 +386,17 @@
   <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
     <span>Settings shuffled</span>
     <button id="undoBtn" type="button">Undo</button>
+  </div>
+
+  <!-- Stats modal -->
+  <div class="help-overlay hidden" id="statsModal" role="dialog" aria-modal="true" aria-label="Practice stats">
+    <div class="help-panel stats-panel">
+      <button class="help-close" id="statsClose" type="button" aria-label="Close">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+      </button>
+      <h2 class="help-title">Practice Stats</h2>
+      <div id="statsContent"></div>
+    </div>
   </div>
 
   <!-- Help / About modal -->

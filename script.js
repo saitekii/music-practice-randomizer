@@ -206,6 +206,8 @@ const hearBtn             = document.getElementById('hearBtn');
 const helpBtn             = document.getElementById('helpBtn');
 const helpModal           = document.getElementById('helpModal');
 const helpClose           = document.getElementById('helpClose');
+const statsModal          = document.getElementById('statsModal');
+const statsClose          = document.getElementById('statsClose');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -324,6 +326,63 @@ function weightedPick(items, dim) {
   let r = Math.random() * total;
   for (let i = 0; i < items.length; i++) { r -= weights[i]; if (r <= 0) return items[i]; }
   return items[items.length - 1];
+}
+
+function renderStats() {
+  const rootEntries = Object.entries(adaptWeights.roots);
+  const typeEntries = Object.entries(adaptWeights.types);
+
+  if (!rootEntries.length && !typeEntries.length) {
+    return `<p class="stats-empty">No data yet. Play prompts with MIDI enabled — each correct answer starts building your profile.</p>`;
+  }
+
+  const totalAnswers = rootEntries.reduce((s, [, e]) => s + e.count, 0);
+  const summaryHtml = `<p class="stats-summary">${totalAnswers} answer${totalAnswers === 1 ? '' : 's'} tracked across ${rootEntries.length} root${rootEntries.length === 1 ? '' : 's'} and ${typeEntries.length} type${typeEntries.length === 1 ? '' : 's'}</p>
+  <div class="stats-legend">
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(120deg 58% 48%)"></span>Fast</span>
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(30deg 90% 52%)"></span>Medium</span>
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(0deg 70% 55%)"></span>Needs work</span>
+    <span class="legend-item dim"><span class="legend-dot" style="background:var(--text-dim)"></span>Fewer than 3 answers</span>
+  </div>`;
+
+  function buildSection(entries, title) {
+    if (!entries.length) return '';
+    const sorted = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
+    const withData = sorted.filter(([, e]) => e.count >= 3);
+    const maxEma = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
+    const minEma = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
+    const emaDelta = maxEma !== null && maxEma !== minEma ? maxEma - minEma : null;
+
+    const rows = sorted.map(([key, entry]) => {
+      const hasData = entry.count >= 3;
+      const secs = (entry.ema / 1000).toFixed(1) + 's';
+
+      let barHtml, badgeHtml = '';
+      if (hasData && maxEma !== null) {
+        const mastery = emaDelta ? (maxEma - entry.ema) / emaDelta : 0.5;
+        const pct    = Math.round(mastery * 76 + 12);
+        const hue    = Math.round(mastery * 120);
+        barHtml = `<div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%;background:hsl(${hue}deg 65% 50%)"></div></div>`;
+        if (mastery < 0.25)      badgeHtml = `<span class="stats-badge needs-work">needs work</span>`;
+        else if (mastery > 0.75) badgeHtml = `<span class="stats-badge strong">strong</span>`;
+      } else {
+        barHtml = `<div class="stats-bar-track"><div class="stats-bar-fill building"></div></div>`;
+        badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
+      }
+
+      return `<div class="stats-row${hasData ? '' : ' dim-row'}">
+        <span class="stats-key">${key}</span>
+        ${barHtml}
+        <span class="stats-time">${secs}</span>
+        <span class="stats-count">${entry.count}×</span>
+        ${badgeHtml}
+      </div>`;
+    }).join('');
+
+    return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
+  }
+
+  return summaryHtml + buildSection(rootEntries, 'Root Notes') + buildSection(typeEntries, 'Types');
 }
 
 function recordAdaptiveResult(key, ms) {
@@ -1666,7 +1725,20 @@ hearBtn.addEventListener('click', hearIt);
 helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
 helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
 helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
-document.addEventListener('keydown', e => { if (e.key === 'Escape') helpModal.classList.add('hidden'); });
+
+document.getElementById('viewStatsBtn').addEventListener('click', () => {
+  document.getElementById('statsContent').innerHTML = renderStats();
+  statsModal.classList.remove('hidden');
+});
+statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
+statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') {
+    helpModal.classList.add('hidden');
+    statsModal.classList.add('hidden');
+  }
+});
 
 document.getElementById('resetWeightsBtn').addEventListener('click', () => {
   adaptWeights = { roots: {}, types: {} };
