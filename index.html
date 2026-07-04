@@ -402,6 +402,11 @@
           </div>
         </div>
 
+        <div id="earRadial" class="hidden">
+          <button id="earLabelToggle" class="ear-label-toggle" type="button">Show labels</button>
+          <svg id="earRadialSvg" class="ear-radial-svg" viewBox="-148 -148 296 296" aria-label="Interval wheel"></svg>
+        </div>
+
         <div id="earChoices" class="ear-choices">
           <!-- rendered by JS -->
         </div>
@@ -470,6 +475,11 @@
                   <input type="checkbox" id="earCatIntervals" checked> Intervals
                 </label>
                 <div class="category-options" id="earIntOptions" role="group" aria-label="Ear training intervals">
+                  <div class="ear-int-subhead">Direction</div>
+                  <label><input type="checkbox" id="earDirAscending" checked> Ascending</label>
+                  <label><input type="checkbox" id="earDirDescending"> Descending</label>
+                  <label><input type="checkbox" id="earDirHarmonic"> Harmonic</label>
+                  <div class="ear-int-subhead">Simple</div>
                   <label><input type="checkbox" id="earIntMin2"> Minor 2nd</label>
                   <label><input type="checkbox" id="earIntMaj2"> Major 2nd</label>
                   <label><input type="checkbox" id="earIntMin3"> Minor 3rd</label>
@@ -482,6 +492,13 @@
                   <label><input type="checkbox" id="earIntMin7"> Minor 7th</label>
                   <label><input type="checkbox" id="earIntMaj7"> Major 7th</label>
                   <label><input type="checkbox" id="earIntOct" checked> Octave</label>
+                  <div class="ear-int-subhead">Compound</div>
+                  <label><input type="checkbox" id="earIntMin9"> Minor 9th</label>
+                  <label><input type="checkbox" id="earIntMaj9"> Major 9th</label>
+                  <label><input type="checkbox" id="earIntPerf11"> Perfect 11th</label>
+                  <label><input type="checkbox" id="earIntAug11"> Aug. 11th</label>
+                  <label><input type="checkbox" id="earIntMin13"> Minor 13th</label>
+                  <label><input type="checkbox" id="earIntMaj13"> Major 13th</label>
                 </div>
               </div>
 
