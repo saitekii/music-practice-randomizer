@@ -1567,6 +1567,7 @@ function stopTimer() {
 }
 
 function timerTick() {
+  if (timerInterval === null) return;
   timerRemaining--;
   if (timerRemaining <= 0) {
     showPrompt();
