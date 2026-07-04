@@ -2702,8 +2702,45 @@ document.getElementById('statsTabEar').addEventListener('click',     () => openS
 
 statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
 statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
+function importJSON() {
+  document.getElementById('importFileInput').click();
+}
+
+document.getElementById('importFileInput').addEventListener('change', function () {
+  const file = this.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      const restored = [];
+      if (data.adaptive_weights) {
+        adaptWeights = data.adaptive_weights;
+        localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
+        restored.push('adaptive weights');
+      }
+      if (data.daily_log) {
+        localStorage.setItem('mpr_daily', JSON.stringify(data.daily_log));
+        restored.push('practice history');
+      }
+      const btn = document.getElementById('importJsonBtn');
+      const orig = btn.textContent;
+      btn.textContent = restored.length ? `Restored: ${restored.join(', ')}` : 'Nothing to restore';
+      setTimeout(() => { btn.textContent = orig; }, 3000);
+    } catch (_) {
+      const btn = document.getElementById('importJsonBtn');
+      const orig = btn.textContent;
+      btn.textContent = 'Invalid file';
+      setTimeout(() => { btn.textContent = orig; }, 3000);
+    }
+    this.value = '';
+  };
+  reader.readAsText(file);
+});
+
 document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
 document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+document.getElementById('importJsonBtn').addEventListener('click', importJSON);
 document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   localStorage.removeItem('mpr_daily');
   const btn = document.getElementById('clearHistoryBtn');
