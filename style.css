@@ -1054,6 +1054,46 @@ input[type="number"]:focus-visible {
   letter-spacing: 0.02em;
 }
 
+.synth-vol-wrap {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+  margin-left: 4px;
+}
+
+#synthVolWrap.hidden { display: none; }
+
+.synth-vol-wrap input[type="range"] {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 72px;
+  height: 3px;
+  background: var(--border-light);
+  border-radius: 2px;
+  outline: none;
+  cursor: pointer;
+}
+
+.synth-vol-wrap input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
+.synth-vol-wrap input[type="range"]::-moz-range-thumb {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: var(--accent);
+  cursor: pointer;
+  border: none;
+}
+
 @keyframes midi-success {
   0%   { box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.55), 0 0 90px rgba(124,109,250,0.1),  inset 0 1px 0 rgba(255,255,255,0.06); }
   35%  { box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.35), 0 0 110px rgba(60,210,110,0.45), inset 0 1px 0 rgba(255,255,255,0.06); }

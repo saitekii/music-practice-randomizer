@@ -54,6 +54,10 @@
       <div class="midi-row">
         <button id="midiBtn" class="midi-btn" type="button">MIDI</button>
         <span id="midiStatus" class="midi-status"></span>
+        <label id="synthVolWrap" class="synth-vol-wrap hidden">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"/><path d="M15.54 8.46a5 5 0 0 1 0 7.07"/></svg>
+          <input type="range" id="synthVolume" min="0" max="100" value="70">
+        </label>
       </div>
 
       <div id="sessionCountdown" class="session-countdown hidden" role="timer" aria-live="off">

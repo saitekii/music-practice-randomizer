@@ -196,6 +196,8 @@ const leavePathBtn       = document.getElementById('leavePathBtn');
 const learningHeaderLabel = document.getElementById('learningHeaderLabel');
 const midiBtn             = document.getElementById('midiBtn');
 const midiStatus          = document.getElementById('midiStatus');
+const synthVolWrap        = document.getElementById('synthVolWrap');
+const synthVolumeSlider   = document.getElementById('synthVolume');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -224,6 +226,9 @@ let heldNotes         = new Set();
 let scaleNotesPlayed  = new Set();
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
+
+let synthMasterGain = null;
+const synthNotes    = new Map();
 
 let wakeLock = null;
 
@@ -289,6 +294,60 @@ function playClick(accented) {
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
     osc.start(now);
     osc.stop(now + 0.08);
+  } catch (_) {}
+}
+
+function getSynthMasterGain() {
+  if (synthMasterGain) return synthMasterGain;
+  const ctx  = getAudioCtx();
+  const comp = ctx.createDynamicsCompressor();
+  comp.threshold.value = -12;
+  comp.knee.value      = 10;
+  comp.ratio.value     = 6;
+  comp.attack.value    = 0.003;
+  comp.release.value   = 0.15;
+  comp.connect(ctx.destination);
+  synthMasterGain = ctx.createGain();
+  synthMasterGain.gain.value = (parseInt(localStorage.getItem('mpr_synth_vol') ?? '70')) / 100;
+  synthMasterGain.connect(comp);
+  return synthMasterGain;
+}
+
+function synthNoteOn(noteNumber, velocity) {
+  synthNoteOff(noteNumber);
+  try {
+    const ctx  = getAudioCtx();
+    const freq = 440 * Math.pow(2, (noteNumber - 69) / 12);
+    const vel  = velocity / 127;
+    const now  = ctx.currentTime;
+
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.value = freq;
+
+    gain.gain.setValueAtTime(0, now);
+    gain.gain.linearRampToValueAtTime(vel * 0.7,  now + 0.006);
+    gain.gain.exponentialRampToValueAtTime(vel * 0.35, now + 0.45);
+
+    osc.connect(gain);
+    gain.connect(getSynthMasterGain());
+    osc.start(now);
+    synthNotes.set(noteNumber, { osc, gain });
+  } catch (_) {}
+}
+
+function synthNoteOff(noteNumber) {
+  const note = synthNotes.get(noteNumber);
+  if (!note) return;
+  synthNotes.delete(noteNumber);
+  try {
+    const ctx = getAudioCtx();
+    const now = ctx.currentTime;
+    note.gain.gain.cancelScheduledValues(now);
+    note.gain.gain.setValueAtTime(Math.max(note.gain.gain.value, 0.001), now);
+    note.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
+    note.osc.stop(now + 0.6);
   } catch (_) {}
 }
 
@@ -1138,10 +1197,12 @@ function onMidiMessage(e) {
   if (cmd === 0x90 && velocity > 0) {
     heldNotes.add(note);
     scaleNotesPlayed.add(note % 12);
+    synthNoteOn(note, velocity);
     clearTimeout(midiCheckTimer);
     midiCheckTimer = setTimeout(checkMidi, 100);
   } else if (cmd === 0x80 || (cmd === 0x90 && velocity === 0)) {
     heldNotes.delete(note);
+    synthNoteOff(note);
   }
 }
 
@@ -1213,6 +1274,7 @@ function disableMidi() {
   midiEnabled = false;
   heldNotes.clear();
   scaleNotesPlayed.clear();
+  [...synthNotes.keys()].forEach(n => synthNoteOff(n));
   localStorage.removeItem('mpr_midi');
   updateMidiUI();
 }
@@ -1223,10 +1285,12 @@ function updateMidiUI() {
     midiBtn.textContent = 'MIDI: On';
     midiBtn.classList.add('active');
     midiStatus.textContent = count === 1 ? '1 device' : count > 1 ? `${count} devices` : 'No devices';
+    synthVolWrap.classList.remove('hidden');
   } else {
     midiBtn.textContent = 'MIDI';
     midiBtn.classList.remove('active');
     midiStatus.textContent = '';
+    synthVolWrap.classList.add('hidden');
   }
 }
 
@@ -1265,4 +1329,12 @@ updateLearningUI();
 showPrompt();
 
 midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
+
+synthVolumeSlider.value = localStorage.getItem('mpr_synth_vol') ?? '70';
+synthVolumeSlider.addEventListener('input', () => {
+  const vol = parseInt(synthVolumeSlider.value) / 100;
+  if (synthMasterGain) synthMasterGain.gain.value = vol;
+  localStorage.setItem('mpr_synth_vol', synthVolumeSlider.value);
+});
+
 if (localStorage.getItem('mpr_midi') === '1') enableMidi();
