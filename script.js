@@ -1,4 +1,10 @@
 const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
+const ENHARMONIC_NOTES = ['Db', 'D#', 'Gb', 'G#', 'A#'];
+const NOTE_TO_PC = {
+  'C':0, 'C#':1, 'Db':1, 'D':2, 'D#':3, 'Eb':3,
+  'E':4, 'F':5, 'F#':6, 'Gb':6, 'G':7, 'G#':8, 'Ab':8,
+  'A':9, 'A#':10, 'Bb':10, 'B':11,
+};
 
 const CHORD_TYPES = [
   { id: 'chordMajor',      label: 'Major',       seventh: false },
@@ -197,6 +203,10 @@ const LEARNING_PATH = [
   { name: 'Pentatonics, All 12',      hint: 'Both pentatonic shapes in every key — 10 seconds',                                                     cats: ['catScales'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: [],                                                                                                scales: ['scaleMajPent','scaleMinPent'],           timer: '10'  },
   { name: 'Meet the Modes',           hint: 'Seven modes of the major scale — Ionian through Locrian, each with its own flavour',                   cats: ['catScales'],             notes: ['C'],                                                            chords: [],                                                                                                scales: ['scaleModes'],                           timer: 'off' },
   { name: 'All Scales, All Keys',     hint: 'Every scale type in every key — 10 seconds',                                                           cats: ['catScales'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: [],                                                                                                scales: ['scaleMajor','scaleNatMinor','scaleHarmMinor','scaleMelMinor','scaleMajPent','scaleMinPent','scaleModes'], timer: '10' },
+  // ── Phase 12b: Enharmonic spellings ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  { name: 'Meet Enharmonics',         hint: 'F# and Gb are the same key — same finger, two names. Same for C# / Db. Play them both.',               cats: ['catChords','catNotes'],  notes: ['C','C#','Db','D','E','F','F#','Gb','G','A','B'],                chords: ['chordMajor','chordMinor'],                                                                        scales: [],                                       timer: 'off' },
+  { name: 'Flat-Key Spellings',       hint: 'Practice chords named with flats: Db, Eb, Gb, Ab, Bb — same pitches as C#, D#, F#, G#, A#',          cats: ['catChords','catScales'], notes: ['C','Db','D','Eb','E','F','Gb','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7','inversions'],                       scales: ['scaleMajor','scaleNatMinor'],            timer: '10'  },
+  { name: 'Any Spelling, All Keys',   hint: 'All 17 note spellings — see any name, play the right key regardless of sharp or flat',                cats: ['catChords','catScales'], notes: ['C','C#','Db','D','D#','Eb','E','F','F#','Gb','G','G#','Ab','A','A#','Bb','B'], chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7','inversions'], scales: ['scaleMajor','scaleNatMinor'], timer: '10' },
   // ── Phase 13: Extended chords ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Meet Sus Chords',          hint: 'Sus2 and sus4 replace the 3rd — open and unresolved, wanting to move',                                 cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','chordSus2','chordSus4'],                                                scales: [],                                       timer: 'off' },
   { name: 'Sus + 7sus4, All Keys',    hint: '7sus4 adds the flat 7 — common in funk and jazz, all 12 keys',                                         cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','chordSus2','chordSus4','chord7sus4'],                                   scales: [],                                       timer: '10'  },
@@ -511,7 +521,10 @@ function pick(arr) {
 }
 
 function enabledNotes() {
-  return NOTES.filter(n => document.querySelector(`input[data-note="${n}"]`).checked);
+  return [...NOTES, ...ENHARMONIC_NOTES].filter(n => {
+    const el = document.querySelector(`input[data-note="${n}"]`);
+    return el && el.checked;
+  });
 }
 
 function checked(id) {
@@ -1483,7 +1496,7 @@ function genDiatonic() {
   const root    = document.getElementById('diatonicRoot').value;
   const mode    = document.getElementById('diatonicMode').value;
   const data    = DIATONIC[mode];
-  const rootIdx = NOTES.indexOf(root);
+  const rootIdx = (NOTE_TO_PC[root] ?? -1);
   const degree  = Math.floor(Math.random() * 7);
 
   const chordRoot = NOTES[(rootIdx + data.intervals[degree]) % 12];
@@ -1782,7 +1795,7 @@ function saveSettings() {
     timer:            getTimerMode(),
     customTimer:      customTimer.value,
     checks:           Object.fromEntries(ids.map(id => [id, checked(id)])),
-    notes:            Object.fromEntries(NOTES.map(n => [n, document.querySelector(`input[data-note="${n}"]`).checked])),
+    notes:            Object.fromEntries([...NOTES, ...ENHARMONIC_NOTES].map(n => [n, document.querySelector(`input[data-note="${n}"]`)?.checked ?? false])),
     diatonicRoot:     document.getElementById('diatonicRoot').value,
     diatonicMode:     document.getElementById('diatonicMode').value,
     metroBpm:         metroBpmInput.value,
@@ -1810,7 +1823,7 @@ function loadSettings() {
     }
 
     if (s.notes) {
-      NOTES.forEach(n => {
+      [...NOTES, ...ENHARMONIC_NOTES].forEach(n => {
         const el = document.querySelector(`input[data-note="${n}"]`);
         if (el && s.notes[n] !== undefined) el.checked = s.notes[n];
       });
@@ -1952,7 +1965,7 @@ function applyStage(idx) {
   ALL_CATS.forEach(id   => { const el = document.getElementById(id);                              if (el) el.checked = onCats.has(id);   });
   ALL_CHORDS.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onChords.has(id); });
   ALL_SCALES.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onScales.has(id); });
-  NOTES.forEach(n       => { const el = document.querySelector(`input[data-note="${n}"]`); if (el) el.checked = onNotes.has(n);  });
+  [...NOTES, ...ENHARMONIC_NOTES].forEach(n => { const el = document.querySelector(`input[data-note="${n}"]`); if (el) el.checked = onNotes.has(n); });
 
   const stageInts    = stage.intervals ?? (onCats.has('catIntervals') ? INTERVALS.map(i => i.id) : []);
   INTERVALS.forEach(i => { const el = document.getElementById(i.id); if (el) el.checked = stageInts.includes(i.id); });
@@ -2209,19 +2222,19 @@ function getExpectedPCs(key) {
   const type  = parts[0];
 
   if (type === 'note') {
-    const pc = NOTES.indexOf(parts[1]);
+    const pc = (NOTE_TO_PC[parts[1]] ?? -1);
     return pc === -1 ? null : { type: 'note', pc };
   }
 
   if (type === 'chord') {
-    const rootPC    = NOTES.indexOf(parts[1]);
+    const rootPC    = (NOTE_TO_PC[parts[1]] ?? -1);
     const intervals = CHORD_INTERVALS[parts[2]];
     if (rootPC === -1 || !intervals) return null;
     return { type: 'chord', pcs: intervals.map(i => (rootPC + i) % 12) };
   }
 
   if (type === 'scale') {
-    const rootPC    = NOTES.indexOf(parts[1]);
+    const rootPC    = (NOTE_TO_PC[parts[1]] ?? -1);
     const intervals = SCALE_INTERVALS[parts[2]];
     if (rootPC === -1 || !intervals) return null;
     return { type: 'scale', pcs: intervals.map(i => (rootPC + i) % 12) };
@@ -2229,7 +2242,7 @@ function getExpectedPCs(key) {
 
   if (type === 'interval') {
     const label     = parts[1];
-    const rootPC    = NOTES.indexOf(parts[2]);
+    const rootPC    = (NOTE_TO_PC[parts[2]] ?? -1);
     const dir       = parts[3];
     const semitones = INTERVAL_SEMITONES[label];
     if (rootPC === -1 || semitones === undefined) return null;
@@ -2241,7 +2254,7 @@ function getExpectedPCs(key) {
   }
 
   if (type === 'diatonic') {
-    const rootIdx    = NOTES.indexOf(parts[1]);
+    const rootIdx    = (NOTE_TO_PC[parts[1]] ?? -1);
     const data       = DIATONIC[parts[2]];
     const degree     = parseInt(parts[3]);
     if (rootIdx === -1 || !data) return null;
@@ -2254,7 +2267,7 @@ function getExpectedPCs(key) {
   if (type === 'func') {
     const pattern = parts[3];
     if (pattern.includes('–')) return null;
-    const rootIdx = NOTES.indexOf(parts[1]);
+    const rootIdx = (NOTE_TO_PC[parts[1]] ?? -1);
     const modeKey = parts[2] === 'Major' ? 'major' : 'minor';
     const data    = DIATONIC[modeKey];
     let degree    = data.numerals.indexOf(pattern);

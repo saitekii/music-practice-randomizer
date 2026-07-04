@@ -758,6 +758,21 @@ select:focus {
   color: var(--text);
 }
 
+.enharmonic-header {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin: 10px 0 6px;
+}
+
+.enharmonic-eq {
+  font-size: 0.65rem;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+
 /* ── Shuffle button ──────────────────────────────────────────────────────────── */
 
 .settings-hint {
