@@ -1010,6 +1010,60 @@ input[type="number"]:focus-visible {
   transform: translateY(0);
 }
 
+/* ── MIDI ────────────────────────────────────────────────────────────────────── */
+
+.midi-row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: -28px;
+  margin-bottom: 40px;
+}
+
+.midi-btn {
+  background: transparent;
+  border: 1px solid var(--border-light);
+  border-radius: 7px;
+  color: var(--text-dim);
+  padding: 4px 12px;
+  font-size: 0.72rem;
+  font-family: inherit;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  touch-action: manipulation;
+}
+
+.midi-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.midi-btn.active {
+  background: var(--accent-dim);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.midi-status {
+  font-size: 0.75rem;
+  color: var(--text-dim);
+  letter-spacing: 0.02em;
+}
+
+@keyframes midi-success {
+  0%   { box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.55), 0 0 90px rgba(124,109,250,0.1),  inset 0 1px 0 rgba(255,255,255,0.06); }
+  35%  { box-shadow: 0 2px 4px rgba(0,0,0,0.3), 0 20px 60px rgba(0,0,0,0.35), 0 0 110px rgba(60,210,110,0.45), inset 0 1px 0 rgba(255,255,255,0.06); }
+  100% { box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.55), 0 0 90px rgba(124,109,250,0.1),  inset 0 1px 0 rgba(255,255,255,0.06); }
+}
+
+.prompt-card.midi-success {
+  animation: midi-success 0.7s ease;
+}
+
 /* ── Learning Path ───────────────────────────────────────────────────────────── */
 
 #pathStart.hidden,

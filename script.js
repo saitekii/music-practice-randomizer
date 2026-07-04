@@ -71,6 +71,50 @@ const FUNCTIONAL = {
   minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V'],
 };
 
+const CHORD_INTERVALS = {
+  'Major':        [0, 4, 7],
+  'Minor':        [0, 3, 7],
+  'Diminished':   [0, 3, 6],
+  'Augmented':    [0, 4, 8],
+  'Major 7':      [0, 4, 7, 11],
+  'Minor 7':      [0, 3, 7, 10],
+  'Dominant 7':   [0, 4, 7, 10],
+  'sus2':         [0, 2, 7],
+  'sus4':         [0, 5, 7],
+  '7sus4':        [0, 5, 7, 10],
+  'Dominant 9':   [0, 2, 4, 7, 10],
+  'Major 9':      [0, 2, 4, 7, 11],
+  'Minor 9':      [0, 2, 3, 7, 10],
+  'Dominant 13':  [0, 2, 4, 7, 9, 10],
+  '7♭9':          [0, 1, 4, 7, 10],
+  '7♯9':          [0, 3, 4, 7, 10],
+  '7♯11':         [0, 4, 6, 7, 10],
+  'Minor 7♭5':    [0, 3, 6, 10],
+  'Diminished 7': [0, 3, 6, 9],
+};
+
+const SCALE_INTERVALS = {
+  'Major':            [0, 2, 4, 5, 7, 9, 11],
+  'Natural minor':    [0, 2, 3, 5, 7, 8, 10],
+  'Harmonic minor':   [0, 2, 3, 5, 7, 8, 11],
+  'Melodic minor':    [0, 2, 3, 5, 7, 9, 11],
+  'Major pentatonic': [0, 2, 4, 7, 9],
+  'Minor pentatonic': [0, 3, 5, 7, 10],
+  'Ionian':           [0, 2, 4, 5, 7, 9, 11],
+  'Dorian':           [0, 2, 3, 5, 7, 9, 10],
+  'Phrygian':         [0, 1, 3, 5, 7, 8, 10],
+  'Lydian':           [0, 2, 4, 6, 7, 9, 11],
+  'Mixolydian':       [0, 2, 4, 5, 7, 9, 10],
+  'Aeolian':          [0, 2, 3, 5, 7, 8, 10],
+  'Locrian':          [0, 1, 3, 5, 6, 8, 10],
+};
+
+const INTERVAL_SEMITONES = {
+  'Minor 2nd': 1, 'Major 2nd': 2, 'Minor 3rd': 3,  'Major 3rd': 4,
+  'Perfect 4th': 5, 'Tritone': 6, 'Perfect 5th': 7, 'Minor 6th': 8,
+  'Major 6th': 9,  'Minor 7th': 10, 'Major 7th': 11, 'Octave': 12,
+};
+
 const LEARNING_PATH = [
   // Phase 1: Note Finder
   { name: 'Find C',            hint: 'Just find C on your instrument — nothing else',          cats: ['catNotes'], notes: ['C'],                                                                       chords: [],                                                             scales: [],                            timer: 'off' },
@@ -150,6 +194,8 @@ const stagePrevBtn       = document.getElementById('stagePrevBtn');
 const stageNextBtn       = document.getElementById('stageNextBtn');
 const leavePathBtn       = document.getElementById('leavePathBtn');
 const learningHeaderLabel = document.getElementById('learningHeaderLabel');
+const midiBtn             = document.getElementById('midiBtn');
+const midiStatus          = document.getElementById('midiStatus');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -170,6 +216,14 @@ let audioCtx        = null;
 let prevSettings  = null;
 let undoTimeout   = null;
 let learningStage = -1;
+
+let currentPromptKey  = '';
+let midiEnabled       = false;
+let midiAccess        = null;
+let heldNotes         = new Set();
+let scaleNotesPlayed  = new Set();
+let midiCheckTimer    = null;
+let midiSuccessActive = false;
 
 let wakeLock = null;
 
@@ -396,12 +450,17 @@ function updateBackBtn() {
 function goBack() {
   if (historyIndex >= promptHistory.length - 1) return;
   historyIndex++;
-  renderPrompt(promptHistory[promptHistory.length - 1 - historyIndex]);
+  const prev = promptHistory[promptHistory.length - 1 - historyIndex];
+  currentPromptKey = prev ? prev.key : '';
+  scaleNotesPlayed.clear();
+  renderPrompt(prev);
   updateBackBtn();
 }
 
 function showPrompt() {
   const prompt = generatePrompt();
+  currentPromptKey = prompt ? prompt.key : '';
+  scaleNotesPlayed.clear();
   clearHold();
   historyIndex = 0;
   addToHistory(prompt);
@@ -1000,6 +1059,177 @@ function applyTheme(theme) {
   localStorage.setItem('mpr_theme', theme);
 }
 
+// ── MIDI ──────────────────────────────────────────────────────────────────────
+
+function getExpectedPCs(key) {
+  if (!key) return null;
+  const parts = key.split('|');
+  const type  = parts[0];
+
+  if (type === 'note') {
+    const pc = NOTES.indexOf(parts[1]);
+    return pc === -1 ? null : { type: 'note', pc };
+  }
+
+  if (type === 'chord') {
+    const rootPC    = NOTES.indexOf(parts[1]);
+    const intervals = CHORD_INTERVALS[parts[2]];
+    if (rootPC === -1 || !intervals) return null;
+    return { type: 'chord', pcs: intervals.map(i => (rootPC + i) % 12) };
+  }
+
+  if (type === 'scale') {
+    const rootPC    = NOTES.indexOf(parts[1]);
+    const intervals = SCALE_INTERVALS[parts[2]];
+    if (rootPC === -1 || !intervals) return null;
+    return { type: 'scale', pcs: intervals.map(i => (rootPC + i) % 12) };
+  }
+
+  if (type === 'interval') {
+    const label     = parts[1];
+    const rootPC    = NOTES.indexOf(parts[2]);
+    const dir       = parts[3];
+    const semitones = INTERVAL_SEMITONES[label];
+    if (rootPC === -1 || semitones === undefined) return null;
+    if (semitones === 12) return { type: 'octave', rootPC };
+    const targetPC = dir === 'above'
+      ? (rootPC + semitones) % 12
+      : (rootPC - semitones + 12) % 12;
+    return { type: 'interval', rootPC, targetPC };
+  }
+
+  if (type === 'diatonic') {
+    const rootIdx    = NOTES.indexOf(parts[1]);
+    const data       = DIATONIC[parts[2]];
+    const degree     = parseInt(parts[3]);
+    if (rootIdx === -1 || !data) return null;
+    const chordRootPC = (rootIdx + data.intervals[degree]) % 12;
+    const intervals   = CHORD_INTERVALS[data.qualities[degree]];
+    if (!intervals) return null;
+    return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+  }
+
+  if (type === 'func') {
+    const pattern = parts[3];
+    if (pattern.includes('–')) return null;
+    const rootIdx = NOTES.indexOf(parts[1]);
+    const modeKey = parts[2] === 'Major' ? 'major' : 'minor';
+    const data    = DIATONIC[modeKey];
+    let degree    = data.numerals.indexOf(pattern);
+    let quality;
+    if (degree === -1) {
+      if (pattern === 'V' && modeKey === 'minor') { degree = 4; quality = 'Major'; }
+      else return null;
+    } else {
+      quality = data.qualities[degree];
+    }
+    const chordRootPC = (rootIdx + data.intervals[degree]) % 12;
+    const intervals   = CHORD_INTERVALS[quality];
+    if (!intervals) return null;
+    return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+  }
+
+  return null;
+}
+
+function onMidiMessage(e) {
+  const [status, note, velocity] = e.data;
+  const cmd = status & 0xf0;
+  if (cmd === 0x90 && velocity > 0) {
+    heldNotes.add(note);
+    scaleNotesPlayed.add(note % 12);
+    clearTimeout(midiCheckTimer);
+    midiCheckTimer = setTimeout(checkMidi, 100);
+  } else if (cmd === 0x80 || (cmd === 0x90 && velocity === 0)) {
+    heldNotes.delete(note);
+  }
+}
+
+function checkMidi() {
+  if (!midiEnabled || midiSuccessActive || heldNotes.size === 0) return;
+  const expected = getExpectedPCs(currentPromptKey);
+  if (!expected) return;
+
+  const heldPCs = new Set([...heldNotes].map(n => n % 12));
+  let matched = false;
+
+  if (expected.type === 'note') {
+    matched = heldPCs.has(expected.pc);
+  } else if (expected.type === 'chord') {
+    matched = expected.pcs.every(pc => heldPCs.has(pc));
+  } else if (expected.type === 'scale') {
+    matched = expected.pcs.every(pc => scaleNotesPlayed.has(pc));
+  } else if (expected.type === 'interval') {
+    matched = heldPCs.has(expected.rootPC) && heldPCs.has(expected.targetPC);
+  } else if (expected.type === 'octave') {
+    const sorted = [...heldNotes].sort((a, b) => a - b);
+    for (let i = 0; i < sorted.length - 1; i++) {
+      if (sorted[i] % 12 === expected.rootPC && sorted[i + 1] - sorted[i] === 12) {
+        matched = true; break;
+      }
+    }
+  }
+
+  if (matched) triggerMidiSuccess();
+}
+
+function triggerMidiSuccess() {
+  midiSuccessActive = true;
+  promptCard.classList.add('midi-success');
+  setTimeout(() => {
+    promptCard.classList.remove('midi-success');
+    midiSuccessActive = false;
+    showPrompt();
+  }, 700);
+}
+
+function attachMidiListeners() {
+  for (const input of midiAccess.inputs.values()) {
+    input.onmidimessage = onMidiMessage;
+  }
+}
+
+async function enableMidi() {
+  if (!navigator.requestMIDIAccess) {
+    midiStatus.textContent = 'Not supported in this browser';
+    return;
+  }
+  try {
+    midiAccess = await navigator.requestMIDIAccess();
+    midiEnabled = true;
+    attachMidiListeners();
+    midiAccess.onstatechange = e => {
+      if (e.port.type === 'input') attachMidiListeners();
+      updateMidiUI();
+    };
+    localStorage.setItem('mpr_midi', '1');
+  } catch (err) {
+    midiStatus.textContent = 'Access denied';
+  }
+  updateMidiUI();
+}
+
+function disableMidi() {
+  midiEnabled = false;
+  heldNotes.clear();
+  scaleNotesPlayed.clear();
+  localStorage.removeItem('mpr_midi');
+  updateMidiUI();
+}
+
+function updateMidiUI() {
+  const count = midiAccess ? midiAccess.inputs.size : 0;
+  if (midiEnabled) {
+    midiBtn.textContent = 'MIDI: On';
+    midiBtn.classList.add('active');
+    midiStatus.textContent = count === 1 ? '1 device' : count > 1 ? `${count} devices` : 'No devices';
+  } else {
+    midiBtn.textContent = 'MIDI';
+    midiBtn.classList.remove('active');
+    midiStatus.textContent = '';
+  }
+}
+
 function initTheme() {
   const saved = localStorage.getItem('mpr_theme');
   const auto  = window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
@@ -1033,3 +1263,6 @@ if (!isNaN(_savedStage) && _savedStage >= 0 && _savedStage < LEARNING_PATH.lengt
 updateLearningUI();
 
 showPrompt();
+
+midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
+if (localStorage.getItem('mpr_midi') === '1') enableMidi();
