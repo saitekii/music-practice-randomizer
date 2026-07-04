@@ -168,6 +168,66 @@ const LEARNING_PATH = [
   { name: 'Full Foundation',    hint: 'Everything — all 12 keys, all core chords, both scales, 5 seconds', cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'], chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7'], scales: ['scaleMajor','scaleNatMinor'], timer: '5' },
 ];
 
+// ── Ear Training constants ────────────────────────────────────────────────────
+
+const EAR_INT_MAP = {
+  earIntMin2: 'Minor 2nd',  earIntMaj2:  'Major 2nd',
+  earIntMin3: 'Minor 3rd',  earIntMaj3:  'Major 3rd',
+  earIntPerf4:'Perfect 4th',earIntTT:    'Tritone',
+  earIntPerf5:'Perfect 5th',earIntMin6:  'Minor 6th',
+  earIntMaj6: 'Major 6th',  earIntMin7:  'Minor 7th',
+  earIntMaj7: 'Major 7th',  earIntOct:   'Octave',
+};
+
+const EAR_CHORD_MAP = {
+  earChordMajor: 'Major',        earChordMinor:   'Minor',
+  earChordDim:   'Diminished',   earChordAug:     'Augmented',
+  earChordMaj7:  'Major 7',      earChordMin7:    'Minor 7',
+  earChordDom7:  'Dominant 7',   earChordSus2:    'sus2',
+  earChordSus4:  'sus4',         earChordHalfDim: 'Minor 7♭5',
+  earChordDim7:  'Diminished 7',
+};
+
+const EAR_SCALE_MAP = {
+  earScaleMajor:     'Major',            earScaleNatMinor:  'Natural minor',
+  earScaleHarmMinor: 'Harmonic minor',   earScaleMelMinor:  'Melodic minor',
+  earScaleMajPent:   'Major pentatonic', earScaleMinPent:   'Minor pentatonic',
+  earScaleModes:     null,
+};
+
+const EAR_TRAINING_PATH = [
+  { name: 'Octave & Perfect 5th',      hint: 'Start with the two most distinctive interval sounds.',                          intervals: ['Octave','Perfect 5th'],                                                                                                                  chords: [], scales: [] },
+  { name: 'Add the Perfect 4th',        hint: 'The 4th feels stable but slightly tenser than the 5th.',                        intervals: ['Octave','Perfect 5th','Perfect 4th'],                                                                                                    chords: [], scales: [] },
+  { name: 'Add the Major 3rd',          hint: 'Bright and happy — the sound of major chords.',                                 intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd'],                                                                                       chords: [], scales: [] },
+  { name: 'Minor vs Major 3rd',         hint: 'Minor 3rd is darker — hear the same distance, different colour.',               intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd'],                                                                           chords: [], scales: [] },
+  { name: 'Add the Major 6th',          hint: 'Relaxed and open — think "My Bonnie Lies Over the Ocean".',                     intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th'],                                                               chords: [], scales: [] },
+  { name: 'Minor vs Major 6th',         hint: 'Six intervals — you\'re building strong ears.',                                  intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th'],                                                   chords: [], scales: [] },
+  { name: 'Add the Major 2nd',          hint: 'The whole step — neighbouring scale notes.',                                    intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd'],                                       chords: [], scales: [] },
+  { name: 'Half vs Whole Step',          hint: 'Minor 2nd = half step. The smallest interval — very tense.',                   intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd'],                           chords: [], scales: [] },
+  { name: 'Add the Tritone',            hint: 'Exactly halfway through the octave — unstable and dissonant.',                  intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd','Tritone'],               chords: [], scales: [] },
+  { name: 'Add the Major 7th',          hint: 'One semitone below the octave — tense, wants to resolve up.',                   intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd','Tritone','Major 7th'],  chords: [], scales: [] },
+  { name: 'All 12 Intervals',           hint: 'Complete interval mastery — all 12 chromatic intervals.',                       intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd','Tritone','Major 7th','Minor 7th'], chords: [], scales: [] },
+  { name: 'Major vs Minor Chord',       hint: 'The most fundamental distinction. Major = bright, Minor = dark.',               intervals: [], chords: ['Major','Minor'],                                                                                                             scales: [] },
+  { name: 'Add Diminished',            hint: 'Stacked minor thirds — tense and ambiguous.',                                    intervals: [], chords: ['Major','Minor','Diminished'],                                                                                               scales: [] },
+  { name: 'Add Augmented',             hint: 'Stacked major thirds — strange and dreamlike.',                                  intervals: [], chords: ['Major','Minor','Diminished','Augmented'],                                                                                   scales: [] },
+  { name: 'Add Dominant 7',            hint: 'Jazz and blues foundation. Wants to resolve.',                                   intervals: [], chords: ['Major','Minor','Diminished','Augmented','Dominant 7'],                                                                     scales: [] },
+  { name: 'Dom 7 vs Major 7',          hint: 'Major 7 is lush and jazzy — one note different from Dominant 7.',               intervals: [], chords: ['Major','Minor','Diminished','Augmented','Dominant 7','Major 7'],                                                           scales: [] },
+  { name: 'Add Minor 7',              hint: 'Melancholy and smooth — workhorse of jazz and R&B.',                             intervals: [], chords: ['Major','Minor','Diminished','Augmented','Dominant 7','Major 7','Minor 7'],                                               scales: [] },
+  { name: 'Add Half-Dim & Dim 7',     hint: 'Two diminished 7th flavours: half-dim (jazz), full dim7 (classical).',           intervals: [], chords: ['Major','Minor','Dominant 7','Major 7','Minor 7','Minor 7♭5','Diminished 7'],                                          scales: [] },
+  { name: 'Major vs Natural Minor',   hint: 'Same notes, different start. Hear the colour change.',                            intervals: [], chords: [], scales: ['Major','Natural minor'] },
+  { name: 'Add Pentatonic Scales',    hint: 'The pentatonic — 5-note scale, backbone of blues and rock.',                     intervals: [], chords: [], scales: ['Major','Natural minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Add Harmonic Minor',       hint: 'Raised 7th gives harmonic minor its dramatic, classical sound.',                  intervals: [], chords: [], scales: ['Major','Natural minor','Harmonic minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Add Melodic Minor',        hint: 'Jazz\'s workhorse. Raised 6th and 7th.',                                          intervals: [], chords: [], scales: ['Major','Natural minor','Harmonic minor','Melodic minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Add the Modes',            hint: 'Seven modes of the major scale — each has a unique flavour.',                     intervals: [], chords: [], scales: ['Major','Natural minor','Harmonic minor','Melodic minor','Major pentatonic','Minor pentatonic','Modes'] },
+  { name: 'Mixed: Intervals & Chords',hint: 'Interval recognition combined with chord quality identification.',                 intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Tritone'], chords: ['Major','Minor','Dominant 7'],               scales: [] },
+  { name: 'Mixed: Chords & Scales',   hint: 'Tell apart chord arpeggios from ascending scale patterns.',                       intervals: [], chords: ['Major','Minor','Major 7','Minor 7','Dominant 7'],           scales: ['Major','Natural minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Mixed: Intervals & Scales',hint: 'Single intervals alongside full scale patterns.',                                  intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Tritone'], chords: [], scales: ['Major','Natural minor','Harmonic minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Full Mixed — Foundation',  hint: 'Intervals, chords, and scales together — core vocabulary.',                       intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Tritone'], chords: ['Major','Minor','Diminished','Dominant 7','Major 7','Minor 7'], scales: ['Major','Natural minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Full Mixed — Extended',    hint: 'All chord types added.',                                                          intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Tritone'], chords: ['Major','Minor','Diminished','Augmented','Dominant 7','Major 7','Minor 7','Minor 7♭5','Diminished 7'], scales: ['Major','Natural minor','Harmonic minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Complete Vocabulary',      hint: 'All intervals, all chord types, all scales.',                                     intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd','Tritone','Major 7th','Minor 7th'], chords: ['Major','Minor','Diminished','Augmented','Dominant 7','Major 7','Minor 7','Minor 7♭5','Diminished 7'], scales: ['Major','Natural minor','Harmonic minor','Melodic minor','Major pentatonic','Minor pentatonic'] },
+  { name: 'Master Level',             hint: 'Everything enabled. The ultimate ear training challenge.',                         intervals: ['Octave','Perfect 5th','Perfect 4th','Major 3rd','Minor 3rd','Major 6th','Minor 6th','Major 2nd','Minor 2nd','Tritone','Major 7th','Minor 7th'], chords: ['Major','Minor','Diminished','Augmented','Dominant 7','Major 7','Minor 7','sus2','sus4','Minor 7♭5','Diminished 7'], scales: ['Major','Natural minor','Harmonic minor','Melodic minor','Major pentatonic','Minor pentatonic','Modes'] },
+];
+
 // ── DOM ───────────────────────────────────────────────────────────────────────
 
 const promptLine1    = document.getElementById('promptLine1');
@@ -208,6 +268,26 @@ const helpModal           = document.getElementById('helpModal');
 const helpClose           = document.getElementById('helpClose');
 const statsModal          = document.getElementById('statsModal');
 const statsClose          = document.getElementById('statsClose');
+
+// Ear training DOM
+const earHearBtn          = document.getElementById('earHearBtn');
+const earChoices          = document.getElementById('earChoices');
+const earLine1            = document.getElementById('earLine1');
+const earLine2            = document.getElementById('earLine2');
+const earSessionStats     = document.getElementById('earSessionStats');
+const earScoreDisplay     = document.getElementById('earScoreDisplay');
+const earStreakDisplay    = document.getElementById('earStreakDisplay');
+const earPathStart        = document.getElementById('earPathStart');
+const earPathActive       = document.getElementById('earPathActive');
+const earPathStageNum     = document.getElementById('earPathStageNum');
+const earPathStageName    = document.getElementById('earPathStageName');
+const earPathStageHint    = document.getElementById('earPathStageHint');
+const earPathProgressFill = document.getElementById('earPathProgressFill');
+const earPathHeaderLabel  = document.getElementById('earPathHeaderLabel');
+const earStartPathBtn     = document.getElementById('earStartPathBtn');
+const earStagePrevBtn     = document.getElementById('earStagePrevBtn');
+const earStageNextBtn     = document.getElementById('earStageNextBtn');
+const earLeavePathBtn     = document.getElementById('earLeavePathBtn');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -256,6 +336,23 @@ let adaptWeights = (() => {
   try { return JSON.parse(localStorage.getItem('mpr_weights')) || { roots: {}, types: {} }; }
   catch (_) { return { roots: {}, types: {} }; }
 })();
+
+let earAdaptWeights = (() => {
+  try { return JSON.parse(localStorage.getItem('mpr_weights_ear')) || { types: {} }; }
+  catch (_) { return { types: {} }; }
+})();
+
+let earTabActive      = false;
+let earCurrentPrompt  = null;
+let earAnswered       = false;
+let earSessionCorrect = 0;
+let earSessionTotal   = 0;
+let earStreak         = 0;
+let earLearningStage  = -1;
+let earPromptStartTime = null;
+let earSessionMsSum   = 0;
+let earSessionCount   = 0;
+let statsActiveTab    = 'playing';
 
 let wakeLock = null;
 
@@ -325,16 +422,26 @@ function loadDailyLog() {
   catch (_) { return []; }
 }
 
-function updateDailyLog(ms) {
+function updateDailyLog(ms, isEar = false) {
   const log   = loadDailyLog();
   const today = new Date().toISOString().slice(0, 10);
   const idx   = log.findIndex(e => e.date === today);
   if (idx >= 0) {
-    const e  = log[idx];
-    e.avgMs  = Math.round((e.avgMs * e.answers + ms) / (e.answers + 1));
-    e.answers++;
+    const e = log[idx];
+    if (isEar) {
+      const ea = e.earAnswers ?? 0;
+      e.earAvgMs  = Math.round(((e.earAvgMs ?? ms) * ea + ms) / (ea + 1));
+      e.earAnswers = ea + 1;
+    } else {
+      e.avgMs  = Math.round((e.avgMs * e.answers + ms) / (e.answers + 1));
+      e.answers++;
+    }
   } else {
-    log.push({ date: today, answers: 1, avgMs: ms });
+    if (isEar) {
+      log.push({ date: today, answers: 0, avgMs: 0, earAnswers: 1, earAvgMs: ms });
+    } else {
+      log.push({ date: today, answers: 1, avgMs: ms });
+    }
   }
   while (log.length > 30) log.shift();
   localStorage.setItem('mpr_daily', JSON.stringify(log));
@@ -483,6 +590,391 @@ function recordAdaptiveResult(key, ms) {
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
   else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
   saveAdaptWeights();
+}
+
+// ── Ear training adaptive weights ─────────────────────────────────────────────
+
+function saveEarAdaptWeights() {
+  localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
+}
+
+function updateEarAdaptWeight(label, ms) {
+  const g = earAdaptWeights.types;
+  if (!g[label]) {
+    g[label] = { ema: ms, ema_slow: ms, count: 1 };
+  } else {
+    g[label].ema      = 0.3  * ms + 0.7  * g[label].ema;
+    g[label].ema_slow = 0.07 * ms + 0.93 * (g[label].ema_slow ?? g[label].ema);
+    g[label].count    = Math.min(g[label].count + 1, 9999);
+  }
+}
+
+function weightedPickEar(items) {
+  const g      = earAdaptWeights.types;
+  const emas   = items.map(item => { const e = g[item]; return (e && e.count >= 3) ? e.ema : null; });
+  const withData = emas.filter(v => v !== null);
+  const mean   = withData.length ? withData.reduce((a, b) => a + b, 0) / withData.length : null;
+  const weights = emas.map(v => (mean && v) ? Math.max(0.5, Math.min(3.0, v / mean)) : 1.0);
+  const total  = weights.reduce((a, b) => a + b, 0);
+  let r = Math.random() * total;
+  for (let i = 0; i < items.length; i++) { r -= weights[i]; if (r <= 0) return items[i]; }
+  return items[items.length - 1];
+}
+
+function recordEarResult(label, ms) {
+  updateEarAdaptWeight(label, ms);
+  saveEarAdaptWeights();
+}
+
+// ── Ear training helpers ───────────────────────────────────────────────────────
+
+function enabledEarIntervals() {
+  return Object.entries(EAR_INT_MAP)
+    .filter(([id]) => document.getElementById(id)?.checked)
+    .map(([, label]) => label);
+}
+
+function enabledEarChordTypes() {
+  return Object.entries(EAR_CHORD_MAP)
+    .filter(([id]) => document.getElementById(id)?.checked)
+    .map(([, label]) => label);
+}
+
+function enabledEarScaleTypes() {
+  return Object.entries(EAR_SCALE_MAP)
+    .filter(([id]) => document.getElementById(id)?.checked)
+    .flatMap(([, label]) => label === null ? MODES : [label]);
+}
+
+function getDistractors(correct, pool, count) {
+  const others   = pool.filter(x => x !== correct);
+  const shuffled = [...others];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled.slice(0, count);
+}
+
+function earPenaltyMs() {
+  if (earSessionCount === 0) return 6000;
+  return Math.max((earSessionMsSum / earSessionCount) * 2, 6000);
+}
+
+// ── Ear training generators ───────────────────────────────────────────────────
+
+function genEarInterval() {
+  const pool = enabledEarIntervals();
+  if (pool.length < 2) return null;
+  const correct     = weightedPickEar(pool);
+  const root        = pick(NOTES);
+  const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
+  const choices     = [...distractors, correct].sort(() => Math.random() - 0.5);
+  return {
+    type: 'interval', correct, choices,
+    line1: 'What interval?',
+    line2: `Root: ${root}`,
+    playKey: `interval|${correct}|${root}|above`,
+  };
+}
+
+function genEarChord() {
+  const pool = enabledEarChordTypes();
+  if (pool.length < 2) return null;
+  const correct     = weightedPickEar(pool);
+  const root        = pick(NOTES);
+  const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
+  const choices     = [...distractors, correct].sort(() => Math.random() - 0.5);
+  return {
+    type: 'chord', correct, choices,
+    line1: root,
+    line2: 'What chord quality?',
+    playKey: `chord|${root}|${correct}|`,
+  };
+}
+
+function genEarScale() {
+  const pool = enabledEarScaleTypes();
+  if (pool.length < 2) return null;
+  const correct     = weightedPickEar(pool);
+  const root        = pick(NOTES);
+  const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
+  const choices     = [...distractors, correct].sort(() => Math.random() - 0.5);
+  return {
+    type: 'scale', correct, choices,
+    line1: root,
+    line2: 'What scale type?',
+    playKey: `scale|${root}|${correct}`,
+  };
+}
+
+function genEarPrompt() {
+  const gens = [];
+  if (document.getElementById('earCatIntervals')?.checked && enabledEarIntervals().length >= 2)  gens.push(genEarInterval);
+  if (document.getElementById('earCatChords')?.checked    && enabledEarChordTypes().length >= 2)  gens.push(genEarChord);
+  if (document.getElementById('earCatScales')?.checked    && enabledEarScaleTypes().length >= 2)  gens.push(genEarScale);
+  if (!gens.length) return null;
+  return pick(gens)();
+}
+
+// ── Ear training UI ───────────────────────────────────────────────────────────
+
+function updateEarSessionStats() {
+  if (earSessionTotal === 0) { earSessionStats.classList.add('hidden'); return; }
+  earSessionStats.classList.remove('hidden');
+  const pct = Math.round(earSessionCorrect / earSessionTotal * 100);
+  earScoreDisplay.textContent  = `${earSessionCorrect}/${earSessionTotal} (${pct}%)`;
+  earStreakDisplay.textContent  = earStreak >= 3 ? `🔥 ${earStreak}` : earStreak > 0 ? `streak ${earStreak}` : '';
+}
+
+async function showEarPrompt() {
+  const prompt = genEarPrompt();
+  if (!prompt) {
+    earLine1.textContent    = 'No categories ready';
+    earLine2.textContent    = 'Enable 2+ items in a category below';
+    earChoices.innerHTML    = '';
+    earHearBtn.disabled     = true;
+    return;
+  }
+
+  earCurrentPrompt   = prompt;
+  earAnswered        = false;
+  earPromptStartTime = Date.now();
+
+  earLine1.textContent = prompt.line1;
+  earLine2.textContent = prompt.line2;
+  earHearBtn.disabled  = false;
+
+  earChoices.innerHTML = '';
+  prompt.choices.forEach(choice => {
+    const btn = document.createElement('button');
+    btn.className         = 'ear-choice-btn';
+    btn.textContent       = choice;
+    btn.dataset.choice    = choice;
+    btn.addEventListener('click', () => handleEarAnswer(choice));
+    earChoices.appendChild(btn);
+  });
+
+  await playPromptKey(prompt.playKey, earHearBtn);
+}
+
+function handleEarAnswer(chosen) {
+  if (earAnswered || !earCurrentPrompt) return;
+  earAnswered = true;
+
+  const isCorrect = chosen === earCurrentPrompt.correct;
+  const ms        = Date.now() - earPromptStartTime;
+
+  earSessionTotal++;
+  earSessionMsSum += ms;
+  earSessionCount++;
+  if (isCorrect) { earSessionCorrect++; earStreak++; }
+  else           { earStreak = 0; }
+
+  document.querySelectorAll('.ear-choice-btn').forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.choice === earCurrentPrompt.correct) btn.classList.add('correct');
+    else if (btn.dataset.choice === chosen && !isCorrect)  btn.classList.add('wrong');
+  });
+
+  updateEarSessionStats();
+
+  const recordMs = isCorrect ? ms : earPenaltyMs();
+  recordEarResult(earCurrentPrompt.correct, recordMs);
+  updateDailyLog(ms, true);
+
+  if (!isCorrect) {
+    setTimeout(async () => {
+      await playPromptKey(earCurrentPrompt.playKey, earHearBtn);
+      showEarPrompt();
+    }, 450);
+  } else {
+    setTimeout(() => showEarPrompt(), 1000);
+  }
+}
+
+// ── Ear training settings persistence ────────────────────────────────────────
+
+function saveEarSettings() {
+  const ids = [
+    'earCatIntervals', 'earCatChords', 'earCatScales',
+    ...Object.keys(EAR_INT_MAP),
+    ...Object.keys(EAR_CHORD_MAP),
+    ...Object.keys(EAR_SCALE_MAP),
+  ];
+  const checks = Object.fromEntries(ids.map(id => {
+    const el = document.getElementById(id);
+    return [id, el ? el.checked : false];
+  }));
+  localStorage.setItem('mpr_ear_settings', JSON.stringify({ checks }));
+}
+
+function loadEarSettings() {
+  const raw = localStorage.getItem('mpr_ear_settings');
+  if (!raw) return;
+  try {
+    const s = JSON.parse(raw);
+    if (s.checks) {
+      Object.entries(s.checks).forEach(([id, val]) => {
+        const el = document.getElementById(id);
+        if (el) el.checked = val;
+      });
+    }
+  } catch (_) {}
+}
+
+function syncEarUI() {
+  document.getElementById('earIntOptions').classList.toggle('disabled',   !document.getElementById('earCatIntervals').checked);
+  document.getElementById('earChordOptions').classList.toggle('disabled', !document.getElementById('earCatChords').checked);
+  document.getElementById('earScaleOptions').classList.toggle('disabled', !document.getElementById('earCatScales').checked);
+}
+
+// ── Ear training learning path ────────────────────────────────────────────────
+
+function applyEarStage(idx) {
+  const stage = EAR_TRAINING_PATH[idx];
+
+  // Clear all ear settings
+  Object.keys(EAR_INT_MAP).forEach(id   => { const el = document.getElementById(id);   if (el) el.checked = false; });
+  Object.keys(EAR_CHORD_MAP).forEach(id => { const el = document.getElementById(id);   if (el) el.checked = false; });
+  Object.keys(EAR_SCALE_MAP).forEach(id => { const el = document.getElementById(id);   if (el) el.checked = false; });
+  document.getElementById('earCatIntervals').checked = false;
+  document.getElementById('earCatChords').checked    = false;
+  document.getElementById('earCatScales').checked    = false;
+
+  const intLabelToId   = Object.fromEntries(Object.entries(EAR_INT_MAP).map(([id, l])   => [l, id]));
+  const chordLabelToId = Object.fromEntries(Object.entries(EAR_CHORD_MAP).map(([id, l]) => [l, id]));
+  const scaleLabelToId = Object.fromEntries(
+    Object.entries(EAR_SCALE_MAP).filter(([, l]) => l !== null).map(([id, l]) => [l, id])
+  );
+
+  if (stage.intervals.length) {
+    document.getElementById('earCatIntervals').checked = true;
+    stage.intervals.forEach(lbl => {
+      const id = intLabelToId[lbl];
+      if (id) document.getElementById(id).checked = true;
+    });
+  }
+  if (stage.chords.length) {
+    document.getElementById('earCatChords').checked = true;
+    stage.chords.forEach(lbl => {
+      const id = chordLabelToId[lbl];
+      if (id) document.getElementById(id).checked = true;
+    });
+  }
+  if (stage.scales.length) {
+    document.getElementById('earCatScales').checked = true;
+    stage.scales.forEach(lbl => {
+      if (lbl === 'Modes') {
+        document.getElementById('earScaleModes').checked = true;
+      } else {
+        const id = scaleLabelToId[lbl];
+        if (id) document.getElementById(id).checked = true;
+      }
+    });
+  }
+
+  earLearningStage = idx;
+  localStorage.setItem('mpr_ear_stage', idx);
+  saveEarSettings();
+  syncEarUI();
+  updateEarPathUI();
+  showEarPrompt();
+}
+
+function updateEarPathUI() {
+  const total  = EAR_TRAINING_PATH.length;
+  const active = earLearningStage >= 0 && earLearningStage < total;
+  earPathStart.classList.toggle('hidden', active);
+  earPathActive.classList.toggle('hidden', !active);
+
+  if (active) {
+    const stage = EAR_TRAINING_PATH[earLearningStage];
+    earPathStageNum.textContent  = `Stage ${earLearningStage + 1} of ${total}`;
+    earPathStageName.textContent = stage.name;
+    earPathStageHint.textContent = stage.hint;
+    earPathProgressFill.style.width = ((earLearningStage + 1) / total * 100) + '%';
+    earStagePrevBtn.disabled = earLearningStage === 0;
+    earStageNextBtn.disabled = earLearningStage === total - 1;
+    earPathHeaderLabel.textContent = `· Stage ${earLearningStage + 1}`;
+  } else {
+    earPathHeaderLabel.textContent = '';
+  }
+}
+
+// ── Ear training stats ────────────────────────────────────────────────────────
+
+function renderEarStats() {
+  const typeEntries = Object.entries(earAdaptWeights.types);
+  const log         = loadDailyLog();
+  const today       = new Date().toISOString().slice(0, 10);
+  const todayEntry  = log.find(e => e.date === today);
+  const totalAns    = log.reduce((s, e) => s + (e.earAnswers ?? 0), 0);
+
+  if (!typeEntries.length && !totalAns) {
+    return `<p class="stats-empty">No ear training data yet. Open Ear Training and start identifying intervals, chords, and scales.</p>`;
+  }
+
+  const headerHtml = `<div class="stats-header-row">
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${totalAns}</span>
+      <span class="stats-header-lbl">ear answers (30 days)</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${log.filter(e => (e.earAnswers ?? 0) > 0).length}</span>
+      <span class="stats-header-lbl">days trained</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${todayEntry?.earAnswers ?? 0}</span>
+      <span class="stats-header-lbl">today</span>
+    </div>
+  </div>`;
+
+  const legendHtml = `<div class="stats-legend">
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(120deg 58% 48%)"></span>Fast</span>
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(30deg 90% 52%)"></span>Medium</span>
+    <span class="legend-item"><span class="legend-dot" style="background:hsl(0deg 70% 55%)"></span>Needs work</span>
+    <span class="legend-item dim"><span class="legend-dot" style="background:var(--text-dim)"></span>&lt;3 answers</span>
+  </div>`;
+
+  function buildEarSection(entries, title) {
+    if (!entries.length) return '';
+    const sorted   = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
+    const withData = sorted.filter(([, e]) => e.count >= 3);
+    const maxEma   = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
+    const minEma   = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
+    const delta    = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
+
+    const rows = sorted.map(([key, entry]) => {
+      const hasData = entry.count >= 3;
+      const secs    = (entry.ema / 1000).toFixed(1) + 's';
+      const trend   = hasData ? getTrend(entry) : '';
+      let barHtml, badgeHtml = '';
+      if (hasData && maxEma !== null) {
+        const mastery = delta ? (maxEma - entry.ema) / delta : 0.5;
+        const pct = Math.round(mastery * 76 + 12);
+        const hue = Math.round(mastery * 120);
+        barHtml   = `<div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%;background:hsl(${hue}deg 65% 50%)"></div></div>`;
+        if (mastery < 0.25)      badgeHtml = `<span class="stats-badge needs-work">needs work</span>`;
+        else if (mastery > 0.75) badgeHtml = `<span class="stats-badge strong">strong</span>`;
+      } else {
+        barHtml   = `<div class="stats-bar-track"><div class="stats-bar-fill building"></div></div>`;
+        badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
+      }
+      return `<div class="stats-row${hasData ? '' : ' dim-row'}">
+        <span class="stats-key">${key}</span>
+        ${barHtml}
+        <span class="stats-time">${secs}</span>
+        <span class="stats-count">${entry.count}×</span>
+        <span class="stats-trend">${trend}</span>
+        ${badgeHtml}
+      </div>`;
+    }).join('');
+
+    return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
+  }
+
+  return headerHtml + legendHtml + buildEarSection(typeEntries, 'Recognition Types');
 }
 
 // ── Audio ─────────────────────────────────────────────────────────────────────
@@ -1364,7 +1856,11 @@ holdBtn.addEventListener('click', () => { if (isHeld) resumeTimer(); else holdTi
 document.addEventListener('keydown', e => {
   if (e.code === 'Space' && e.target.tagName !== 'INPUT' && e.target.tagName !== 'SELECT') {
     e.preventDefault();
-    showPrompt();
+    if (earTabActive) {
+      if (earCurrentPrompt) playPromptKey(earCurrentPrompt.playKey, earHearBtn);
+    } else {
+      if (!isHeld) showPrompt();
+    }
   }
 });
 
@@ -1651,13 +2147,13 @@ function updateHearBtn() {
   hearBtn.classList.toggle('hidden', !expected);
 }
 
-async function hearIt() {
+async function playPromptKey(key, btn) {
   if (hearItActive) return;
-  const expected = getExpectedPCs(currentPromptKey);
+  const expected = getExpectedPCs(key);
   if (!expected) return;
 
   hearItActive = true;
-  hearBtn.disabled = true;
+  if (btn) btn.disabled = true;
 
   const gap = ms => new Promise(r => setTimeout(r, ms));
 
@@ -1693,7 +2189,7 @@ async function hearIt() {
       updateKeyboard();
 
     } else if (expected.type === 'interval' || expected.type === 'octave') {
-      const parts    = currentPromptKey.split('|');
+      const parts    = key.split('|');
       const dir      = parts[3];
       const semis    = expected.type === 'octave' ? 12 : (INTERVAL_SEMITONES[parts[1]] ?? 0);
       const rootMidi = 60 + expected.rootPC;
@@ -1708,9 +2204,11 @@ async function hearIt() {
     for (const n of [...demoNotes]) { demoNotes.delete(n); synthNoteOff(n); }
     updateKeyboard();
     hearItActive = false;
-    hearBtn.disabled = false;
+    if (btn) btn.disabled = false;
   }
 }
+
+async function hearIt() { await playPromptKey(currentPromptKey, hearBtn); }
 
 function attachMidiListeners() {
   for (const input of midiAccess.inputs.values()) {
@@ -1808,8 +2306,26 @@ updateLearningUI();
 
 showPrompt();
 
+// ── Tab switching ─────────────────────────────────────────────────────────────
+
+function switchTab(tab) {
+  earTabActive = (tab === 'ear');
+  document.getElementById('practiceTab').classList.toggle('hidden', earTabActive);
+  document.getElementById('earTab').classList.toggle('hidden', !earTabActive);
+  document.getElementById('tabPractice').classList.toggle('active', !earTabActive);
+  document.getElementById('tabEar').classList.toggle('active', earTabActive);
+
+  if (earTabActive && !earCurrentPrompt) showEarPrompt();
+}
+
+document.getElementById('tabPractice').addEventListener('click', () => switchTab('practice'));
+document.getElementById('tabEar').addEventListener('click',      () => switchTab('ear'));
+
 midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
 hearBtn.addEventListener('click', hearIt);
+earHearBtn.addEventListener('click', () => {
+  if (earCurrentPrompt) playPromptKey(earCurrentPrompt.playKey, earHearBtn);
+});
 
 helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
 helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
@@ -1836,10 +2352,18 @@ function exportCSV() {
   a.click(); URL.revokeObjectURL(a.href);
 }
 
-document.getElementById('viewStatsBtn').addEventListener('click', () => {
-  document.getElementById('statsContent').innerHTML = renderStats();
+function openStats(tab = 'playing') {
+  statsActiveTab = tab;
+  document.getElementById('statsTabPlaying').classList.toggle('active', tab === 'playing');
+  document.getElementById('statsTabEar').classList.toggle('active',     tab === 'ear');
+  document.getElementById('statsContent').innerHTML = (tab === 'ear') ? renderEarStats() : renderStats();
   statsModal.classList.remove('hidden');
-});
+}
+
+document.getElementById('viewStatsBtn').addEventListener('click', () => openStats('playing'));
+document.getElementById('statsTabPlaying').addEventListener('click', () => openStats('playing'));
+document.getElementById('statsTabEar').addEventListener('click',     () => openStats('ear'));
+
 statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
 statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
 document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
@@ -1848,7 +2372,7 @@ document.getElementById('clearHistoryBtn').addEventListener('click', () => {
   localStorage.removeItem('mpr_daily');
   const btn = document.getElementById('clearHistoryBtn');
   btn.textContent = 'Cleared!';
-  document.getElementById('statsContent').innerHTML = renderStats();
+  document.getElementById('statsContent').innerHTML = (statsActiveTab === 'ear') ? renderEarStats() : renderStats();
   setTimeout(() => { btn.textContent = 'Clear practice history'; }, 1800);
 });
 
@@ -1882,3 +2406,33 @@ synthPresetSelect.addEventListener('change', () => {
 });
 
 if (localStorage.getItem('mpr_midi') === '1') enableMidi();
+
+// ── Ear training init & listeners ─────────────────────────────────────────────
+
+// Ear settings change → save + sync + refresh prompt if ear tab is open
+document.querySelectorAll('#earTab input[type="checkbox"]').forEach(el => {
+  el.addEventListener('change', () => {
+    saveEarSettings();
+    syncEarUI();
+    if (earTabActive) showEarPrompt();
+  });
+});
+
+// Ear learning path buttons
+earStartPathBtn.addEventListener('click', () => { earLearningStage = 0; applyEarStage(0); });
+earStagePrevBtn.addEventListener('click', () => { if (earLearningStage > 0) applyEarStage(earLearningStage - 1); });
+earStageNextBtn.addEventListener('click', () => { if (earLearningStage < EAR_TRAINING_PATH.length - 1) applyEarStage(earLearningStage + 1); });
+earLeavePathBtn.addEventListener('click', () => {
+  earLearningStage = -1;
+  localStorage.removeItem('mpr_ear_stage');
+  updateEarPathUI();
+});
+
+// Load ear settings and restore stage
+loadEarSettings();
+syncEarUI();
+const _savedEarStage = parseInt(localStorage.getItem('mpr_ear_stage') ?? '-1');
+if (!isNaN(_savedEarStage) && _savedEarStage >= 0 && _savedEarStage < EAR_TRAINING_PATH.length) {
+  earLearningStage = _savedEarStage;
+}
+updateEarPathUI();

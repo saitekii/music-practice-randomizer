@@ -33,6 +33,14 @@
       </button>
     </header>
 
+    <!-- Tab bar -->
+    <div class="tab-bar">
+      <button class="tab-btn active" id="tabPractice" type="button">Practice</button>
+      <button class="tab-btn" id="tabEar" type="button">Ear Training</button>
+    </div>
+
+    <div id="practiceTab">
+
     <main>
       <div id="rtDisplay" class="rt-display" aria-live="polite"></div>
 
@@ -381,6 +389,143 @@
       </button>
 
     </section>
+    </div><!-- #practiceTab -->
+
+    <!-- Ear Training tab -->
+    <div id="earTab" class="hidden">
+
+      <main class="ear-main">
+        <div class="prompt-card" id="earPromptCard">
+          <div class="prompt-text">
+            <span class="prompt-line" id="earLine1">Choose a category below</span>
+            <span class="prompt-line secondary" id="earLine2">then a prompt will appear</span>
+          </div>
+        </div>
+
+        <div id="earChoices" class="ear-choices">
+          <!-- rendered by JS -->
+        </div>
+
+        <div class="controls ear-controls">
+          <button class="hear-btn" id="earHearBtn" type="button" aria-label="Replay audio">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>
+          </button>
+        </div>
+        <p class="kbd-hint">or press <kbd>Space</kbd> to replay</p>
+
+        <div id="earSessionStats" class="ear-session-stats hidden">
+          <span id="earScoreDisplay" class="ear-score"></span>
+          <span id="earStreakDisplay" class="ear-streak"></span>
+        </div>
+      </main>
+
+      <section class="settings">
+
+        <!-- Ear Training Learning Path -->
+        <div class="settings-group">
+          <button class="group-toggle" aria-expanded="true">
+            <span>Ear Training Path <span id="earPathHeaderLabel" class="settings-hint"></span></span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="group-body">
+            <div class="group-body-inner">
+              <div id="earPathStart">
+                <p class="path-intro">New to ear training? Follow the path — 30 stages from the most distinctive intervals to full mixed recognition.</p>
+                <button id="earStartPathBtn" class="path-start-btn" type="button">Start ear training path</button>
+              </div>
+              <div id="earPathActive" class="hidden">
+                <div class="path-stage-header">
+                  <span id="earPathStageNum" class="path-stage-num">Stage 1 of 30</span>
+                  <span id="earPathStageName" class="path-stage-name"></span>
+                </div>
+                <p id="earPathStageHint" class="path-stage-hint"></p>
+                <div class="path-progress-track">
+                  <div id="earPathProgressFill" class="path-progress-fill"></div>
+                </div>
+                <div class="path-nav">
+                  <button id="earStagePrevBtn" class="path-nav-btn" type="button">← Easier</button>
+                  <button id="earStageNextBtn" class="path-nav-btn" type="button">Harder →</button>
+                </div>
+                <button id="earLeavePathBtn" class="path-leave-btn" type="button">Leave path</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Ear Training Categories -->
+        <div class="settings-group">
+          <button class="group-toggle" aria-expanded="true">
+            <span>What to Quiz</span>
+            <svg class="chevron" width="16" height="16" viewBox="0 0 16 16" fill="none" aria-hidden="true">
+              <path d="M4 6l4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+            </svg>
+          </button>
+          <div class="group-body">
+            <div class="group-body-inner">
+
+              <div class="category">
+                <label class="category-header">
+                  <input type="checkbox" id="earCatIntervals" checked> Intervals
+                </label>
+                <div class="category-options" id="earIntOptions" role="group" aria-label="Ear training intervals">
+                  <label><input type="checkbox" id="earIntMin2"> Minor 2nd</label>
+                  <label><input type="checkbox" id="earIntMaj2"> Major 2nd</label>
+                  <label><input type="checkbox" id="earIntMin3"> Minor 3rd</label>
+                  <label><input type="checkbox" id="earIntMaj3"> Major 3rd</label>
+                  <label><input type="checkbox" id="earIntPerf4"> Perfect 4th</label>
+                  <label><input type="checkbox" id="earIntTT"> Tritone</label>
+                  <label><input type="checkbox" id="earIntPerf5" checked> Perfect 5th</label>
+                  <label><input type="checkbox" id="earIntMin6"> Minor 6th</label>
+                  <label><input type="checkbox" id="earIntMaj6"> Major 6th</label>
+                  <label><input type="checkbox" id="earIntMin7"> Minor 7th</label>
+                  <label><input type="checkbox" id="earIntMaj7"> Major 7th</label>
+                  <label><input type="checkbox" id="earIntOct" checked> Octave</label>
+                </div>
+              </div>
+
+              <div class="category">
+                <label class="category-header">
+                  <input type="checkbox" id="earCatChords"> Chords
+                </label>
+                <div class="category-options" id="earChordOptions" role="group" aria-label="Ear training chords">
+                  <label><input type="checkbox" id="earChordMajor"> Major</label>
+                  <label><input type="checkbox" id="earChordMinor"> Minor</label>
+                  <label><input type="checkbox" id="earChordDim"> Diminished</label>
+                  <label><input type="checkbox" id="earChordAug"> Augmented</label>
+                  <label><input type="checkbox" id="earChordMaj7"> Major 7</label>
+                  <label><input type="checkbox" id="earChordMin7"> Minor 7</label>
+                  <label><input type="checkbox" id="earChordDom7"> Dominant 7</label>
+                  <label><input type="checkbox" id="earChordSus2"> sus2</label>
+                  <label><input type="checkbox" id="earChordSus4"> sus4</label>
+                  <label><input type="checkbox" id="earChordHalfDim"> Minor 7&#x266D;5</label>
+                  <label><input type="checkbox" id="earChordDim7"> Diminished 7</label>
+                </div>
+              </div>
+
+              <div class="category">
+                <label class="category-header">
+                  <input type="checkbox" id="earCatScales"> Scales
+                </label>
+                <div class="category-options" id="earScaleOptions" role="group" aria-label="Ear training scales">
+                  <label><input type="checkbox" id="earScaleMajor"> Major</label>
+                  <label><input type="checkbox" id="earScaleNatMinor"> Natural minor</label>
+                  <label><input type="checkbox" id="earScaleHarmMinor"> Harmonic minor</label>
+                  <label><input type="checkbox" id="earScaleMelMinor"> Melodic minor</label>
+                  <label><input type="checkbox" id="earScaleMajPent"> Major pentatonic</label>
+                  <label><input type="checkbox" id="earScaleMinPent"> Minor pentatonic</label>
+                  <label><input type="checkbox" id="earScaleModes"> Modes</label>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+      </section>
+    </div><!-- #earTab -->
+
   </div>
 
   <div id="undoToast" class="undo-toast" role="status" aria-live="polite">
@@ -395,6 +540,10 @@
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
       </button>
       <h2 class="help-title">Practice Stats</h2>
+      <div class="stats-tabs">
+        <button class="stats-tab active" id="statsTabPlaying" type="button">Playing</button>
+        <button class="stats-tab" id="statsTabEar" type="button">Ear Training</button>
+      </div>
       <div id="statsContent"></div>
       <div class="stats-footer">
         <div class="stats-export-row">
