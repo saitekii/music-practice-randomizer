@@ -1683,6 +1683,9 @@ function applyStage(idx) {
   ALL_SCALES.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onScales.has(id); });
   NOTES.forEach(n       => { const el = document.querySelector(`input[data-note="${n}"]`); if (el) el.checked = onNotes.has(n);  });
 
+  stopTimer();
+  stopMetronome();
+
   const radio = document.querySelector(`input[name="timer"][value="${stage.timer}"]`);
   if (radio) radio.checked = true;
 
