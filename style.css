@@ -307,6 +307,36 @@ header h1 {
   display: none;
 }
 
+.hear-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 1px solid var(--border-light);
+  background: transparent;
+  color: var(--text-muted);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.hear-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.hear-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.hear-btn.hidden {
+  display: none;
+}
+
 .kbd-hint {
   text-align: center;
   font-size: 0.775rem;
@@ -1239,6 +1269,24 @@ input[type="number"]:focus-visible {
   box-shadow:
     0 0 12px rgba(124, 109, 250, 0.7),
     0 2px 8px rgba(0, 0, 0, 0.4);
+  transform: translateY(1px);
+}
+
+.white-key.wrong {
+  background: linear-gradient(180deg, #ff3c3c 0%, #ff6060 55%, #ff8a8a 100%);
+  border-color: #ff3c3c;
+  box-shadow:
+    0 0 16px rgba(255, 60, 60, 0.65),
+    0 2px 6px rgba(0, 0, 0, 0.3);
+  transform: translateY(1px);
+}
+
+.black-key.wrong {
+  background: linear-gradient(180deg, #c01010 0%, #e03030 55%, #ff5555 100%);
+  border-color: #e03030;
+  box-shadow:
+    0 0 14px rgba(255, 60, 60, 0.75),
+    0 2px 8px rgba(0, 0, 0, 0.45);
   transform: translateY(1px);
 }
 

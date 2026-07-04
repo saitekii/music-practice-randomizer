@@ -202,6 +202,7 @@ const synthPresetSelect   = document.getElementById('synthPreset');
 const rtDisplay           = document.getElementById('rtDisplay');
 const midiStats           = document.getElementById('midiStats');
 const pianoKeyboard       = document.getElementById('pianoKeyboard');
+const hearBtn             = document.getElementById('hearBtn');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -242,6 +243,9 @@ let rtFadeTimer     = null;
 
 let pedalDown      = false;
 let sustainedNotes = new Set();
+
+const demoNotes = new Set();
+let hearItActive = false;
 
 let wakeLock = null;
 
@@ -598,6 +602,7 @@ function goBack() {
   const prev = promptHistory[promptHistory.length - 1 - historyIndex];
   currentPromptKey = prev ? prev.key : '';
   scaleNotesPlayed.clear();
+  updateHearBtn();
   renderPrompt(prev);
   updateBackBtn();
 }
@@ -606,6 +611,7 @@ function showPrompt() {
   const prompt = generatePrompt();
   currentPromptKey = prompt ? prompt.key : '';
   scaleNotesPlayed.clear();
+  updateHearBtn();
   promptStartTime = Date.now();
   clearHold();
   historyIndex = 0;
@@ -1411,9 +1417,91 @@ function buildKeyboard() {
   pianoKeyboard.style.setProperty('--white-count', whiteCount);
 }
 
+function isNoteWrong(pc, expected) {
+  if (!expected) return false;
+  switch (expected.type) {
+    case 'note':     return pc !== expected.pc;
+    case 'chord':    return !expected.pcs.includes(pc);
+    case 'scale':    return !expected.pcs.includes(pc);
+    case 'interval': return pc !== expected.rootPC && pc !== expected.targetPC;
+    case 'octave':   return pc !== expected.rootPC;
+    default:         return false;
+  }
+}
+
 function updateKeyboard() {
+  const expected = getExpectedPCs(currentPromptKey);
   for (const [n, el] of keyElements) {
-    el.classList.toggle('active', heldNotes.has(n));
+    const isHeld  = heldNotes.has(n) || demoNotes.has(n);
+    const isWrong = heldNotes.has(n) && isNoteWrong(n % 12, expected);
+    el.classList.toggle('active', isHeld && !isWrong);
+    el.classList.toggle('wrong',  isWrong);
+  }
+}
+
+function updateHearBtn() {
+  const expected = getExpectedPCs(currentPromptKey);
+  hearBtn.classList.toggle('hidden', !expected);
+}
+
+async function hearIt() {
+  if (hearItActive) return;
+  const expected = getExpectedPCs(currentPromptKey);
+  if (!expected) return;
+
+  hearItActive = true;
+  hearBtn.disabled = true;
+
+  const gap = ms => new Promise(r => setTimeout(r, ms));
+
+  const doPlay = async (midiNote, durationMs) => {
+    demoNotes.add(midiNote);
+    await synthNoteOn(midiNote, 85);
+    updateKeyboard();
+    await gap(durationMs);
+    demoNotes.delete(midiNote);
+    synthNoteOff(midiNote);
+    updateKeyboard();
+  };
+
+  try {
+    if (expected.type === 'note') {
+      await doPlay(60 + expected.pc, 900);
+
+    } else if (expected.type === 'chord') {
+      const notes = expected.pcs.map(pc => 60 + pc).sort((a, b) => a - b);
+      await Promise.all(notes.map(n => doPlay(n, 1600)));
+
+    } else if (expected.type === 'scale') {
+      const notes = expected.pcs.map(pc => 60 + pc).sort((a, b) => a - b);
+      notes.push(notes[0] + 12);
+      for (const n of notes) {
+        demoNotes.add(n);
+        await synthNoteOn(n, 85);
+        updateKeyboard();
+        await gap(240);
+      }
+      await gap(700);
+      for (const n of [...demoNotes]) { demoNotes.delete(n); synthNoteOff(n); }
+      updateKeyboard();
+
+    } else if (expected.type === 'interval' || expected.type === 'octave') {
+      const parts    = currentPromptKey.split('|');
+      const dir      = parts[3];
+      const semis    = expected.type === 'octave' ? 12 : (INTERVAL_SEMITONES[parts[1]] ?? 0);
+      const rootMidi = 60 + expected.rootPC;
+      const tgtMidi  = dir === 'above' ? rootMidi + semis : rootMidi - semis;
+      await doPlay(rootMidi, 650);
+      await gap(80);
+      await doPlay(tgtMidi, 900);
+    }
+
+  } catch (_) {
+  } finally {
+    for (const n of [...demoNotes]) { demoNotes.delete(n); synthNoteOff(n); }
+    updateKeyboard();
+    hearItActive = false;
+    hearBtn.disabled = false;
   }
 }
 
@@ -1514,6 +1602,7 @@ updateLearningUI();
 showPrompt();
 
 midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
+hearBtn.addEventListener('click', hearIt);
 
 synthVolumeSlider.value = localStorage.getItem('mpr_synth_vol') ?? '70';
 synthVolumeSlider.addEventListener('input', () => {
