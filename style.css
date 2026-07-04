@@ -94,6 +94,30 @@ header h1 {
   color: var(--text-dim);
 }
 
+.help-btn {
+  position: absolute;
+  left: 0;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-muted);
+  width: 44px;
+  height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s, background 0.15s;
+  flex-shrink: 0;
+  touch-action: manipulation;
+}
+
+.help-btn:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+  background: var(--accent-dim);
+}
+
 .theme-toggle {
   position: absolute;
   right: 0;
@@ -1590,5 +1614,186 @@ input[type="number"]:focus-visible {
   .radio-pill {
     padding: 6px 9px;
     font-size: 0.8rem;
+  }
+}
+
+/* ── Help / About modal ──────────────────────────────────────────────────────── */
+
+.help-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.72);
+  z-index: 1000;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  padding: 24px 16px;
+  overflow-y: auto;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  animation: help-fade-in 0.18s ease;
+}
+
+.help-overlay.hidden {
+  display: none;
+}
+
+@keyframes help-fade-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+.help-panel {
+  background: var(--card);
+  border: 1px solid var(--border-light);
+  border-radius: 20px;
+  padding: 40px 40px 48px;
+  max-width: 620px;
+  width: 100%;
+  position: relative;
+  animation: help-slide-in 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+  margin: auto;
+}
+
+@keyframes help-slide-in {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.help-close {
+  position: absolute;
+  top: 20px;
+  right: 20px;
+  background: none;
+  border: 1px solid var(--border-light);
+  border-radius: 8px;
+  color: var(--text-muted);
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  touch-action: manipulation;
+}
+
+.help-close:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.help-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text);
+  margin: 0 0 12px;
+  letter-spacing: -0.01em;
+}
+
+.help-lead {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin: 0 0 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.help-section {
+  margin-bottom: 28px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--border-light);
+}
+
+.help-section:last-child {
+  margin-bottom: 0;
+  padding-bottom: 0;
+  border-bottom: none;
+}
+
+.help-section h3 {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin: 0 0 12px;
+}
+
+.help-section p {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.7;
+  margin: 0 0 10px;
+}
+
+.help-section p:last-child {
+  margin-bottom: 0;
+}
+
+.help-section ul {
+  margin: 8px 0 10px;
+  padding-left: 18px;
+  list-style: none;
+}
+
+.help-section ul li {
+  font-size: 0.875rem;
+  color: var(--text-muted);
+  line-height: 1.65;
+  margin-bottom: 7px;
+  position: relative;
+  padding-left: 14px;
+}
+
+.help-section ul li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.6em;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0.5;
+}
+
+.help-section ul li:last-child {
+  margin-bottom: 0;
+}
+
+.help-section strong {
+  color: var(--text);
+  font-weight: 600;
+}
+
+.help-section kbd {
+  display: inline-block;
+  padding: 1px 7px;
+  font-family: inherit;
+  font-size: 0.8rem;
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 5px;
+  color: var(--text-muted);
+}
+
+.help-note {
+  font-size: 0.8rem !important;
+  color: var(--text-dim) !important;
+  font-style: italic;
+  margin-top: 10px !important;
+}
+
+@media (max-width: 480px) {
+  .help-panel {
+    padding: 28px 22px 36px;
+    border-radius: 16px;
+  }
+
+  .help-overlay {
+    padding: 12px 8px;
+    align-items: flex-start;
   }
 }

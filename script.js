@@ -203,6 +203,9 @@ const rtDisplay           = document.getElementById('rtDisplay');
 const midiStats           = document.getElementById('midiStats');
 const pianoKeyboard       = document.getElementById('pianoKeyboard');
 const hearBtn             = document.getElementById('hearBtn');
+const helpBtn             = document.getElementById('helpBtn');
+const helpModal           = document.getElementById('helpModal');
+const helpClose           = document.getElementById('helpClose');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -1659,6 +1662,11 @@ showPrompt();
 
 midiBtn.addEventListener('click', () => { midiEnabled ? disableMidi() : enableMidi(); });
 hearBtn.addEventListener('click', hearIt);
+
+helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
+helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
+helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') helpModal.classList.add('hidden'); });
 
 document.getElementById('resetWeightsBtn').addEventListener('click', () => {
   adaptWeights = { roots: {}, types: {} };
