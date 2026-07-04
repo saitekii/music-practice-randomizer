@@ -478,6 +478,8 @@ let synthMasterGain    = null;
 const synthNotes       = new Map();
 let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
 
+const MAX_RESPONSE_MS = 30_000; // ignore answers after 30 s — user was probably away
+
 let promptStartTime = null;
 let responseTimes   = [];
 const keyElements   = new Map(); // midiNote → DOM element
@@ -977,10 +979,10 @@ function handleRadialAnswer(lbl) {
 
   const isCorrect = lbl === earCurrentPrompt.correct;
   const ms        = Date.now() - earPromptStartTime;
+  const validTime = ms <= MAX_RESPONSE_MS;
 
   earSessionTotal++;
-  earSessionMsSum += ms;
-  earSessionCount++;
+  if (validTime) { earSessionMsSum += ms; earSessionCount++; }
   if (isCorrect) { earSessionCorrect++; earStreak++; }
   else           { earStreak = 0; }
 
@@ -989,9 +991,11 @@ function handleRadialAnswer(lbl) {
 
   updateEarSessionStats();
 
-  const recordMs = isCorrect ? ms : earPenaltyMs();
-  recordEarResult(earCurrentPrompt.correct, recordMs);
-  updateDailyLog(ms, true);
+  if (validTime) {
+    const recordMs = isCorrect ? ms : earPenaltyMs();
+    recordEarResult(earCurrentPrompt.correct, recordMs);
+    updateDailyLog(ms, true);
+  }
 
   if (!isCorrect) {
     setTimeout(async () => {
@@ -1058,10 +1062,10 @@ function handleEarAnswer(chosen) {
 
   const isCorrect = chosen === earCurrentPrompt.correct;
   const ms        = Date.now() - earPromptStartTime;
+  const validTime = ms <= MAX_RESPONSE_MS;
 
   earSessionTotal++;
-  earSessionMsSum += ms;
-  earSessionCount++;
+  if (validTime) { earSessionMsSum += ms; earSessionCount++; }
   if (isCorrect) { earSessionCorrect++; earStreak++; }
   else           { earStreak = 0; }
 
@@ -1073,9 +1077,11 @@ function handleEarAnswer(chosen) {
 
   updateEarSessionStats();
 
-  const recordMs = isCorrect ? ms : earPenaltyMs();
-  recordEarResult(earCurrentPrompt.correct, recordMs);
-  updateDailyLog(ms, true);
+  if (validTime) {
+    const recordMs = isCorrect ? ms : earPenaltyMs();
+    recordEarResult(earCurrentPrompt.correct, recordMs);
+    updateDailyLog(ms, true);
+  }
 
   if (!isCorrect) {
     setTimeout(async () => {
@@ -2384,11 +2390,13 @@ function triggerMidiSuccess() {
   midiSuccessActive = true;
   if (promptStartTime) {
     const ms = Date.now() - promptStartTime;
-    responseTimes.push(ms);
-    recordAdaptiveResult(currentPromptKey, ms);
-    updateDailyLog(ms);
-    showResponseTime(ms);
-    updateMidiStats();
+    if (ms <= MAX_RESPONSE_MS) {
+      responseTimes.push(ms);
+      recordAdaptiveResult(currentPromptKey, ms);
+      updateDailyLog(ms);
+      showResponseTime(ms);
+      updateMidiStats();
+    }
   }
   promptCard.classList.add('midi-success');
   setTimeout(() => {
