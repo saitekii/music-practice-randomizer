@@ -408,10 +408,11 @@ function getSynthMasterGain() {
   return synthMasterGain;
 }
 
-function synthNoteOn(noteNumber, velocity) {
+async function synthNoteOn(noteNumber, velocity) {
   synthNoteOff(noteNumber);
   try {
-    const ctx    = getAudioCtx();
+    const ctx = getAudioCtx();
+    if (ctx.state !== 'running') await ctx.resume();
     const freq   = 440 * Math.pow(2, (noteNumber - 69) / 12);
     const vel    = velocity / 127;
     const preset = SYNTH_PRESETS[currentSynthPreset] || SYNTH_PRESETS['Rhodes'];
