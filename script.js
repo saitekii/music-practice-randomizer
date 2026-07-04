@@ -1427,6 +1427,10 @@ async function enableMidi() {
     midiStatus.textContent = 'Not supported in this browser';
     return;
   }
+  // Initialize audio graph now while we still have the user-gesture context.
+  // Without this, AudioContext is created later inside a MIDI message handler
+  // where Chrome treats it as suspended and produces no sound.
+  try { getSynthMasterGain(); } catch (_) {}
   try {
     midiAccess = await navigator.requestMIDIAccess();
     midiEnabled = true;
