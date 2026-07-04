@@ -311,8 +311,33 @@ function saveAdaptWeights() {
 
 function updateAdaptWeight(dim, key, ms) {
   const g = adaptWeights[dim];
-  if (!g[key]) g[key] = { ema: ms, count: 1 };
-  else { g[key].ema = 0.3 * ms + 0.7 * g[key].ema; g[key].count = Math.min(g[key].count + 1, 9999); }
+  if (!g[key]) {
+    g[key] = { ema: ms, ema_slow: ms, count: 1 };
+  } else {
+    g[key].ema      = 0.3  * ms + 0.7  * g[key].ema;
+    g[key].ema_slow = 0.07 * ms + 0.93 * (g[key].ema_slow ?? g[key].ema);
+    g[key].count    = Math.min(g[key].count + 1, 9999);
+  }
+}
+
+function loadDailyLog() {
+  try { return JSON.parse(localStorage.getItem('mpr_daily')) || []; }
+  catch (_) { return []; }
+}
+
+function updateDailyLog(ms) {
+  const log   = loadDailyLog();
+  const today = new Date().toISOString().slice(0, 10);
+  const idx   = log.findIndex(e => e.date === today);
+  if (idx >= 0) {
+    const e  = log[idx];
+    e.avgMs  = Math.round((e.avgMs * e.answers + ms) / (e.answers + 1));
+    e.answers++;
+  } else {
+    log.push({ date: today, answers: 1, avgMs: ms });
+  }
+  while (log.length > 30) log.shift();
+  localStorage.setItem('mpr_daily', JSON.stringify(log));
 }
 
 function weightedPick(items, dim) {
@@ -328,53 +353,114 @@ function weightedPick(items, dim) {
   return items[items.length - 1];
 }
 
+function renderDailyChart(log) {
+  const days = [];
+  for (let i = 13; i >= 0; i--) {
+    const d = new Date();
+    d.setDate(d.getDate() - i);
+    const dateStr = d.toISOString().slice(0, 10);
+    days.push({ dateStr, entry: log.find(e => e.date === dateStr) || null, isToday: i === 0 });
+  }
+  const withEntry = days.filter(d => d.entry);
+  if (!withEntry.length) return '';
+  const maxMs = Math.max(...withEntry.map(d => d.entry.avgMs));
+
+  const cols = days.map(({ dateStr, entry, isToday }) => {
+    const dow = new Date(dateStr + 'T12:00:00').getDay();
+    const lbl = isToday ? 'today' : ['Su','Mo','Tu','We','Th','Fr','Sa'][dow];
+    if (!entry) {
+      return `<div class="chart-col"><div class="chart-bar-area"></div><span class="chart-day">${lbl}</span></div>`;
+    }
+    const h   = Math.max(4, Math.round((entry.avgMs / maxMs) * 60));
+    const tip = `${(entry.avgMs / 1000).toFixed(1)}s avg · ${entry.answers} answer${entry.answers === 1 ? '' : 's'}`;
+    return `<div class="chart-col">
+      <div class="chart-bar-area"><div class="chart-bar${isToday ? ' today' : ''}" style="height:${h}px" title="${tip}"></div></div>
+      <span class="chart-day${isToday ? ' today' : ''}">${lbl}</span>
+    </div>`;
+  }).join('');
+
+  return `<div class="stats-chart-wrap">
+    <h3 class="stats-section-title">14-Day Avg Response Time <span class="chart-note">shorter = faster</span></h3>
+    <div class="stats-chart">${cols}</div>
+  </div>`;
+}
+
+function getTrend(entry) {
+  if (!entry.ema_slow || entry.count < 6) return '';
+  const r = entry.ema / entry.ema_slow;
+  if (r < 0.88) return `<span class="trend up" title="Getting faster">▲</span>`;
+  if (r > 1.12) return `<span class="trend down" title="Getting slower">▼</span>`;
+  return `<span class="trend flat" title="Stable">—</span>`;
+}
+
 function renderStats() {
   const rootEntries = Object.entries(adaptWeights.roots);
   const typeEntries = Object.entries(adaptWeights.types);
+  const log         = loadDailyLog();
+  const today       = new Date().toISOString().slice(0, 10);
+  const todayEntry  = log.find(e => e.date === today);
+  const totalAns    = log.reduce((s, e) => s + e.answers, 0);
 
-  if (!rootEntries.length && !typeEntries.length) {
+  if (!rootEntries.length && !typeEntries.length && !log.length) {
     return `<p class="stats-empty">No data yet. Play prompts with MIDI enabled — each correct answer starts building your profile.</p>`;
   }
 
-  const totalAnswers = rootEntries.reduce((s, [, e]) => s + e.count, 0);
-  const summaryHtml = `<p class="stats-summary">${totalAnswers} answer${totalAnswers === 1 ? '' : 's'} tracked across ${rootEntries.length} root${rootEntries.length === 1 ? '' : 's'} and ${typeEntries.length} type${typeEntries.length === 1 ? '' : 's'}</p>
-  <div class="stats-legend">
+  const headerHtml = `<div class="stats-header-row">
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${totalAns}</span>
+      <span class="stats-header-lbl">answers (30 days)</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${log.length}</span>
+      <span class="stats-header-lbl">days practiced</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${todayEntry ? todayEntry.answers : 0}</span>
+      <span class="stats-header-lbl">today</span>
+    </div>
+  </div>`;
+
+  const legendHtml = `<div class="stats-legend">
     <span class="legend-item"><span class="legend-dot" style="background:hsl(120deg 58% 48%)"></span>Fast</span>
     <span class="legend-item"><span class="legend-dot" style="background:hsl(30deg 90% 52%)"></span>Medium</span>
     <span class="legend-item"><span class="legend-dot" style="background:hsl(0deg 70% 55%)"></span>Needs work</span>
-    <span class="legend-item dim"><span class="legend-dot" style="background:var(--text-dim)"></span>Fewer than 3 answers</span>
+    <span class="legend-item"><span class="trend up">▲</span>&nbsp;improving</span>
+    <span class="legend-item"><span class="trend down">▼</span>&nbsp;slowing</span>
+    <span class="legend-item dim"><span class="legend-dot" style="background:var(--text-dim)"></span>&lt;3 answers</span>
   </div>`;
+
+  const chartHtml = log.length >= 2 ? renderDailyChart(log) : '';
 
   function buildSection(entries, title) {
     if (!entries.length) return '';
-    const sorted = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
+    const sorted   = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
     const withData = sorted.filter(([, e]) => e.count >= 3);
-    const maxEma = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
-    const minEma = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
-    const emaDelta = maxEma !== null && maxEma !== minEma ? maxEma - minEma : null;
+    const maxEma   = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
+    const minEma   = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
+    const delta    = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
 
     const rows = sorted.map(([key, entry]) => {
       const hasData = entry.count >= 3;
-      const secs = (entry.ema / 1000).toFixed(1) + 's';
-
+      const secs    = (entry.ema / 1000).toFixed(1) + 's';
+      const trend   = hasData ? getTrend(entry) : '';
       let barHtml, badgeHtml = '';
       if (hasData && maxEma !== null) {
-        const mastery = emaDelta ? (maxEma - entry.ema) / emaDelta : 0.5;
-        const pct    = Math.round(mastery * 76 + 12);
-        const hue    = Math.round(mastery * 120);
-        barHtml = `<div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%;background:hsl(${hue}deg 65% 50%)"></div></div>`;
+        const mastery = delta ? (maxEma - entry.ema) / delta : 0.5;
+        const pct = Math.round(mastery * 76 + 12);
+        const hue = Math.round(mastery * 120);
+        barHtml   = `<div class="stats-bar-track"><div class="stats-bar-fill" style="width:${pct}%;background:hsl(${hue}deg 65% 50%)"></div></div>`;
         if (mastery < 0.25)      badgeHtml = `<span class="stats-badge needs-work">needs work</span>`;
         else if (mastery > 0.75) badgeHtml = `<span class="stats-badge strong">strong</span>`;
       } else {
-        barHtml = `<div class="stats-bar-track"><div class="stats-bar-fill building"></div></div>`;
+        barHtml   = `<div class="stats-bar-track"><div class="stats-bar-fill building"></div></div>`;
         badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
       }
-
       return `<div class="stats-row${hasData ? '' : ' dim-row'}">
         <span class="stats-key">${key}</span>
         ${barHtml}
         <span class="stats-time">${secs}</span>
         <span class="stats-count">${entry.count}×</span>
+        <span class="stats-trend">${trend}</span>
         ${badgeHtml}
       </div>`;
     }).join('');
@@ -382,7 +468,9 @@ function renderStats() {
     return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
   }
 
-  return summaryHtml + buildSection(rootEntries, 'Root Notes') + buildSection(typeEntries, 'Types');
+  return headerHtml + legendHtml + chartHtml
+    + buildSection(rootEntries, 'Root Notes')
+    + buildSection(typeEntries, 'Types');
 }
 
 function recordAdaptiveResult(key, ms) {
@@ -1470,6 +1558,7 @@ function triggerMidiSuccess() {
     const ms = Date.now() - promptStartTime;
     responseTimes.push(ms);
     recordAdaptiveResult(currentPromptKey, ms);
+    updateDailyLog(ms);
     showResponseTime(ms);
     updateMidiStats();
   }
@@ -1726,12 +1815,42 @@ helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
 helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
 helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
+function exportJSON() {
+  const data = { exported: new Date().toISOString(), adaptive_weights: adaptWeights, daily_log: loadDailyLog() };
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
+    download: `mpr-backup-${new Date().toISOString().slice(0, 10)}.json`,
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
+function exportCSV() {
+  const log = loadDailyLog();
+  if (!log.length) return;
+  const rows = [['Date','Answers','Avg Response Time (s)'],
+    ...log.map(e => [e.date, e.answers, (e.avgMs / 1000).toFixed(2)])];
+  const a = Object.assign(document.createElement('a'), {
+    href: URL.createObjectURL(new Blob([rows.map(r => r.join(',')).join('\n')], { type: 'text/csv' })),
+    download: `mpr-daily-${new Date().toISOString().slice(0, 10)}.csv`,
+  });
+  a.click(); URL.revokeObjectURL(a.href);
+}
+
 document.getElementById('viewStatsBtn').addEventListener('click', () => {
   document.getElementById('statsContent').innerHTML = renderStats();
   statsModal.classList.remove('hidden');
 });
 statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
 statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
+document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
+document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
+document.getElementById('clearHistoryBtn').addEventListener('click', () => {
+  localStorage.removeItem('mpr_daily');
+  const btn = document.getElementById('clearHistoryBtn');
+  btn.textContent = 'Cleared!';
+  document.getElementById('statsContent').innerHTML = renderStats();
+  setTimeout(() => { btn.textContent = 'Clear practice history'; }, 1800);
+});
 
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') {
