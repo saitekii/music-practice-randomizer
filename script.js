@@ -991,7 +991,7 @@ const ICON_MOON = '<path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></p
 function applyTheme(theme) {
   document.documentElement.setAttribute('data-theme', theme);
   document.querySelector('meta[name="theme-color"]').setAttribute('content',
-    theme === 'light' ? '#FAF6EE' : '#0D0A07'
+    theme === 'light' ? '#eef0f8' : '#0a0b12'
   );
   themeIcon.innerHTML = theme === 'dark' ? ICON_SUN : ICON_MOON;
   themeToggle.setAttribute('aria-label',
