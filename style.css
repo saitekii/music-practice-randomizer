@@ -1057,14 +1057,36 @@ input[type="number"]:focus-visible {
 .synth-vol-wrap {
   display: flex;
   align-items: center;
-  gap: 6px;
-  color: var(--text-dim);
+  gap: 8px;
   margin-left: 4px;
 }
 
 #synthVolWrap.hidden { display: none; }
 
-.synth-vol-wrap input[type="range"] {
+.synth-preset {
+  background: var(--surface);
+  border: 1px solid var(--border-light);
+  border-radius: 6px;
+  color: var(--text-muted);
+  padding: 3px 6px;
+  font-size: 0.72rem;
+  font-family: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  outline: none;
+  transition: border-color 0.15s;
+}
+
+.synth-preset:focus { border-color: var(--accent); }
+
+.synth-vol-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--text-dim);
+}
+
+.synth-vol-label input[type="range"] {
   -webkit-appearance: none;
   appearance: none;
   width: 72px;
@@ -1075,7 +1097,7 @@ input[type="number"]:focus-visible {
   cursor: pointer;
 }
 
-.synth-vol-wrap input[type="range"]::-webkit-slider-thumb {
+.synth-vol-label input[type="range"]::-webkit-slider-thumb {
   -webkit-appearance: none;
   width: 12px;
   height: 12px;
@@ -1085,7 +1107,7 @@ input[type="number"]:focus-visible {
   border: none;
 }
 
-.synth-vol-wrap input[type="range"]::-moz-range-thumb {
+.synth-vol-label input[type="range"]::-moz-range-thumb {
   width: 12px;
   height: 12px;
   border-radius: 50%;

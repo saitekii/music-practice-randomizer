@@ -198,6 +198,7 @@ const midiBtn             = document.getElementById('midiBtn');
 const midiStatus          = document.getElementById('midiStatus');
 const synthVolWrap        = document.getElementById('synthVolWrap');
 const synthVolumeSlider   = document.getElementById('synthVolume');
+const synthPresetSelect   = document.getElementById('synthPreset');
 
 // ── State ─────────────────────────────────────────────────────────────────────
 
@@ -227,8 +228,9 @@ let scaleNotesPlayed  = new Set();
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
-let synthMasterGain = null;
-const synthNotes    = new Map();
+let synthMasterGain   = null;
+const synthNotes      = new Map();
+let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
 
 let wakeLock = null;
 
@@ -297,15 +299,97 @@ function playClick(accented) {
   } catch (_) {}
 }
 
+const SYNTH_PRESETS = {
+  'Rhodes': {
+    build(ctx, freq, vel, dest) {
+      const osc  = ctx.createOscillator();
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      osc.type = 'triangle';
+      osc.frequency.value = freq;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.7,  now + 0.006);
+      gain.gain.exponentialRampToValueAtTime(vel * 0.35, now + 0.45);
+      osc.connect(gain); gain.connect(dest); osc.start(now);
+      return { gain, oscs: [osc], release: 0.55 };
+    },
+  },
+  'Organ': {
+    build(ctx, freq, vel, dest) {
+      const gain = ctx.createGain();
+      gain.gain.value = vel * 0.45;
+      gain.connect(dest);
+      const oscs = [[1, 0.5], [2, 0.28], [3, 0.14], [4, 0.08]].map(([h, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
+        osc.connect(g); g.connect(gain); osc.start();
+        return osc;
+      });
+      return { gain, oscs, release: 0.03 };
+    },
+  },
+  'Pad': {
+    build(ctx, freq, vel, dest) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 1600; filter.Q.value = 0.8;
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.55, now + 0.1);
+      filter.connect(gain); gain.connect(dest);
+      const oscs = [-8, 8].map(detune => {
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
+        osc.connect(filter); osc.start(now);
+        return osc;
+      });
+      return { gain, oscs, release: 1.2 };
+    },
+  },
+  'Bell': {
+    build(ctx, freq, vel, dest) {
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.65, now + 0.002);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
+      gain.connect(dest);
+      const oscs = [[1, 0.7], [2.756, 0.3]].map(([h, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
+        osc.connect(g); g.connect(gain); osc.start(now); osc.stop(now + 4);
+        return osc;
+      });
+      return { gain, oscs, release: 0, freeDecay: true };
+    },
+  },
+  'Pluck': {
+    build(ctx, freq, vel, dest) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass';
+      filter.frequency.setValueAtTime(5000, ctx.currentTime);
+      filter.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.4);
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(vel * 0.85, now);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = freq;
+      osc.connect(filter); filter.connect(gain); gain.connect(dest);
+      osc.start(now); osc.stop(now + 1.1);
+      return { gain, oscs: [osc], release: 0, freeDecay: true };
+    },
+  },
+};
+
 function getSynthMasterGain() {
   if (synthMasterGain) return synthMasterGain;
   const ctx  = getAudioCtx();
   const comp = ctx.createDynamicsCompressor();
-  comp.threshold.value = -12;
-  comp.knee.value      = 10;
-  comp.ratio.value     = 6;
-  comp.attack.value    = 0.003;
-  comp.release.value   = 0.15;
+  comp.threshold.value = -12; comp.knee.value = 10;
+  comp.ratio.value = 6; comp.attack.value = 0.003; comp.release.value = 0.15;
   comp.connect(ctx.destination);
   synthMasterGain = ctx.createGain();
   synthMasterGain.gain.value = (parseInt(localStorage.getItem('mpr_synth_vol') ?? '70')) / 100;
@@ -316,24 +400,12 @@ function getSynthMasterGain() {
 function synthNoteOn(noteNumber, velocity) {
   synthNoteOff(noteNumber);
   try {
-    const ctx  = getAudioCtx();
-    const freq = 440 * Math.pow(2, (noteNumber - 69) / 12);
-    const vel  = velocity / 127;
-    const now  = ctx.currentTime;
-
-    const osc  = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.type = 'triangle';
-    osc.frequency.value = freq;
-
-    gain.gain.setValueAtTime(0, now);
-    gain.gain.linearRampToValueAtTime(vel * 0.7,  now + 0.006);
-    gain.gain.exponentialRampToValueAtTime(vel * 0.35, now + 0.45);
-
-    osc.connect(gain);
-    gain.connect(getSynthMasterGain());
-    osc.start(now);
-    synthNotes.set(noteNumber, { osc, gain });
+    const ctx    = getAudioCtx();
+    const freq   = 440 * Math.pow(2, (noteNumber - 69) / 12);
+    const vel    = velocity / 127;
+    const preset = SYNTH_PRESETS[currentSynthPreset] || SYNTH_PRESETS['Rhodes'];
+    const note   = preset.build(ctx, freq, vel, getSynthMasterGain());
+    synthNotes.set(noteNumber, note);
   } catch (_) {}
 }
 
@@ -341,13 +413,15 @@ function synthNoteOff(noteNumber) {
   const note = synthNotes.get(noteNumber);
   if (!note) return;
   synthNotes.delete(noteNumber);
+  if (note.freeDecay) return;
   try {
     const ctx = getAudioCtx();
     const now = ctx.currentTime;
+    const rel = note.release ?? 0.55;
     note.gain.gain.cancelScheduledValues(now);
     note.gain.gain.setValueAtTime(Math.max(note.gain.gain.value, 0.001), now);
-    note.gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.55);
-    note.osc.stop(now + 0.6);
+    note.gain.gain.exponentialRampToValueAtTime(0.0001, now + rel);
+    note.oscs.forEach(o => { try { o.stop(now + rel + 0.05); } catch (_) {} });
   } catch (_) {}
 }
 
@@ -1335,6 +1409,13 @@ synthVolumeSlider.addEventListener('input', () => {
   const vol = parseInt(synthVolumeSlider.value) / 100;
   if (synthMasterGain) synthMasterGain.gain.value = vol;
   localStorage.setItem('mpr_synth_vol', synthVolumeSlider.value);
+});
+
+synthPresetSelect.value = currentSynthPreset;
+synthPresetSelect.addEventListener('change', () => {
+  currentSynthPreset = synthPresetSelect.value;
+  localStorage.setItem('mpr_synth_preset', currentSynthPreset);
+  [...synthNotes.keys()].forEach(n => synthNoteOff(n));
 });
 
 if (localStorage.getItem('mpr_midi') === '1') enableMidi();
