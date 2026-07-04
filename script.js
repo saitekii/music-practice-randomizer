@@ -32,6 +32,28 @@ const CHORD_TYPES = [
 const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
 const SEVENTH_INVERSIONS = ['Root position', '1st inversion', '2nd inversion', '3rd inversion'];
 
+const JAZZ_SYMBOLS = {
+  chordMajor:      ['', 'M'],
+  chordMinor:      ['-', 'm'],
+  chordDiminished: ['°', 'dim'],
+  chordAugmented:  ['+', 'aug'],
+  chordMaj7:       ['△', 'M7', 'Maj7', '△7', 'maj7'],
+  chordMin7:       ['-7', 'm7', 'min7'],
+  chordDom7:       ['7'],
+  chordHalfDim:    ['ø', 'ø7', 'm7♭5'],
+  chordDim7:       ['°7', 'dim7'],
+  chordSus2:       ['sus2'],
+  chordSus4:       ['sus', 'sus4'],
+  chord7sus4:      ['7sus4', '7sus'],
+  chordDom9:       ['9'],
+  chordMaj9:       ['△9', 'M9', 'Maj9'],
+  chordMin9:       ['-9', 'm9'],
+  chordDom13:      ['13'],
+  chord7b9:        ['7♭9'],
+  chord7s9:        ['7♯9'],
+  chord7s11:       ['7♯11'],
+};
+
 const SCALE_TYPES = [
   { id: 'scaleMajor',     label: 'Major'            },
   { id: 'scaleNatMinor',  label: 'Natural minor'    },
@@ -1425,8 +1447,16 @@ function genChord() {
   const useInv = checked('inversions');
   const inv    = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
 
+  let display;
+  if (checked('jazzSymbols') && JAZZ_SYMBOLS[type.id]) {
+    const sym = pick(JAZZ_SYMBOLS[type.id]);
+    display = `${note}${sym}`;
+  } else {
+    display = `${note} ${type.label}`;
+  }
+
   return {
-    line1: `${note} ${type.label}`,
+    line1: display,
     line2: inv,
     key:   `chord|${note}|${type.label}|${inv}`,
   };
@@ -1782,7 +1812,7 @@ function saveSettings() {
     'chordSus2', 'chordSus4', 'chord7sus4',
     'chordDom9', 'chordMaj9', 'chordMin9', 'chordDom13',
     'chord7b9', 'chord7s9', 'chord7s11', 'chordHalfDim', 'chordDim7',
-    'inversions',
+    'inversions', 'jazzSymbols',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
     'scaleMajPent', 'scaleMinPent', 'scaleModes',
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
