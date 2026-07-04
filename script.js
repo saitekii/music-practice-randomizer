@@ -240,6 +240,9 @@ let responseTimes   = [];
 const keyElements   = new Map(); // midiNote → DOM element
 let rtFadeTimer     = null;
 
+let pedalDown      = false;
+let sustainedNotes = new Set();
+
 let wakeLock = null;
 
 async function acquireWakeLock() {
@@ -1277,17 +1280,35 @@ function getExpectedPCs(key) {
 function onMidiMessage(e) {
   const [status, note, velocity] = e.data;
   const cmd = status & 0xf0;
+
+  if (cmd === 0xb0 && note === 64) {
+    if (velocity >= 64 && !pedalDown) {
+      pedalDown = true;
+    } else if (velocity < 64 && pedalDown) {
+      pedalDown = false;
+      for (const n of sustainedNotes) { heldNotes.delete(n); synthNoteOff(n); }
+      sustainedNotes.clear();
+      updateKeyboard();
+    }
+    return;
+  }
+
   if (cmd === 0x90 && velocity > 0) {
     heldNotes.add(note);
+    sustainedNotes.delete(note);
     scaleNotesPlayed.add(note % 12);
     synthNoteOn(note, velocity);
     updateKeyboard();
     clearTimeout(midiCheckTimer);
     midiCheckTimer = setTimeout(checkMidi, 100);
   } else if (cmd === 0x80 || (cmd === 0x90 && velocity === 0)) {
-    heldNotes.delete(note);
-    synthNoteOff(note);
-    updateKeyboard();
+    if (pedalDown) {
+      sustainedNotes.add(note);
+    } else {
+      heldNotes.delete(note);
+      synthNoteOff(note);
+      updateKeyboard();
+    }
   }
 }
 
@@ -1424,6 +1445,8 @@ async function enableMidi() {
 function disableMidi() {
   midiEnabled = false;
   heldNotes.clear();
+  sustainedNotes.clear();
+  pedalDown = false;
   scaleNotesPlayed.clear();
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
   responseTimes = [];
