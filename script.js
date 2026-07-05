@@ -483,6 +483,16 @@ let metroCount      = 0;  // quarter-note beats since last chord change
 let tapTimes        = [];
 let audioCtx        = null;
 
+let bandActive       = false;  // true while the lookahead scheduler (not setInterval) drives the click
+let bandSchedulerId  = null;
+let nextStepTime     = 0;      // audioCtx time of the next unscheduled eighth-note step
+let stepIndex        = 0;      // eighth-note step counter, wraps at (beatsPerBar * 2)
+let rideOutActive    = false;  // true while playing the post-correct-answer groove (wired in Task 5)
+let rideOutChordPcs  = null;   // pitch classes of the chord being ridden out (wired in Task 5)
+
+const SCHEDULER_LOOKAHEAD_S  = 0.1;
+const SCHEDULER_INTERVAL_MS  = 25;
+
 let prevSettings  = null;
 let undoTimeout   = null;
 let learningStage = -1;
@@ -555,7 +565,7 @@ function releaseWakeLock() {
 }
 
 function syncWakeLock() {
-  const active = timerInterval || metroIntervalId || sessionInterval;
+  const active = timerInterval || metroIntervalId || bandSchedulerId || sessionInterval;
   if (active) acquireWakeLock(); else releaseWakeLock();
 }
 
@@ -1468,7 +1478,7 @@ function getAudioCtx() {
   return audioCtx;
 }
 
-function playClick(accented) {
+function playClick(accented, time) {
   try {
     const ctx  = getAudioCtx();
     const osc  = ctx.createOscillator();
@@ -1477,7 +1487,7 @@ function playClick(accented) {
     gain.connect(ctx.destination);
     osc.type = 'sine';
     osc.frequency.value = accented ? 1100 : 800;
-    const now = ctx.currentTime;
+    const now = time ?? ctx.currentTime;
     gain.gain.setValueAtTime(accented ? 0.55 : 0.3, now);
     gain.gain.exponentialRampToValueAtTime(0.001, now + 0.06);
     osc.start(now);
@@ -2066,6 +2076,12 @@ function metroTick() {
 function startMetronome() {
   stopTimer();
   stopMetronome();
+
+  if (bandModeToggle.checked && bandModeEligible() && midiEnabled) {
+    startBandScheduler();
+    return;
+  }
+
   metroBeat  = 0;
   metroCount = 0;
   playClick(true);
@@ -2079,8 +2095,83 @@ function stopMetronome() {
   metroIntervalId = null;
   metroBeat  = 0;
   metroCount = 0;
+  stopBandScheduler();
   timerDisplay.textContent = '';
   timerDisplay.className   = 'timer-display';
+  syncWakeLock();
+}
+
+// ── Band Mode scheduler ───────────────────────────────────────────────────────
+
+function advancePromptOnSchedule() {
+  const prompt = generatePrompt();
+  currentPromptKey = prompt ? prompt.key : '';
+  scaleNotesPlayed.clear();
+  updateHearBtn();
+  promptStartTime = Date.now();
+  clearHold();
+  historyIndex = 0;
+  addToHistory(prompt);
+  updateBackBtn();
+  if (sessionInterval) { sessionPromptCount++; checkSessionGoal(); }
+  renderPrompt(prompt);
+}
+
+function onBeatTick(beatNum) {
+  metroBeat = beatNum;
+  pulseBeat(beatNum === 0);
+  metroCount++;
+  if (metroCount >= getBeatsPerChange()) {
+    metroCount = 0;
+    if (rideOutActive) {
+      rideOutActive   = false;
+      rideOutChordPcs = null;
+      promptCard.classList.remove('midi-success');
+      midiSuccessActive = false;
+    }
+    advancePromptOnSchedule();
+  }
+}
+
+function scheduleStep(step, time) {
+  const beatsPerBar = getBeatsPerBar();
+  const localStep   = step % (beatsPerBar * 2);
+
+  if (localStep % 2 === 0) {
+    playClick(localStep === 0, time);
+    const delayMs = Math.max(0, (time - getAudioCtx().currentTime) * 1000);
+    setTimeout(() => onBeatTick(localStep / 2), delayMs);
+  }
+}
+
+function bandSchedulerTick() {
+  const ctx = getAudioCtx();
+  while (nextStepTime < ctx.currentTime + SCHEDULER_LOOKAHEAD_S) {
+    scheduleStep(stepIndex, nextStepTime);
+    nextStepTime += (60 / getBpm()) / 2;
+    stepIndex = (stepIndex + 1) % (getBeatsPerBar() * 2);
+  }
+}
+
+function startBandScheduler() {
+  const ctx = getAudioCtx();
+  stepIndex       = 0;
+  metroBeat       = 0;
+  metroCount      = 0;
+  rideOutActive   = false;
+  rideOutChordPcs = null;
+  nextStepTime    = ctx.currentTime + 0.05;
+  bandActive      = true;
+  bandSchedulerId = setInterval(bandSchedulerTick, SCHEDULER_INTERVAL_MS);
+  syncWakeLock();
+}
+
+function stopBandScheduler() {
+  clearInterval(bandSchedulerId);
+  bandSchedulerId = null;
+  bandActive      = false;
+  rideOutActive   = false;
+  rideOutChordPcs = null;
   syncWakeLock();
 }
 
