@@ -1551,6 +1551,40 @@ function playHihat(time) {
   } catch (_) {}
 }
 
+function playBandBass(pc, time) {
+  try {
+    const ctx    = getAudioCtx();
+    const freq   = 440 * Math.pow(2, ((36 + pc) - 69) / 12); // low bass register
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.frequency.value = 900; filter.Q.value = 1.5;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, time);
+    gain.gain.exponentialRampToValueAtTime(0.8, time + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.35);
+    const osc = ctx.createOscillator();
+    osc.type = 'sawtooth'; osc.frequency.value = freq;
+    osc.connect(filter); filter.connect(gain); gain.connect(getSynthMasterGain());
+    osc.start(time); osc.stop(time + 0.4);
+  } catch (_) {}
+}
+
+function playBandComp(pcs, time) {
+  try {
+    const ctx  = getAudioCtx();
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, time);
+    gain.gain.exponentialRampToValueAtTime(0.45 / Math.max(1, pcs.length), time + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
+    gain.connect(getSynthMasterGain());
+    pcs.forEach(pc => {
+      const freq = 440 * Math.pow(2, ((60 + pc) - 69) / 12); // mid-register comp voicing
+      const osc  = ctx.createOscillator();
+      osc.type = 'triangle'; osc.frequency.value = freq;
+      osc.connect(gain); osc.start(time); osc.stop(time + 0.32);
+    });
+  } catch (_) {}
+}
+
 const SYNTH_PRESETS = {
   'Rhodes': {
     build(ctx, freq, vel, dest) {
@@ -2173,6 +2207,29 @@ function advancePromptOnSchedule() {
   renderPrompt(prompt);
 }
 
+// Step positions (0-indexed eighth notes within the bar) for each supported time signature.
+const GROOVE_PATTERNS = {
+  4: { kick: [0, 4], snare: [2, 6], hihat: [0, 1, 2, 3, 4, 5, 6, 7], bass: [0, 4], comp: [3, 7] },
+  3: { kick: [0],    snare: [2, 4], hihat: [0, 1, 2, 3, 4, 5],       bass: [0],    comp: [3] },
+  5: { kick: [0, 6], snare: [4, 8], hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], bass: [0, 6], comp: [5, 9] },
+};
+
+function scheduleGrooveHit(localStep, time, beatsPerBar) {
+  if (!rideOutActive) return;
+  const pattern = GROOVE_PATTERNS[beatsPerBar] || GROOVE_PATTERNS[4];
+
+  if (pattern.hihat.includes(localStep)) playHihat(time);
+  if (pattern.kick.includes(localStep))  playKick(time);
+  if (pattern.snare.includes(localStep)) playSnare(time);
+
+  if (!rideOutChordPcs) return;
+  if (pattern.bass.includes(localStep)) playBandBass(rideOutChordPcs[0], time);
+  if (pattern.comp.includes(localStep)) {
+    const compPcs = rideOutChordPcs.length > 1 ? rideOutChordPcs.slice(1) : rideOutChordPcs;
+    playBandComp(compPcs, time);
+  }
+}
+
 function onBeatTick(beatNum) {
   metroBeat = beatNum;
   pulseBeat(beatNum === 0);
@@ -2198,6 +2255,8 @@ function scheduleStep(step, time) {
     const delayMs = Math.max(0, (time - getAudioCtx().currentTime) * 1000);
     setTimeout(() => onBeatTick(localStep / 2), delayMs);
   }
+
+  scheduleGrooveHit(localStep, time, beatsPerBar);
 }
 
 function bandSchedulerTick() {
