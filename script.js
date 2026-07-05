@@ -165,11 +165,6 @@ const INTERVAL_SEMITONES = {
   'Minor 13th': 20,   'Major 13th': 21,
 };
 
-const NOTE_SEMITONES = {
-  'C':0,'C#':1,'Db':1,'D':2,'D#':3,'Eb':3,'E':4,
-  'F':5,'F#':6,'Gb':6,'G':7,'G#':8,'Ab':8,'A':9,'A#':10,'Bb':10,'B':11,
-};
-
 const LEARNING_PATH = [
   // ── Phase 1: Note Finder ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Find C',              hint: 'Just find C on your instrument — nothing else',                                                            cats: ['catNotes'],              notes: ['C'],                                                            chords: [],                                                                              scales: [],                             timer: 'off' },
@@ -1881,51 +1876,6 @@ function getPromptFormula(key) {
   return null;
 }
 
-function getKeyboardNotes(key) {
-  if (!key) return null;
-  const parts = key.split('|');
-  const type  = parts[0];
-  if (type === 'note') {
-    const s = NOTE_SEMITONES[parts[1]];
-    return s != null ? { root: s, active: new Set([s]) } : null;
-  }
-  if (type === 'chord') {
-    const root  = NOTE_SEMITONES[parts[1]];
-    const ivals = CHORD_INTERVALS[parts[2]];
-    if (root == null || !ivals) return null;
-    return { root, active: new Set(ivals.map(i => (root + i) % 12)) };
-  }
-  if (type === 'scale') {
-    const root  = NOTE_SEMITONES[parts[1]];
-    const ivals = SCALE_INTERVALS[parts[2]];
-    if (root == null || !ivals) return null;
-    return { root, active: new Set(ivals.map(i => (root + i) % 12)) };
-  }
-  if (type === 'interval') {
-    const root  = NOTE_SEMITONES[parts[3]];
-    const semis = INTERVAL_SEMITONES[parts[1]];
-    if (root == null || semis == null) return null;
-    const other = parts[2] === 'below'
-      ? (root - (semis % 12) + 12) % 12
-      : (root + (semis % 12)) % 12;
-    return { root, active: new Set([root, other]) };
-  }
-  return null;
-}
-
-function updatePiano(key) {
-  const wrap = document.getElementById('pianoWrap');
-  if (!wrap) return;
-  const info = getKeyboardNotes(key);
-  if (!info) { wrap.classList.add('hidden'); return; }
-  wrap.classList.remove('hidden');
-  wrap.querySelectorAll('.key').forEach(el => {
-    const s = NOTE_SEMITONES[el.dataset.note];
-    el.classList.toggle('key-active', info.active.has(s));
-    el.classList.toggle('key-root',   s === info.root);
-  });
-}
-
 function renderPrompt(prompt) {
   const noMotion = reducedMotion.matches;
   if (!noMotion) promptCard.classList.add('flash');
@@ -1944,7 +1894,6 @@ function renderPrompt(prompt) {
       hintEl.textContent = formula || '';
       hintEl.classList.toggle('hidden', !hintVisible);
     }
-    updatePiano(prompt ? prompt.key : null);
   }, noMotion ? 0 : 120);
 }
 
