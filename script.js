@@ -605,6 +605,28 @@ function loadDailyLog() {
   catch (_) { return []; }
 }
 
+function calcStreak() {
+  const log      = loadDailyLog();
+  const practiced = new Set(log.filter(e => (e.answers || 0) + (e.earAnswers || 0) > 0).map(e => e.date));
+  const today    = new Date().toISOString().slice(0, 10);
+  const d        = new Date();
+  if (!practiced.has(today)) d.setDate(d.getDate() - 1);
+  let streak = 0;
+  while (practiced.has(d.toISOString().slice(0, 10))) {
+    streak++;
+    d.setDate(d.getDate() - 1);
+  }
+  return streak;
+}
+
+function updateStreakDisplay() {
+  const n   = calcStreak();
+  const el  = document.getElementById('streakDisplay');
+  if (!el) return;
+  el.textContent = n > 0 ? `${n} day streak` : '';
+  el.classList.toggle('hidden', n === 0);
+}
+
 function updateDailyLog(ms, isEar = false) {
   const log   = loadDailyLog();
   const today = new Date().toISOString().slice(0, 10);
@@ -695,6 +717,7 @@ function renderStats() {
     return `<p class="stats-empty">No data yet. Play prompts with MIDI enabled — each correct answer starts building your profile.</p>`;
   }
 
+  const streak     = calcStreak();
   const headerHtml = `<div class="stats-header-row">
     <div class="stats-header-stat">
       <span class="stats-header-num">${totalAns}</span>
@@ -707,6 +730,10 @@ function renderStats() {
     <div class="stats-header-stat">
       <span class="stats-header-num">${todayEntry ? todayEntry.answers : 0}</span>
       <span class="stats-header-lbl">today</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${streak}</span>
+      <span class="stats-header-lbl">day streak</span>
     </div>
   </div>`;
 
@@ -758,7 +785,19 @@ function renderStats() {
     return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
   }
 
-  return headerHtml + legendHtml + chartHtml
+  const weakItems = typeEntries
+    .filter(([, e]) => e.count >= 3)
+    .sort(([, a], [, b]) => b.ema - a.ema)
+    .slice(0, 3);
+  const weakSpotsHtml = weakItems.length ? `<div class="weak-spots-panel">
+    <h3 class="stats-section-title">Focus on these</h3>
+    ${weakItems.map(([k, e]) => `<div class="weak-spot-row">
+      <span class="weak-spot-name">${k}</span>
+      <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
+    </div>`).join('')}
+  </div>` : '';
+
+  return headerHtml + weakSpotsHtml + legendHtml + chartHtml
     + buildSection(rootEntries, 'Root Notes')
     + buildSection(typeEntries, 'Types');
 }
@@ -1247,6 +1286,7 @@ function renderEarStats() {
     return `<p class="stats-empty">No ear training data yet. Open Ear Training and start identifying intervals, chords, and scales.</p>`;
   }
 
+  const streak     = calcStreak();
   const headerHtml = `<div class="stats-header-row">
     <div class="stats-header-stat">
       <span class="stats-header-num">${totalAns}</span>
@@ -1259,6 +1299,10 @@ function renderEarStats() {
     <div class="stats-header-stat">
       <span class="stats-header-num">${todayEntry?.earAnswers ?? 0}</span>
       <span class="stats-header-lbl">today</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${streak}</span>
+      <span class="stats-header-lbl">day streak</span>
     </div>
   </div>`;
 
@@ -1306,7 +1350,19 @@ function renderEarStats() {
     return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
   }
 
-  return headerHtml + legendHtml + buildEarSection(typeEntries, 'Recognition Types');
+  const earWeakItems = typeEntries
+    .filter(([, e]) => e.count >= 3)
+    .sort(([, a], [, b]) => b.ema - a.ema)
+    .slice(0, 3);
+  const earWeakSpotsHtml = earWeakItems.length ? `<div class="weak-spots-panel">
+    <h3 class="stats-section-title">Focus on these</h3>
+    ${earWeakItems.map(([k, e]) => `<div class="weak-spot-row">
+      <span class="weak-spot-name">${k}</span>
+      <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
+    </div>`).join('')}
+  </div>` : '';
+
+  return headerHtml + earWeakSpotsHtml + legendHtml + buildEarSection(typeEntries, 'Recognition Types');
 }
 
 // ── Audio ─────────────────────────────────────────────────────────────────────
@@ -2494,6 +2550,7 @@ function triggerMidiSuccess() {
       updateDailyLog(ms);
       showResponseTime(ms);
       updateMidiStats();
+      updateStreakDisplay();
     }
   }
   promptCard.classList.add('midi-success');
@@ -2739,6 +2796,7 @@ document.querySelectorAll('.group-toggle').forEach(btn => {
 initTheme();
 loadSettings();
 syncUI();
+updateStreakDisplay();
 
 const _savedStage = parseInt(localStorage.getItem('mpr_learning_stage') ?? '-1');
 if (!isNaN(_savedStage) && _savedStage >= 0 && _savedStage < LEARNING_PATH.length) {
@@ -2774,7 +2832,15 @@ helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
 helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
 function exportJSON() {
-  const data = { exported: new Date().toISOString(), adaptive_weights: adaptWeights, daily_log: loadDailyLog() };
+  const rawSettings = localStorage.getItem('mpr_settings');
+  const data = {
+    exported:        new Date().toISOString(),
+    adaptive_weights: adaptWeights,
+    daily_log:       loadDailyLog(),
+    settings:        rawSettings ? JSON.parse(rawSettings) : null,
+    learning_stage:  localStorage.getItem('mpr_learning_stage'),
+    theme:           localStorage.getItem('mpr_theme'),
+  };
   const a = Object.assign(document.createElement('a'), {
     href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
     download: `mpr-backup-${new Date().toISOString().slice(0, 10)}.json`,
@@ -2829,6 +2895,23 @@ document.getElementById('importFileInput').addEventListener('change', function (
         localStorage.setItem('mpr_daily', JSON.stringify(data.daily_log));
         restored.push('practice history');
       }
+      if (data.settings) {
+        localStorage.setItem('mpr_settings', JSON.stringify(data.settings));
+        loadSettings();
+        syncUI();
+        restored.push('settings');
+      }
+      if (data.learning_stage != null) {
+        localStorage.setItem('mpr_learning_stage', data.learning_stage);
+        learningStage = parseInt(data.learning_stage) ?? -1;
+        updateLearningUI();
+        restored.push('learning stage');
+      }
+      if (data.theme) {
+        applyTheme(data.theme);
+        restored.push('theme');
+      }
+      updateStreakDisplay();
       const btn = document.getElementById('importJsonBtn');
       const orig = btn.textContent;
       btn.textContent = restored.length ? `Restored: ${restored.join(', ')}` : 'Nothing to restore';

@@ -1952,6 +1952,45 @@ input[type="number"]:focus-visible {
   flex-shrink: 0;
 }
 
+.streak-display {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--accent);
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+.streak-display.hidden { display: none; }
+
+.weak-spots-panel {
+  background: var(--bg-raised, var(--border-light));
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin-bottom: 20px;
+}
+
+.weak-spot-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 5px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.weak-spot-row:last-child { border-bottom: none; }
+
+.weak-spot-name {
+  font-size: 0.88rem;
+  font-weight: 500;
+  color: var(--text);
+}
+
+.weak-spot-time {
+  font-size: 0.8rem;
+  color: hsl(0deg 70% 55%);
+  font-weight: 600;
+}
+
 .stats-section {
   margin-bottom: 28px;
 }
