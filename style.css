@@ -201,6 +201,51 @@ header h1 {
   letter-spacing: 0;
 }
 
+/* ── Structure hint ─────────────────────────────────────────────────────────── */
+
+.hint-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 28px;
+  margin: -2px 0 6px;
+}
+
+.hint-row.hidden { display: none; }
+
+.hint-toggle-btn {
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  background: none;
+  border: 1px solid var(--border);
+  border-radius: 5px;
+  padding: 3px 9px;
+  cursor: pointer;
+  transition: color 0.15s, border-color 0.15s;
+  flex-shrink: 0;
+}
+
+.hint-toggle-btn:hover {
+  color: var(--text);
+  border-color: var(--text-muted);
+}
+
+.hint-toggle-btn.active {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.prompt-hint {
+  font-size: 0.9rem;
+  color: var(--accent);
+  letter-spacing: 0.04em;
+}
+
+.prompt-hint.hidden { display: none; }
+
 /* ── Controls ────────────────────────────────────────────────────────────────── */
 
 /* 3-column grid: equal spacers flank the button, timer goes in the right column */
@@ -1464,6 +1509,52 @@ input[type="number"]:focus-visible {
   border-radius: 2px;
   transition: width 0.3s ease;
 }
+
+.mastery-row {
+  margin: -8px 0 14px;
+}
+
+.mastery-row.hidden { display: none; }
+
+.mastery-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.67rem;
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+  margin-bottom: 5px;
+}
+
+.mastery-track {
+  height: 4px;
+  background: var(--border);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.mastery-fill {
+  height: 100%;
+  background: var(--accent);
+  border-radius: 2px;
+  width: 0%;
+  transition: width 0.4s ease;
+}
+
+.mastery-fill.ready {
+  background: #22c55e;
+}
+
+.mastery-ready {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: #22c55e;
+  text-align: center;
+  margin: 7px 0 0;
+}
+
+.mastery-ready.hidden { display: none; }
 
 .path-nav {
   display: flex;

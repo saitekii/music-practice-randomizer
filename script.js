@@ -7,26 +7,26 @@ const NOTE_TO_PC = {
 };
 
 const CHORD_TYPES = [
-  { id: 'chordMajor',      label: 'Major',       seventh: false },
-  { id: 'chordMinor',      label: 'Minor',       seventh: false },
-  { id: 'chordDiminished', label: 'Diminished',  seventh: false },
-  { id: 'chordAugmented',  label: 'Augmented',   seventh: false },
-  { id: 'chordMaj7',       label: 'Major 7',     seventh: true  },
-  { id: 'chordMin7',       label: 'Minor 7',     seventh: true  },
-  { id: 'chordDom7',       label: 'Dominant 7',  seventh: true  },
+  { id: 'chordMajor',      label: 'Major',       seventh: false, formula: '1 – 3 – 5'                    },
+  { id: 'chordMinor',      label: 'Minor',       seventh: false, formula: '1 – ♭3 – 5'                   },
+  { id: 'chordDiminished', label: 'Diminished',  seventh: false, formula: '1 – ♭3 – ♭5'                  },
+  { id: 'chordAugmented',  label: 'Augmented',   seventh: false, formula: '1 – 3 – ♯5'                   },
+  { id: 'chordMaj7',       label: 'Major 7',     seventh: true,  formula: '1 – 3 – 5 – 7'                },
+  { id: 'chordMin7',       label: 'Minor 7',     seventh: true,  formula: '1 – ♭3 – 5 – ♭7'              },
+  { id: 'chordDom7',       label: 'Dominant 7',  seventh: true,  formula: '1 – 3 – 5 – ♭7'               },
   // Jazz extensions
-  { id: 'chordSus2',    label: 'sus2',         seventh: false },
-  { id: 'chordSus4',    label: 'sus4',         seventh: false },
-  { id: 'chord7sus4',   label: '7sus4',        seventh: true  },
-  { id: 'chordDom9',    label: 'Dominant 9',   seventh: true  },
-  { id: 'chordMaj9',    label: 'Major 9',      seventh: true  },
-  { id: 'chordMin9',    label: 'Minor 9',      seventh: true  },
-  { id: 'chordDom13',   label: 'Dominant 13',  seventh: true  },
-  { id: 'chord7b9',     label: '7♭9',          seventh: true  },
-  { id: 'chord7s9',     label: '7♯9',          seventh: true  },
-  { id: 'chord7s11',    label: '7♯11',         seventh: true  },
-  { id: 'chordHalfDim', label: 'Minor 7♭5',    seventh: true  },
-  { id: 'chordDim7',    label: 'Diminished 7', seventh: true  },
+  { id: 'chordSus2',    label: 'sus2',         seventh: false, formula: '1 – 2 – 5'                     },
+  { id: 'chordSus4',    label: 'sus4',         seventh: false, formula: '1 – 4 – 5'                     },
+  { id: 'chord7sus4',   label: '7sus4',        seventh: true,  formula: '1 – 4 – 5 – ♭7'                },
+  { id: 'chordDom9',    label: 'Dominant 9',   seventh: true,  formula: '1 – 3 – 5 – ♭7 – 9'            },
+  { id: 'chordMaj9',    label: 'Major 9',      seventh: true,  formula: '1 – 3 – 5 – 7 – 9'             },
+  { id: 'chordMin9',    label: 'Minor 9',      seventh: true,  formula: '1 – ♭3 – 5 – ♭7 – 9'           },
+  { id: 'chordDom13',   label: 'Dominant 13',  seventh: true,  formula: '1 – 3 – 5 – ♭7 – 9 – 13'       },
+  { id: 'chord7b9',     label: '7♭9',          seventh: true,  formula: '1 – 3 – 5 – ♭7 – ♭9'           },
+  { id: 'chord7s9',     label: '7♯9',          seventh: true,  formula: '1 – 3 – 5 – ♭7 – ♯9'           },
+  { id: 'chord7s11',    label: '7♯11',         seventh: true,  formula: '1 – 3 – 5 – ♭7 – ♯11'          },
+  { id: 'chordHalfDim', label: 'Minor 7♭5',    seventh: true,  formula: '1 – ♭3 – ♭5 – ♭7'              },
+  { id: 'chordDim7',    label: 'Diminished 7', seventh: true,  formula: '1 – ♭3 – ♭5 – ♭♭7'             },
 ];
 
 const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
@@ -65,6 +65,25 @@ const SCALE_TYPES = [
 ];
 
 const MODES = ['Ionian', 'Dorian', 'Phrygian', 'Lydian', 'Mixolydian', 'Aeolian', 'Locrian'];
+
+const SCALE_FORMULAS = {
+  'Major':             'W – W – H – W – W – W – H',
+  'Natural minor':     'W – H – W – W – H – W – W',
+  'Harmonic minor':    'W – H – W – W – H – A2 – H',
+  'Melodic minor':     'W – H – W – W – W – W – H',
+  'Major pentatonic':  '1 – 2 – 3 – 5 – 6',
+  'Minor pentatonic':  '1 – ♭3 – 4 – 5 – ♭7',
+};
+
+const MODE_FORMULAS = {
+  'Ionian':     'W – W – H – W – W – W – H',
+  'Dorian':     'W – H – W – W – W – H – W',
+  'Phrygian':   'H – W – W – W – H – W – W',
+  'Lydian':     'W – W – W – H – W – W – H',
+  'Mixolydian': 'W – W – H – W – W – H – W',
+  'Aeolian':    'W – H – W – W – H – W – W',
+  'Locrian':    'H – W – W – H – W – W – W',
+};
 
 const INTERVALS = [
   { id: 'intMin2',  label: 'Minor 2nd'   },
@@ -480,6 +499,7 @@ let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
 
 const MAX_RESPONSE_MS = 30_000; // ignore answers after 30 s — user was probably away
 
+let hintVisible     = false;
 let promptStartTime = null;
 let responseTimes   = [];
 const keyElements   = new Map(); // midiNote → DOM element
@@ -753,6 +773,7 @@ function recordAdaptiveResult(key, ms) {
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
   else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
   saveAdaptWeights();
+  updateMasteryUI();
 }
 
 // ── Ear training adaptive weights ─────────────────────────────────────────────
@@ -1589,6 +1610,19 @@ function generatePrompt() {
 
 const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
+function getPromptFormula(key) {
+  if (!key) return null;
+  const parts = key.split('|');
+  if (parts[0] === 'chord') {
+    const ct = CHORD_TYPES.find(c => c.label === parts[2]);
+    return ct ? (ct.formula ?? null) : null;
+  }
+  if (parts[0] === 'scale') {
+    return SCALE_FORMULAS[parts[2]] ?? MODE_FORMULAS[parts[2]] ?? null;
+  }
+  return null;
+}
+
 function renderPrompt(prompt) {
   const noMotion = reducedMotion.matches;
   if (!noMotion) promptCard.classList.add('flash');
@@ -1598,6 +1632,15 @@ function renderPrompt(prompt) {
     promptLine1.textContent = prompt ? prompt.line1 : 'Enable a category and at least one note';
     promptLine2.textContent = prompt ? prompt.line2 : '';
     if (!noMotion) promptCard.classList.remove('flash');
+
+    const formula   = prompt ? getPromptFormula(prompt.key) : null;
+    const hintRow   = document.getElementById('hintRow');
+    const hintEl    = document.getElementById('promptHint');
+    if (hintRow) hintRow.classList.toggle('hidden', !formula);
+    if (hintEl)  {
+      hintEl.textContent = formula || '';
+      hintEl.classList.toggle('hidden', !hintVisible);
+    }
   }, noMotion ? 0 : 120);
 }
 
@@ -2029,6 +2072,53 @@ function applyStage(idx) {
   showPrompt();
 }
 
+function getStageMastery(stageIdx) {
+  if (!adaptiveOn()) return null;
+  const stage = LEARNING_PATH[stageIdx];
+  if (!stage) return null;
+
+  const threshold = (stage.timer === 'off' || stage.timer === 'metronome')
+    ? 10000
+    : (parseInt(stage.timer) || 10) * 1000;
+
+  const items = [];
+  (stage.chords || []).forEach(id => {
+    if (id === 'inversions') return;
+    const ct = CHORD_TYPES.find(c => c.id === id);
+    if (ct) items.push({ dim: 'types', key: ct.label });
+  });
+  (stage.scales || []).forEach(id => {
+    const st = SCALE_TYPES.find(s => s.id === id);
+    if (st && st.label) items.push({ dim: 'types', key: st.label });
+  });
+  const hasChordOrScale = (stage.cats || []).some(c => c === 'catChords' || c === 'catScales');
+  if (hasChordOrScale) {
+    (stage.notes || []).forEach(n => items.push({ dim: 'roots', key: n }));
+  }
+  if (!items.length) return null;
+
+  let mastered = 0;
+  items.forEach(({ dim, key }) => {
+    const w = adaptWeights[dim][key];
+    if (w && w.count >= 5 && w.ema <= threshold) mastered++;
+  });
+
+  return { pct: Math.round(mastered / items.length * 100), ready: mastered === items.length };
+}
+
+function updateMasteryUI() {
+  if (learningStage < 0) return;
+  const mastery    = getStageMastery(learningStage);
+  const masteryRow = document.getElementById('masteryRow');
+  if (!masteryRow) return;
+  if (!mastery) { masteryRow.classList.add('hidden'); return; }
+  masteryRow.classList.remove('hidden');
+  document.getElementById('masteryPct').textContent    = mastery.pct + '%';
+  document.getElementById('masteryFill').style.width   = mastery.pct + '%';
+  document.getElementById('masteryFill').classList.toggle('ready', mastery.ready);
+  document.getElementById('masteryReady').classList.toggle('hidden', !mastery.ready);
+}
+
 function updateLearningUI() {
   const total  = LEARNING_PATH.length;
   const active = learningStage >= 0 && learningStage < total;
@@ -2044,6 +2134,7 @@ function updateLearningUI() {
     stagePrevBtn.disabled = learningStage === 0;
     stageNextBtn.disabled = learningStage === total - 1;
     learningHeaderLabel.textContent = `· Stage ${learningStage + 1}`;
+    updateMasteryUI();
   } else {
     learningHeaderLabel.textContent = '';
   }
@@ -2186,6 +2277,13 @@ leavePathBtn.addEventListener('click', () => {
 });
 
 // ── Event listeners ───────────────────────────────────────────────────────────
+
+document.getElementById('hintToggle').addEventListener('click', () => {
+  hintVisible = !hintVisible;
+  document.getElementById('hintToggle').classList.toggle('active', hintVisible);
+  const hintEl = document.getElementById('promptHint');
+  if (hintEl) hintEl.classList.toggle('hidden', !hintVisible);
+});
 
 nextBtn.addEventListener('click', showPrompt);
 backBtn.addEventListener('click', goBack);
