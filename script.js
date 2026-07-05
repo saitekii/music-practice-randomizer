@@ -3137,12 +3137,31 @@ document.getElementById('importFileInput').addEventListener('change', function (
 document.getElementById('exportJsonBtn').addEventListener('click', exportJSON);
 document.getElementById('exportCsvBtn').addEventListener('click', exportCSV);
 document.getElementById('importJsonBtn').addEventListener('click', importJSON);
-document.getElementById('clearHistoryBtn').addEventListener('click', () => {
-  localStorage.removeItem('mpr_daily');
-  const btn = document.getElementById('clearHistoryBtn');
-  btn.textContent = 'Cleared!';
-  document.getElementById('statsContent').innerHTML = (statsActiveTab === 'ear') ? renderEarStats() : renderStats();
-  setTimeout(() => { btn.textContent = 'Clear practice history'; }, 1800);
+function confirmAction(btn, originalLabel, action) {
+  if (btn.dataset.confirm === '1') {
+    clearTimeout(btn._confirmTimer);
+    delete btn.dataset.confirm;
+    btn.classList.remove('btn-confirm');
+    action(btn);
+  } else {
+    btn.dataset.confirm = '1';
+    btn.classList.add('btn-confirm');
+    btn.textContent = 'Really sure?';
+    btn._confirmTimer = setTimeout(() => {
+      delete btn.dataset.confirm;
+      btn.classList.remove('btn-confirm');
+      btn.textContent = originalLabel;
+    }, 3000);
+  }
+}
+
+document.getElementById('clearHistoryBtn').addEventListener('click', function () {
+  confirmAction(this, 'Clear practice history', btn => {
+    localStorage.removeItem('mpr_daily');
+    btn.textContent = 'Cleared!';
+    document.getElementById('statsContent').innerHTML = (statsActiveTab === 'ear') ? renderEarStats() : renderStats();
+    setTimeout(() => { btn.textContent = 'Clear practice history'; }, 1800);
+  });
 });
 
 document.addEventListener('keydown', e => {
@@ -3152,12 +3171,13 @@ document.addEventListener('keydown', e => {
   }
 });
 
-document.getElementById('resetWeightsBtn').addEventListener('click', () => {
-  adaptWeights = { roots: {}, types: {} };
-  localStorage.removeItem('mpr_weights');
-  const btn = document.getElementById('resetWeightsBtn');
-  btn.textContent = 'Cleared!';
-  setTimeout(() => { btn.textContent = 'Reset learning data'; }, 1800);
+document.getElementById('resetWeightsBtn').addEventListener('click', function () {
+  confirmAction(this, 'Reset learning data', btn => {
+    adaptWeights = { roots: {}, types: {} };
+    localStorage.removeItem('mpr_weights');
+    btn.textContent = 'Cleared!';
+    setTimeout(() => { btn.textContent = 'Reset learning data'; }, 1800);
+  });
 });
 
 synthVolumeSlider.value = localStorage.getItem('mpr_synth_vol') ?? '70';

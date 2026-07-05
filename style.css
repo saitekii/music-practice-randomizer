@@ -2411,6 +2411,12 @@ input[type="number"]:focus-visible {
   color: hsl(10deg 75% 58%);
 }
 
+.btn-confirm {
+  color: hsl(10deg 75% 58%) !important;
+  border-color: hsl(10deg 75% 58%) !important;
+  font-weight: 600;
+}
+
 /* ── Tab bar ─────────────────────────────────────────────────────────────────── */
 
 .tab-bar {
