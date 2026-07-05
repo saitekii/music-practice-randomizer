@@ -512,8 +512,12 @@ const demoNotes = new Set();
 let hearItActive = false;
 
 let adaptWeights = (() => {
-  try { return JSON.parse(localStorage.getItem('mpr_weights')) || { roots: {}, types: {} }; }
-  catch (_) { return { roots: {}, types: {} }; }
+  try {
+    const p = JSON.parse(localStorage.getItem('mpr_weights'));
+    if (!p) return { roots: {}, types: {}, combos: {} };
+    return { roots: p.roots || {}, types: p.types || {}, combos: p.combos || {} };
+  }
+  catch (_) { return { roots: {}, types: {}, combos: {} }; }
 })();
 
 let earAdaptWeights = (() => {
@@ -838,16 +842,22 @@ function renderStats() {
     return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
   }
 
-  const weakItems = typeEntries
-    .filter(([, e]) => e.count >= 3)
+  const comboEntries = Object.entries(adaptWeights.combos || {});
+  const weakCombos   = comboEntries
+    .filter(([, e]) => e.count >= 5)
     .sort(([, a], [, b]) => b.ema - a.ema)
     .slice(0, 3);
+  const usesCombos = weakCombos.length > 0;
+  const weakItems  = usesCombos
+    ? weakCombos
+    : typeEntries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema).slice(0, 3);
+
   const weakSpotsHtml = weakItems.length ? `<div class="weak-spots-panel">
     <h3 class="stats-section-title">Focus on these</h3>
     ${weakItems.map(([k, e]) => `<div class="weak-spot-row">
-      <span class="weak-spot-name">${k}</span>
+      <span class="weak-spot-name">${usesCombos ? k.replace('|', ' ') : k}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
-      <button class="drill-btn" data-type="${k}" data-ear="false">Drill</button>
+      <button class="drill-btn" data-type="${k}" data-ear="false" data-combo="${usesCombos}">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
@@ -862,8 +872,8 @@ function recordAdaptiveResult(key, ms) {
   const parts = key.split('|');
   const type  = parts[0];
   if      (type === 'note')     { updateAdaptWeight('roots', parts[1], ms); }
-  else if (type === 'chord')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); }
-  else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); }
+  else if (type === 'chord')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
+  else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
   else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
   saveAdaptWeights();
@@ -2354,6 +2364,28 @@ function findPlayingDrillTarget(label) {
   return null;
 }
 
+function startDrillCombo(comboKey) {
+  saveSettings();
+  statsModal.classList.add('hidden');
+  const pipe      = comboKey.indexOf('|');
+  const root      = comboKey.slice(0, pipe);
+  const typeLabel = comboKey.slice(pipe + 1);
+  const target    = findPlayingDrillTarget(typeLabel);
+  if (!target) return;
+  ALL_PLAY_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  document.getElementById(target.cat).checked = true;
+  document.getElementById(target.id).checked  = true;
+  document.querySelectorAll('input[data-note]').forEach(el => { el.checked = false; });
+  const rootEl = document.querySelector(`input[data-note="${root}"]`);
+  if (rootEl) rootEl.checked = true;
+  syncUI();
+  drillActive = true;
+  drillIsEar  = false;
+  document.getElementById('drillLabel').textContent = `Drilling: ${root} ${typeLabel}`;
+  document.getElementById('drillBanner').classList.remove('hidden');
+  showPrompt();
+}
+
 function startDrill(typeLabel, isEar) {
   saveSettings();
   statsModal.classList.add('hidden');
@@ -3177,7 +3209,9 @@ statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
 statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
 document.getElementById('statsContent').addEventListener('click', e => {
   const btn = e.target.closest('.drill-btn');
-  if (btn) startDrill(btn.dataset.type, btn.dataset.ear === 'true');
+  if (!btn) return;
+  if (btn.dataset.combo === 'true') startDrillCombo(btn.dataset.type);
+  else startDrill(btn.dataset.type, btn.dataset.ear === 'true');
 });
 document.getElementById('drillStop').addEventListener('click', stopDrill);
 function importJSON() {
@@ -3277,7 +3311,7 @@ document.addEventListener('keydown', e => {
 
 document.getElementById('resetWeightsBtn').addEventListener('click', function () {
   confirmAction(this, 'Reset learning data', btn => {
-    adaptWeights = { roots: {}, types: {} };
+    adaptWeights = { roots: {}, types: {}, combos: {} };
     localStorage.removeItem('mpr_weights');
     btn.textContent = 'Cleared!';
     setTimeout(() => { btn.textContent = 'Reset learning data'; }, 1800);
