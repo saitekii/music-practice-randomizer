@@ -645,6 +645,21 @@ kbd {
   animation: metro-pulse 0.12s ease-out;
 }
 
+.band-mode-row {
+  margin-bottom: 0;
+}
+
+.band-mode-row.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
+.band-mode-note {
+  font-style: normal;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
 /* ── Categories ──────────────────────────────────────────────────────────────── */
 
 .category {

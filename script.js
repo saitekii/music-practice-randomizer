@@ -415,6 +415,8 @@ const customTimerRow = document.getElementById('customTimerRow');
 const metroBpmInput  = document.getElementById('metroBpm');
 const tapBtn         = document.getElementById('tapBtn');
 const metroPanel     = document.getElementById('metroPanel');
+const bandModeToggle = document.getElementById('bandModeToggle');
+const bandModeRow    = document.getElementById('bandModeRow');
 
 const pathStart          = document.getElementById('pathStart');
 const pathActive         = document.getElementById('pathActive');
@@ -2035,6 +2037,10 @@ function getBeatsPerChange() {
   return parseFloat(document.getElementById('metroNoteDuration').value) || 4;
 }
 
+function bandModeEligible() {
+  return getBeatsPerChange() >= getBeatsPerBar();
+}
+
 function pulseBeat(accented) {
   // Remove and re-add class to retrigger CSS animation on every beat
   timerDisplay.className = 'timer-display';
@@ -2120,7 +2126,7 @@ function saveSettings() {
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
     'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
     'intDirUp', 'intDirDown',
-    'adaptiveToggle',
+    'adaptiveToggle', 'bandModeToggle',
   ];
 
   localStorage.setItem('mpr_settings', JSON.stringify({
@@ -2181,6 +2187,10 @@ function syncUI() {
   customTimer.disabled = mode !== 'custom';
   customTimerRow.classList.toggle('hidden', mode !== 'custom');
   metroPanel.classList.toggle('hidden', mode !== 'metronome');
+
+  const bandEligible = bandModeEligible();
+  bandModeRow.classList.toggle('disabled', !bandEligible);
+  bandModeToggle.disabled = !bandEligible;
 }
 
 // ── Undo toast ────────────────────────────────────────────────────────────────
@@ -2729,7 +2739,7 @@ document.querySelectorAll('input').forEach(el => {
 customTimer.addEventListener('input', saveSettings);
 
 document.querySelectorAll('select').forEach(el => {
-  el.addEventListener('change', () => { saveSettings(); });
+  el.addEventListener('change', () => { saveSettings(); syncUI(); });
 });
 
 tapBtn.addEventListener('click', handleTap);
