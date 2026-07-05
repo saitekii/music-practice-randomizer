@@ -40,8 +40,9 @@ const path = require('path');
 
     const before = await page.evaluate(() => currentPromptKey);
     await page.evaluate(() => { heldNotes = new Set([60, 64, 67]); checkMidi(); });
-    // 8 beats @ 300bpm = 1.6s worst case (answered right at the top of the cycle); pad generously.
-    await page.waitForTimeout(2200);
+    // 8 beats @ 300bpm = 1.6s worst case (answered right at the top of the cycle); pad generously
+    // for headless-browser/scheduler-housekeeping overhead on top of that.
+    await page.waitForTimeout(3000);
     const after = await page.evaluate(() => currentPromptKey);
     check(`time sig ${timeSig}/4: prompt advances after ride-out`, after !== before, true);
   }
