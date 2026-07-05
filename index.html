@@ -158,6 +158,7 @@
                 <button id="stageNextBtn" class="path-nav-btn" type="button">Harder →</button>
               </div>
               <button id="leavePathBtn" class="path-leave-btn" type="button">Leave path</button>
+              <button id="showStageListBtn" class="show-stages-btn" type="button">All stages ↓</button>
             </div>
 
           </div>
@@ -616,6 +617,17 @@
         </div>
         <button id="clearHistoryBtn" class="clear-history-btn" type="button">Clear practice history</button>
       </div>
+    </div>
+  </div>
+
+  <!-- Stage list modal -->
+  <div id="stageListModal" class="stage-list-overlay hidden" role="dialog" aria-modal="true" aria-label="All learning path stages">
+    <div class="stage-list-panel">
+      <div class="stage-list-header">
+        <h2 class="stage-list-title">Learning Path</h2>
+        <button id="stageListClose" class="stage-list-close" type="button" aria-label="Close">×</button>
+      </div>
+      <div id="stageListContent" class="stage-list-content"></div>
     </div>
   </div>
 

@@ -665,6 +665,59 @@ function weightedPick(items, dim) {
   return items[items.length - 1];
 }
 
+function renderCalendar(log) {
+  const logMap  = new Map(log.map(e => [e.date, (e.answers || 0) + (e.earAnswers || 0)]));
+  const today   = new Date();
+  today.setHours(0, 0, 0, 0);
+  const todayStr = today.toISOString().slice(0, 10);
+
+  // Grid starts at Sunday of (current week − 4 weeks)
+  const start = new Date(today);
+  start.setDate(today.getDate() - today.getDay() - 28);
+
+  let cellHtml = '';
+  for (let w = 0; w < 5; w++) {
+    for (let d = 0; d < 7; d++) {
+      const date  = new Date(start);
+      date.setDate(start.getDate() + w * 7 + d);
+      const ds    = date.toISOString().slice(0, 10);
+      const after = date > today;
+      const count = after ? 0 : (logMap.get(ds) || 0);
+      if (after) {
+        cellHtml += `<div class="cal-cell cal-future"></div>`;
+      } else {
+        const lvl = count === 0 ? 0 : count < 5 ? 1 : count < 12 ? 2 : 3;
+        const tip = count ? `${ds}: ${count} answers` : ds;
+        cellHtml += `<div class="cal-cell cal-l${lvl}${ds === todayStr ? ' cal-today' : ''}" title="${tip}"></div>`;
+      }
+    }
+  }
+
+  return `<div class="cal-section">
+    <h3 class="stats-section-title">Practice Calendar</h3>
+    <div class="cal-outer">
+      <div class="cal-day-col">
+        <span class="cal-day-lbl"></span>
+        <span class="cal-day-lbl">M</span>
+        <span class="cal-day-lbl"></span>
+        <span class="cal-day-lbl">W</span>
+        <span class="cal-day-lbl"></span>
+        <span class="cal-day-lbl">F</span>
+        <span class="cal-day-lbl"></span>
+      </div>
+      <div class="cal-grid">${cellHtml}</div>
+    </div>
+    <div class="cal-legend">
+      <span class="cal-lbl">Less</span>
+      <div class="cal-cell cal-l0"></div>
+      <div class="cal-cell cal-l1"></div>
+      <div class="cal-cell cal-l2"></div>
+      <div class="cal-cell cal-l3"></div>
+      <span class="cal-lbl">More</span>
+    </div>
+  </div>`;
+}
+
 function renderDailyChart(log) {
   const days = [];
   for (let i = 13; i >= 0; i--) {
@@ -798,7 +851,8 @@ function renderStats() {
     </div>`).join('')}
   </div>` : '';
 
-  return headerHtml + weakSpotsHtml + legendHtml + chartHtml
+  const calHtml = renderCalendar(log);
+  return headerHtml + calHtml + weakSpotsHtml + legendHtml + chartHtml
     + buildSection(rootEntries, 'Root Notes')
     + buildSection(typeEntries, 'Types');
 }
@@ -2262,6 +2316,23 @@ function updateLearningUI() {
   }
 }
 
+function renderStageList() {
+  return LEARNING_PATH.map((stage, i) => {
+    const isCurrent = i === learningStage;
+    const mastery = adaptiveOn() ? getStageMastery(i) : null;
+    let dotHtml = '';
+    if (mastery) {
+      const dotColor = mastery.ready ? '#22c55e' : mastery.pct >= 50 ? '#f59e0b' : 'var(--border)';
+      dotHtml = `<span class="stage-dot" style="background:${dotColor}" title="${mastery.pct}% mastered"></span>`;
+    }
+    return `<div class="stage-list-row${isCurrent ? ' current' : ''}" data-idx="${i}">
+      <span class="stage-list-num">${i + 1}</span>
+      <span class="stage-list-name">${stage.name}</span>
+      ${dotHtml}
+    </div>`;
+  }).join('');
+}
+
 // ── Practice session timer ────────────────────────────────────────────────────
 
 const sessionCountdown    = document.getElementById('sessionCountdown');
@@ -2427,6 +2498,34 @@ leavePathBtn.addEventListener('click', () => {
   learningStage = -1;
   localStorage.removeItem('mpr_learning_stage');
   updateLearningUI();
+});
+
+document.getElementById('showStageListBtn').addEventListener('click', () => {
+  document.getElementById('stageListContent').innerHTML = renderStageList();
+  document.getElementById('stageListModal').classList.remove('hidden');
+  const current = document.querySelector('#stageListContent .stage-list-row.current');
+  if (current) setTimeout(() => current.scrollIntoView({ block: 'center', behavior: 'instant' }), 30);
+});
+
+document.getElementById('stageListClose').addEventListener('click', () => {
+  document.getElementById('stageListModal').classList.add('hidden');
+});
+
+document.getElementById('stageListModal').addEventListener('click', e => {
+  if (e.target === document.getElementById('stageListModal'))
+    document.getElementById('stageListModal').classList.add('hidden');
+});
+
+document.getElementById('stageListContent').addEventListener('click', e => {
+  const row = e.target.closest('.stage-list-row');
+  if (!row) return;
+  const idx = parseInt(row.dataset.idx);
+  if (isNaN(idx)) return;
+  learningStage = idx;
+  localStorage.setItem('mpr_learning_stage', String(idx));
+  updateLearningUI();
+  applyStage(idx);
+  document.getElementById('stageListModal').classList.add('hidden');
 });
 
 // ── Event listeners ───────────────────────────────────────────────────────────
