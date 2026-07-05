@@ -2723,6 +2723,54 @@ input[type="number"]:focus-visible {
   color: var(--text-dim);
 }
 
+/* ── Piano keyboard ──────────────────────────────────────────────────────────── */
+
+.piano-wrap {
+  display: flex;
+  justify-content: center;
+  margin: 2px 0 14px;
+  overflow-x: auto;
+}
+
+.piano-wrap.hidden { display: none; }
+
+.piano-keys {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  border-radius: 0 0 6px 6px;
+  overflow: hidden;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.45), 0 1px 3px rgba(0,0,0,0.3);
+}
+
+.key { transition: background 0.1s; }
+
+.key.white {
+  flex-shrink: 0;
+  width: 24px;
+  height: 64px;
+  background: #e8eaf0;
+  border-right: 1px solid rgba(0,0,0,0.18);
+  border-bottom: 2px solid rgba(0,0,0,0.1);
+  border-radius: 0 0 4px 4px;
+  z-index: 1;
+}
+
+.key.black {
+  position: absolute;
+  top: 0;
+  width: 13px;
+  height: 40px;
+  background: #181820;
+  border-radius: 0 0 3px 3px;
+  z-index: 2;
+}
+
+.key.white.key-active { background: rgba(124,109,250,0.32); }
+.key.white.key-root   { background: var(--accent); }
+.key.black.key-active { background: rgba(124,109,250,0.82); }
+.key.black.key-root   { background: var(--accent-hover); }
+
 /* ── Stage list modal ────────────────────────────────────────────────── */
 .stage-list-overlay {
   position: fixed;
