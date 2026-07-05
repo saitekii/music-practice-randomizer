@@ -1,9 +1,10 @@
 const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_modules\\playwright');
+const path = require('path');
 
 (async () => {
   const browser = await chromium.launch({ headless: true });
   const page = await browser.newPage({ viewport: { width: 420, height: 800 } });
-  await page.goto('file:///C:/Projects/music-practice-randomizer/.claude/worktrees/band-mode/index.html');
+  await page.goto('file://' + path.resolve(__dirname, 'index.html').replace(/\\/g, '/'));
   await page.waitForTimeout(300);
 
   let failed = false;
