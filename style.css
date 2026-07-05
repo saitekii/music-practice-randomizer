@@ -1169,17 +1169,17 @@ input[type="number"]:focus-visible {
   font-weight: 700;
   letter-spacing: 0.06em;
   text-transform: uppercase;
-  color: var(--accent);
-  background: none;
+  color: #fff;
+  background: var(--accent);
   border: 1px solid var(--accent);
   border-radius: 5px;
-  padding: 2px 8px;
+  padding: 3px 10px;
   cursor: pointer;
   flex-shrink: 0;
-  transition: background 0.15s;
+  transition: background 0.15s, opacity 0.15s;
 }
 
-.drill-btn:hover { background: color-mix(in srgb, var(--accent) 15%, transparent); }
+.drill-btn:hover { background: var(--accent-hover); border-color: var(--accent-hover); }
 
 .duration-pills {
   display: flex;
@@ -2041,7 +2041,7 @@ input[type="number"]:focus-visible {
 .stats-legend {
   display: flex;
   flex-wrap: wrap;
-  gap: 12px 20px;
+  gap: 8px 16px;
   margin-bottom: 28px;
   padding-bottom: 20px;
   border-bottom: 1px solid var(--border-light);
@@ -2101,8 +2101,8 @@ input[type="number"]:focus-visible {
 
 .weak-spot-time {
   font-size: 0.8rem;
-  color: hsl(0deg 70% 55%);
-  font-weight: 600;
+  color: var(--text-muted);
+  font-weight: 500;
 }
 
 .stats-section {
@@ -2674,30 +2674,30 @@ input[type="number"]:focus-visible {
 
 .cal-day-col {
   display: grid;
-  grid-template-rows: repeat(7, 10px);
+  grid-template-rows: repeat(7, 13px);
   gap: 3px;
 }
 
 .cal-day-lbl {
   font-size: 0.6rem;
   color: var(--text-dim);
-  line-height: 10px;
+  line-height: 13px;
   text-align: right;
   width: 8px;
 }
 
 .cal-grid {
   display: grid;
-  grid-template-rows: repeat(7, 10px);
+  grid-template-rows: repeat(7, 13px);
   grid-auto-flow: column;
-  grid-auto-columns: 10px;
+  grid-auto-columns: 13px;
   gap: 3px;
 }
 
 .cal-cell {
-  width: 10px;
-  height: 10px;
-  border-radius: 2px;
+  width: 13px;
+  height: 13px;
+  border-radius: 3px;
 }
 
 .cal-future { background: transparent; }
