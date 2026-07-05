@@ -620,6 +620,80 @@
     </div>
   </div>
 
+  <!-- Onboarding overlay -->
+  <div id="onboardOverlay" class="onboard-overlay hidden">
+    <div class="onboard-panel">
+
+      <!-- Step 1 -->
+      <div class="onboard-step" id="onboardStep1">
+        <h1 class="onboard-title">Music Practice Randomizer</h1>
+        <p class="onboard-sub">A drill partner for musicians. Answer a few quick questions to get started.</p>
+        <div class="onboard-choices">
+          <button class="onboard-choice" data-choice="beginner" type="button">
+            <strong class="onboard-choice-label">New to my instrument</strong>
+            <span class="onboard-choice-desc">Start from the very beginning — finding notes, then chords, step by step</span>
+          </button>
+          <button class="onboard-choice" data-choice="custom" type="button">
+            <strong class="onboard-choice-label">I want to drill specific things</strong>
+            <span class="onboard-choice-desc">Pick the categories you want to practice</span>
+          </button>
+          <button class="onboard-choice" data-choice="everything" type="button">
+            <strong class="onboard-choice-label">Just give me random prompts</strong>
+            <span class="onboard-choice-desc">Enable all categories and start immediately</span>
+          </button>
+        </div>
+        <button class="onboard-skip" id="onboardSkip" type="button">Skip setup</button>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="onboard-step hidden" id="onboardStep2">
+        <h2 class="onboard-step-title">What do you want to practice?</h2>
+        <p class="onboard-step-sub">Select at least one. Easy to change later in Settings.</p>
+        <div class="onboard-cats">
+          <button class="onboard-cat" data-cat="catNotes" type="button">Note Finder</button>
+          <button class="onboard-cat active" data-cat="catChords" type="button">Chords</button>
+          <button class="onboard-cat active" data-cat="catScales" type="button">Scales</button>
+          <button class="onboard-cat" data-cat="catIntervals" type="button">Intervals</button>
+          <button class="onboard-cat" data-cat="catFunctional" type="button">Functional Harmony</button>
+          <button class="onboard-cat" data-cat="catDiatonic" type="button">Diatonic Chords</button>
+        </div>
+        <div class="onboard-actions">
+          <button class="onboard-back" id="onboardStep2Back" type="button">← Back</button>
+          <button class="onboard-next" id="onboardStep2Next" type="button">Continue →</button>
+        </div>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="onboard-step hidden" id="onboardStep3">
+        <h2 class="onboard-step-title">Auto-advance timer</h2>
+        <p class="onboard-step-sub">How long before the next prompt appears? You can change this any time.</p>
+        <div class="onboard-timer-opts">
+          <button class="onboard-timer-opt" data-timer="off" type="button">
+            <strong>Manual</strong>
+            <span>Press Space or tap to advance yourself</span>
+          </button>
+          <button class="onboard-timer-opt" data-timer="5" type="button">
+            <strong>5 seconds</strong>
+            <span>Fast — good for things you mostly know</span>
+          </button>
+          <button class="onboard-timer-opt selected" data-timer="10" type="button">
+            <strong>10 seconds</strong>
+            <span>Balanced — enough time to think and play</span>
+          </button>
+          <button class="onboard-timer-opt" data-timer="15" type="button">
+            <strong>15 seconds</strong>
+            <span>Relaxed — good for slower practice</span>
+          </button>
+        </div>
+        <div class="onboard-actions">
+          <button class="onboard-back" id="onboardStep3Back" type="button">← Back</button>
+          <button class="onboard-done" id="onboardDone" type="button">Start practicing →</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
   <!-- Stage list modal -->
   <div id="stageListModal" class="stage-list-overlay hidden" role="dialog" aria-modal="true" aria-label="All learning path stages">
     <div class="stage-list-panel">

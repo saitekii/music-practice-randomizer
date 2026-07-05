@@ -3219,3 +3219,89 @@ if (!isNaN(_savedEarStage) && _savedEarStage >= 0 && _savedEarStage < EAR_TRAINI
   earLearningStage = _savedEarStage;
 }
 updateEarPathUI();
+
+// ── Onboarding ─────────────────────────────────────────────────────────────────
+
+let _onboardPrev = 1;
+
+function onboardGoTo(n) {
+  document.querySelectorAll('.onboard-step').forEach(s => s.classList.add('hidden'));
+  document.getElementById(`onboardStep${n}`).classList.remove('hidden');
+}
+
+function onboardApplyCats(cats) {
+  const allPlay = ['catNotes','catChords','catScales','catIntervals','catFunctional','catDiatonic'];
+  const allEar  = ['earCatIntervals','earCatChords','earCatScales'];
+  [...allPlay, ...allEar].forEach(id => { document.getElementById(id).checked = false; });
+  cats.forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
+  syncUI();
+}
+
+function onboardApplyTimer(val) {
+  document.querySelectorAll('input[name="timer"]').forEach(r => {
+    r.checked = r.value === val;
+    if (r.checked) r.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
+
+function onboardFinish() {
+  const sel = document.querySelector('.onboard-timer-opt.selected');
+  onboardApplyTimer(sel ? sel.dataset.timer : 'off');
+  saveSettings();
+  document.getElementById('onboardOverlay').classList.add('hidden');
+  showPrompt();
+}
+
+document.querySelectorAll('.onboard-choice').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const c = btn.dataset.choice;
+    if (c === 'beginner') {
+      learningStage = 0;
+      localStorage.setItem('mpr_learning_stage', '0');
+      updateLearningUI();
+      applyStage(0);
+      document.getElementById('onboardOverlay').classList.add('hidden');
+    } else if (c === 'custom') {
+      _onboardPrev = 1;
+      onboardGoTo(2);
+    } else {
+      onboardApplyCats(['catNotes','catChords','catScales','catIntervals','catFunctional','catDiatonic']);
+      _onboardPrev = 1;
+      onboardGoTo(3);
+    }
+  });
+});
+
+document.getElementById('onboardSkip').addEventListener('click', () => {
+  saveSettings();
+  document.getElementById('onboardOverlay').classList.add('hidden');
+});
+
+document.querySelectorAll('.onboard-cat').forEach(btn => {
+  btn.addEventListener('click', () => btn.classList.toggle('active'));
+});
+
+document.getElementById('onboardStep2Next').addEventListener('click', () => {
+  const active = [...document.querySelectorAll('.onboard-cat.active')].map(b => b.dataset.cat);
+  if (!active.length) return;
+  onboardApplyCats(active);
+  _onboardPrev = 2;
+  onboardGoTo(3);
+});
+
+document.getElementById('onboardStep2Back').addEventListener('click', () => onboardGoTo(1));
+
+document.querySelectorAll('.onboard-timer-opt').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.onboard-timer-opt').forEach(b => b.classList.remove('selected'));
+    btn.classList.add('selected');
+  });
+});
+
+document.getElementById('onboardDone').addEventListener('click', onboardFinish);
+
+document.getElementById('onboardStep3Back').addEventListener('click', () => onboardGoTo(_onboardPrev));
+
+if (!localStorage.getItem('mpr_settings')) {
+  document.getElementById('onboardOverlay').classList.remove('hidden');
+}
