@@ -1945,7 +1945,7 @@ function showPrompt() {
 
   if (getTimerMode() === 'metronome') {
     holdBtn.classList.add('hidden');
-    if (!metroIntervalId) {
+    if (!metroIntervalId && !bandSchedulerId) {
       startMetronome();
     } else {
       metroBeat  = 0;

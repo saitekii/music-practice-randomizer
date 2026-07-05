@@ -44,6 +44,23 @@ const path = require('path');
   const keyAfter = await page.evaluate(() => currentPromptKey);
   check('prompt key changed after one bar elapsed', keyAfter !== keyBefore, true);
 
+  // Manual "Next" (showPrompt()) while Band Mode is running must NOT tear down and
+  // restart the scheduler — it should just reset the beat/change counters in place,
+  // the same way the old setInterval path's `else` branch does.
+  await page.evaluate(() => { metroCount = 2; }); // simulate partway through a change
+  const before = await page.evaluate(() => ({
+    bandSchedulerId: bandSchedulerId,
+    bandActive: bandActive,
+  }));
+  await page.evaluate(() => { showPrompt(); });
+  const after = await page.evaluate(() => ({
+    bandSchedulerId: bandSchedulerId,
+    bandActive: bandActive,
+    metroCount: metroCount,
+  }));
+  check('showPrompt() does not tear down/recreate the running scheduler', after.bandSchedulerId === before.bandSchedulerId && after.bandActive === true, true);
+  check('showPrompt() resets metroCount in place', after.metroCount, 0);
+
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
   console.log('RESULT: PASS');
