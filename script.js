@@ -842,15 +842,42 @@ function renderStats() {
     return `<div class="stats-section"><h3 class="stats-section-title">${title}</h3>${rows}</div>`;
   }
 
+  // Prefer actual measured combos; fall back to cross-product estimate
   const comboEntries = Object.entries(adaptWeights.combos || {});
   const weakCombos   = comboEntries
-    .filter(([, e]) => e.count >= 5)
+    .filter(([, e]) => e.count >= 3)
     .sort(([, a], [, b]) => b.ema - a.ema)
     .slice(0, 3);
-  const usesCombos = weakCombos.length > 0;
-  const weakItems  = usesCombos
-    ? weakCombos
-    : typeEntries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema).slice(0, 3);
+
+  let weakItems, usesCombos;
+  if (weakCombos.length) {
+    weakItems  = weakCombos;
+    usesCombos = true;
+  } else {
+    // Estimate from slowest roots × slowest types using existing data
+    const qualRoots = rootEntries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema);
+    const qualTypes = typeEntries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema);
+    if (qualRoots.length && qualTypes.length) {
+      const rootMean = qualRoots.reduce((s, [, e]) => s + e.ema, 0) / qualRoots.length;
+      const typeMean = qualTypes.reduce((s, [, e]) => s + e.ema, 0) / qualTypes.length;
+      const cross = [];
+      for (const [r, re] of qualRoots.slice(0, 5)) {
+        for (const [t, te] of qualTypes.slice(0, 5)) {
+          cross.push([r + '|' + t, {
+            ema:   (re.ema + te.ema) / 2,
+            count: 0,
+            score: (re.ema / (rootMean || 1)) + (te.ema / (typeMean || 1)),
+          }]);
+        }
+      }
+      cross.sort(([, a], [, b]) => b.score - a.score);
+      weakItems  = cross.slice(0, 3);
+      usesCombos = true;
+    } else {
+      weakItems  = qualTypes.slice(0, 3);
+      usesCombos = false;
+    }
+  }
 
   const weakSpotsHtml = weakItems.length ? `<div class="weak-spots-panel">
     <h3 class="stats-section-title">Focus on these</h3>
