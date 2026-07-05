@@ -3112,7 +3112,13 @@ function checkMidi() {
     }
   }
 
-  if (matched) triggerMidiSuccess();
+  if (matched) {
+    if (bandActive && expected.type === 'chord') {
+      triggerBandSuccess(expected);
+    } else {
+      triggerMidiSuccess();
+    }
+  }
 }
 
 function triggerMidiSuccess() {
@@ -3134,6 +3140,24 @@ function triggerMidiSuccess() {
     midiSuccessActive = false;
     showPrompt();
   }, 700);
+}
+
+function triggerBandSuccess(expected) {
+  midiSuccessActive = true;
+  if (promptStartTime) {
+    const ms = Date.now() - promptStartTime;
+    if (ms <= MAX_RESPONSE_MS) {
+      responseTimes.push(ms);
+      recordAdaptiveResult(currentPromptKey, ms);
+      updateDailyLog(ms);
+      showResponseTime(ms);
+      updateMidiStats();
+      updateStreakDisplay();
+    }
+  }
+  promptCard.classList.add('midi-success');
+  rideOutActive   = true;
+  rideOutChordPcs = expected.pcs.slice();
 }
 
 function showResponseTime(ms) {
