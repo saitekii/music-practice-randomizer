@@ -2254,6 +2254,19 @@ function scheduleStep(step, time) {
     playClick(localStep === 0, time);
     const delayMs = Math.max(0, (time - getAudioCtx().currentTime) * 1000);
     setTimeout(() => onBeatTick(localStep / 2), delayMs);
+
+    // If this on-beat is the ride-out's final beat, onBeatTick's boundary check
+    // (above) will clear rideOutActive at this beat's own audio time — but the
+    // lookahead loop wouldn't otherwise reach the *next* (off-beat) step until
+    // roughly half a beat later, well after that clearing already happened,
+    // silently dropping the pickup note leading into the next bar/chord.
+    // Schedule it eagerly, right now, while rideOutActive/rideOutChordPcs are
+    // still valid.
+    if (rideOutActive && metroCount + 1 >= getBeatsPerChange()) {
+      const secondsPerBeat = 60 / getBpm();
+      const nextLocalStep  = (localStep + 1) % (beatsPerBar * 2);
+      scheduleGrooveHit(nextLocalStep, time + secondsPerBeat / 2, beatsPerBar);
+    }
   }
 
   scheduleGrooveHit(localStep, time, beatsPerBar);
