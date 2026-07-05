@@ -51,6 +51,11 @@
         </div>
       </div>
 
+      <div id="drillBanner" class="drill-banner hidden">
+        <span id="drillLabel" class="drill-label"></span>
+        <button id="drillStop" class="drill-stop-btn" type="button">Stop</button>
+      </div>
+
       <div id="hintRow" class="hint-row hidden">
         <button id="hintToggle" class="hint-toggle-btn" type="button">Structure</button>
         <span id="promptHint" class="prompt-hint hidden"></span>
@@ -101,6 +106,12 @@
         </div>
         <div class="session-cd-track">
           <div id="sessionProgressFill" class="session-cd-fill"></div>
+        </div>
+        <div id="goalProgressRow" class="goal-progress-row hidden">
+          <span id="goalProgressText" class="goal-progress-text"></span>
+          <div class="goal-track">
+            <div id="goalProgressFill" class="goal-track-fill"></div>
+          </div>
         </div>
       </div>
     </main>
@@ -169,6 +180,10 @@
               <button class="duration-pill" data-mins="15" type="button">15 min</button>
               <button class="duration-pill" data-mins="20" type="button">20 min</button>
               <button class="duration-pill" data-mins="30" type="button">30 min</button>
+            </div>
+            <div class="goal-input-row">
+              <label class="goal-input-label" for="sessionGoalInput">Answer goal</label>
+              <input type="number" id="sessionGoalInput" class="goal-input" min="1" max="999" placeholder="none">
             </div>
             <button id="sessionStartBtn" class="session-start-btn" type="button">Start</button>
           </div>

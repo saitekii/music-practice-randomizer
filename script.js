@@ -794,6 +794,7 @@ function renderStats() {
     ${weakItems.map(([k, e]) => `<div class="weak-spot-row">
       <span class="weak-spot-name">${k}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
+      <button class="drill-btn" data-type="${k}" data-ear="false">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
@@ -1359,6 +1360,7 @@ function renderEarStats() {
     ${earWeakItems.map(([k, e]) => `<div class="weak-spot-row">
       <span class="weak-spot-name">${k}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
+      <button class="drill-btn" data-type="${k}" data-ear="true">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
@@ -1731,7 +1733,7 @@ function showPrompt() {
   historyIndex = 0;
   addToHistory(prompt);
   updateBackBtn();
-  if (sessionInterval) sessionPromptCount++;
+  if (sessionInterval) { sessionPromptCount++; checkSessionGoal(); }
   renderPrompt(prompt);
 
   if (getTimerMode() === 'metronome') {
@@ -2175,6 +2177,70 @@ function updateMasteryUI() {
   document.getElementById('masteryReady').classList.toggle('hidden', !mastery.ready);
 }
 
+// ── Drill mode ────────────────────────────────────────────────────────────────
+
+let drillActive = false;
+let drillIsEar  = false;
+
+const ALL_PLAY_CATS = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
+const ALL_EAR_CATS  = ['earCatIntervals','earCatChords','earCatScales'];
+
+function findPlayingDrillTarget(label) {
+  const chord = CHORD_TYPES.find(c => c.label === label);
+  if (chord) return { cat: 'catChords', id: chord.id };
+  const scale = SCALE_TYPES.find(s => s.label === label);
+  if (scale) return { cat: 'catScales', id: scale.id };
+  if (MODES.includes(label)) return { cat: 'catScales', id: 'scaleModes' };
+  const interval = INTERVALS.find(i => i.label === label);
+  if (interval) return { cat: 'catIntervals', id: interval.id };
+  return null;
+}
+
+function startDrill(typeLabel, isEar) {
+  saveSettings();
+  statsModal.classList.add('hidden');
+
+  if (isEar) {
+    let earTarget = null;
+    for (const [id, lbl] of Object.entries(EAR_INT_MAP))   { if (lbl === typeLabel) { earTarget = { cat: 'earCatIntervals', ids: Object.keys(EAR_INT_MAP)   }; break; } }
+    if (!earTarget) for (const [id, lbl] of Object.entries(EAR_CHORD_MAP)) { if (lbl === typeLabel) { earTarget = { cat: 'earCatChords', ids: Object.keys(EAR_CHORD_MAP) }; break; } }
+    if (!earTarget) for (const [id, lbl] of Object.entries(EAR_SCALE_MAP)) { if (lbl === typeLabel) { earTarget = { cat: 'earCatScales', ids: Object.keys(EAR_SCALE_MAP) }; break; } }
+    if (!earTarget) return;
+    ALL_EAR_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+    document.getElementById(earTarget.cat).checked = true;
+    earTarget.ids.forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
+    drillIsEar = true;
+    document.getElementById('tabEar')?.click();
+  } else {
+    const target = findPlayingDrillTarget(typeLabel);
+    if (!target) return;
+    ALL_PLAY_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+    document.getElementById(target.cat).checked = true;
+    document.getElementById(target.id).checked  = true;
+    if (target.cat === 'catIntervals') {
+      document.getElementById('intDirUp').checked   = true;
+      document.getElementById('intDirDown').checked = true;
+    }
+    drillIsEar = false;
+  }
+
+  syncUI();
+  drillActive = true;
+  document.getElementById('drillLabel').textContent = `Drilling: ${typeLabel}`;
+  document.getElementById('drillBanner').classList.remove('hidden');
+  if (drillIsEar) setTimeout(() => showEarPrompt(), 100);
+  else showPrompt();
+}
+
+function stopDrill() {
+  drillActive = false;
+  document.getElementById('drillBanner').classList.add('hidden');
+  loadSettings();
+  syncUI();
+  if (earTabActive) showEarPrompt();
+  else showPrompt();
+}
+
 function updateLearningUI() {
   const total  = LEARNING_PATH.length;
   const active = learningStage >= 0 && learningStage < total;
@@ -2210,6 +2276,7 @@ let sessionDuration    = 5 * 60;
 let sessionRemaining   = 5 * 60;
 let sessionInterval    = null;
 let sessionPromptCount = 0;
+let sessionGoal        = 0;
 
 function formatSessionTime(secs) {
   const m = Math.floor(secs / 60);
@@ -2242,6 +2309,33 @@ function updateSessionDisplay() {
   sessionProgressFill.style.width = pct + '%';
 }
 
+function updateGoalDisplay() {
+  const row  = document.getElementById('goalProgressRow');
+  const text = document.getElementById('goalProgressText');
+  const fill = document.getElementById('goalProgressFill');
+  if (!row) return;
+  if (!sessionGoal || !sessionInterval) { row.classList.add('hidden'); return; }
+  row.classList.remove('hidden');
+  text.textContent = `${sessionPromptCount} / ${sessionGoal} prompts`;
+  fill.style.width = Math.min(100, sessionPromptCount / sessionGoal * 100) + '%';
+}
+
+function checkSessionGoal() {
+  if (!sessionGoal || !sessionInterval) return;
+  updateGoalDisplay();
+  if (sessionPromptCount >= sessionGoal) {
+    clearInterval(sessionInterval);
+    sessionInterval = null;
+    sessionTimeDisplay.textContent = 'Goal!';
+    const g = sessionGoal;
+    sessionCdMeta.textContent = `${g} prompt${g !== 1 ? 's' : ''} reached`;
+    document.getElementById('goalProgressRow')?.classList.add('hidden');
+    sessionStopBtn.classList.add('hidden');
+    beepDone();
+    setTimeout(stopSession, 3500);
+  }
+}
+
 function stopSession() {
   clearInterval(sessionInterval);
   sessionInterval = null;
@@ -2253,6 +2347,7 @@ function stopSession() {
   sessionTimeDisplay.textContent = formatSessionTime(sessionDuration);
   sessionCdMeta.textContent = 'remaining';
   sessionStopBtn.classList.remove('hidden');
+  document.getElementById('goalProgressRow')?.classList.add('hidden');
   syncWakeLock();
 }
 
@@ -2260,7 +2355,9 @@ function startSession() {
   clearInterval(sessionInterval);
   sessionRemaining   = sessionDuration;
   sessionPromptCount = 0;
+  sessionGoal = parseInt(document.getElementById('sessionGoalInput')?.value) || 0;
   updateSessionDisplay();
+  updateGoalDisplay();
   sessionCdMeta.textContent = 'remaining';
   sessionStopBtn.classList.remove('hidden');
   sessionCountdown.classList.remove('hidden');
@@ -2834,12 +2931,13 @@ helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal
 function exportJSON() {
   const rawSettings = localStorage.getItem('mpr_settings');
   const data = {
-    exported:        new Date().toISOString(),
+    exported:         new Date().toISOString(),
     adaptive_weights: adaptWeights,
-    daily_log:       loadDailyLog(),
-    settings:        rawSettings ? JSON.parse(rawSettings) : null,
-    learning_stage:  localStorage.getItem('mpr_learning_stage'),
-    theme:           localStorage.getItem('mpr_theme'),
+    ear_weights:      earAdaptWeights,
+    daily_log:        loadDailyLog(),
+    settings:         rawSettings ? JSON.parse(rawSettings) : null,
+    learning_stage:   localStorage.getItem('mpr_learning_stage'),
+    theme:            localStorage.getItem('mpr_theme'),
   };
   const a = Object.assign(document.createElement('a'), {
     href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
@@ -2874,6 +2972,11 @@ document.getElementById('statsTabEar').addEventListener('click',     () => openS
 
 statsClose.addEventListener('click', () => statsModal.classList.add('hidden'));
 statsModal.addEventListener('click', e => { if (e.target === statsModal) statsModal.classList.add('hidden'); });
+document.getElementById('statsContent').addEventListener('click', e => {
+  const btn = e.target.closest('.drill-btn');
+  if (btn) startDrill(btn.dataset.type, btn.dataset.ear === 'true');
+});
+document.getElementById('drillStop').addEventListener('click', stopDrill);
 function importJSON() {
   document.getElementById('importFileInput').click();
 }
@@ -2890,6 +2993,11 @@ document.getElementById('importFileInput').addEventListener('change', function (
         adaptWeights = data.adaptive_weights;
         localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
         restored.push('adaptive weights');
+      }
+      if (data.ear_weights) {
+        earAdaptWeights = data.ear_weights;
+        localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
+        restored.push('ear weights');
       }
       if (data.daily_log) {
         localStorage.setItem('mpr_daily', JSON.stringify(data.daily_log));
