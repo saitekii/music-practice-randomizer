@@ -1495,6 +1495,62 @@ function playClick(accented, time) {
   } catch (_) {}
 }
 
+let noiseBuffer = null;
+
+function getNoiseBuffer(ctx) {
+  if (noiseBuffer) return noiseBuffer;
+  const len  = ctx.sampleRate; // 1 second of noise is plenty for any burst
+  noiseBuffer = ctx.createBuffer(1, len, ctx.sampleRate);
+  const data = noiseBuffer.getChannelData(0);
+  for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+  return noiseBuffer;
+}
+
+function playKick(time) {
+  try {
+    const ctx  = getAudioCtx();
+    const osc  = ctx.createOscillator();
+    const gain = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(150, time);
+    osc.frequency.exponentialRampToValueAtTime(50, time + 0.12);
+    gain.gain.setValueAtTime(0.9, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.18);
+    osc.connect(gain); gain.connect(getSynthMasterGain());
+    osc.start(time); osc.stop(time + 0.2);
+  } catch (_) {}
+}
+
+function playSnare(time) {
+  try {
+    const ctx    = getAudioCtx();
+    const noise  = ctx.createBufferSource();
+    noise.buffer = getNoiseBuffer(ctx);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'bandpass'; filter.frequency.value = 1800; filter.Q.value = 0.8;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.7, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
+    noise.connect(filter); filter.connect(gain); gain.connect(getSynthMasterGain());
+    noise.start(time); noise.stop(time + 0.16);
+  } catch (_) {}
+}
+
+function playHihat(time) {
+  try {
+    const ctx    = getAudioCtx();
+    const noise  = ctx.createBufferSource();
+    noise.buffer = getNoiseBuffer(ctx);
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'highpass'; filter.frequency.value = 7000;
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.35, time);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.04);
+    noise.connect(filter); filter.connect(gain); gain.connect(getSynthMasterGain());
+    noise.start(time); noise.stop(time + 0.05);
+  } catch (_) {}
+}
+
 const SYNTH_PRESETS = {
   'Rhodes': {
     build(ctx, freq, vel, dest) {
