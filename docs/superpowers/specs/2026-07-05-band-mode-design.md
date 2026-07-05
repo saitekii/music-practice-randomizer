@@ -8,7 +8,7 @@ Practicing chords against the metronome is correctness-checking with a click tra
 
 This is a first pass, deliberately narrow:
 
-- Only affects **Chords** prompts (Note Finder, Scales, Functional Harmony, Intervals, Diatonic Chords are untouched — they still get the plain click).
+- Affects any prompt that resolves to an actual chord to voice — **Chords**, **Diatonic Chords**, and **Functional Harmony** prompts all trigger the band (they share the same internal `chord` resolution via `getExpectedPCs()`, and all three are real chords worth grooving on). Note Finder, Scales, and Intervals are untouched — they still get the plain click, since there's no chord to voice for those.
 - Only available in **Metronome timer mode**.
 - Only available when **MIDI is enabled** — there is no way to detect what the player is playing in real time otherwise (the on-screen keyboard is display-only; `checkMidi()` is the sole correctness path, see `script.js:2874`).
 - Only available when **`Change every` (`metroNoteDuration`) is set to a full bar or more** — Whole note or 2 bars. At Half note or Quarter note, a groove has nowhere to fit, so the Band Mode toggle is disabled (grayed out with an explanatory note) and metronome mode behaves exactly as it does today.
@@ -69,7 +69,7 @@ The white-noise `AudioBuffer` is created once (module scope) and reused via a fr
 
 ## Out of scope for this pass
 
-- Scales, intervals, functional harmony, diatonic chords, note finder — no accompaniment.
+- Scales, intervals, note finder — no accompaniment (no chord to voice).
 - Non-metronome timer modes.
 - Time signatures other than 4/4, 3/4, 5/4 (matches what the UI already exposes).
 - A separate band volume control.
