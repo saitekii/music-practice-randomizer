@@ -2959,6 +2959,16 @@ metroBpmInput.addEventListener('input', () => {
   }
 });
 
+// Toggling Band Mode mid-session must take effect immediately, not just next time
+// metronome mode is (re-)entered. startMetronome() re-evaluates bandModeToggle.checked
+// fresh, so restarting it here cleanly switches between the scheduler and setInterval
+// click paths in either direction.
+bandModeToggle.addEventListener('change', () => {
+  if (getTimerMode() === 'metronome' && (metroIntervalId || bandSchedulerId)) {
+    startMetronome();
+  }
+});
+
 // ── Theme toggle ──────────────────────────────────────────────────────────────
 
 const themeToggle = document.getElementById('themeToggle');
