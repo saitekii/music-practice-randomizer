@@ -47,19 +47,18 @@ const path = require('path');
   // Manual "Next" (showPrompt()) while Band Mode is running must NOT tear down and
   // restart the scheduler — it should just reset the beat/change counters in place,
   // the same way the old setInterval path's `else` branch does.
-  await page.evaluate(() => { metroCount = 2; }); // simulate partway through a change
-  const before = await page.evaluate(() => ({
-    bandSchedulerId: bandSchedulerId,
-    bandActive: bandActive,
-  }));
-  await page.evaluate(() => { showPrompt(); });
-  const after = await page.evaluate(() => ({
-    bandSchedulerId: bandSchedulerId,
-    bandActive: bandActive,
-    metroCount: metroCount,
-  }));
-  check('showPrompt() does not tear down/recreate the running scheduler', after.bandSchedulerId === before.bandSchedulerId && after.bandActive === true, true);
-  check('showPrompt() resets metroCount in place', after.metroCount, 0);
+  const result = await page.evaluate(() => {
+    metroCount = 2; // simulate partway through a change
+    const bandSchedulerIdBefore = bandSchedulerId;
+    showPrompt();
+    return {
+      bandSchedulerIdSame: bandSchedulerId === bandSchedulerIdBefore,
+      bandActiveStillTrue: bandActive === true,
+      metroCount: metroCount,
+    };
+  });
+  check('showPrompt() does not tear down/recreate the running scheduler', result.bandSchedulerIdSame && result.bandActiveStillTrue, true);
+  check('showPrompt() resets metroCount in place', result.metroCount, 0);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

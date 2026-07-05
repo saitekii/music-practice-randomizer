@@ -2287,6 +2287,8 @@ function stopBandScheduler() {
   bandActive      = false;
   rideOutActive   = false;
   rideOutChordPcs = null;
+  promptCard.classList.remove('midi-success');
+  midiSuccessActive = false;
   syncWakeLock();
 }
 

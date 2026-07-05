@@ -71,6 +71,56 @@ const path = require('path');
   check('bandSchedulerId set again after re-checking bandModeToggle', reengaged.bandSchedulerId, true);
   check('plain metronome interval torn down after re-checking bandModeToggle', reengaged.metroIntervalId, false);
 
+  // ── Fix 1 regression: unchecking Band Mode mid-ride-out must not leave
+  // midiSuccessActive stuck true (and must not permanently kill MIDI detection). ──
+  await page.evaluate(() => {
+    document.getElementById('catChords').checked = true;
+    document.getElementById('chordMajor').checked = true;
+    document.querySelectorAll('input[data-note]').forEach(el => { el.checked = (el.dataset.note === 'C'); });
+    document.getElementById('bandModeToggle').checked = true;
+    document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));
+    metroBpmInput.value = '120'; // slow bar (2s) so we have time to interrupt the ride-out
+    document.getElementById('metroNoteDuration').value = '4'; // whole note = 4 beats/bar
+    document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
+    document.querySelector('input[name="timer"][value="metronome"]').click();
+    showPrompt();
+    currentPromptKey = 'chord|C|Major|';
+    promptStartTime = Date.now();
+  });
+  await page.waitForTimeout(100);
+
+  await page.evaluate(() => {
+    // Simulate playing C-E-G (pcs 0,4,7) to force a correct chord answer.
+    heldNotes = new Set([60, 64, 67]);
+    checkMidi();
+  });
+  await page.waitForTimeout(50);
+
+  const rideOutState = await page.evaluate(() => ({ rideOutActive, midiSuccessActive }));
+  check('ride-out engaged before interrupting Band Mode', rideOutState.rideOutActive && rideOutState.midiSuccessActive, true);
+
+  // Uncheck Band Mode WHILE the ride-out is still in progress (well before the 2s bar ends).
+  await page.evaluate(() => {
+    document.getElementById('bandModeToggle').checked = false;
+    document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));
+  });
+  await page.waitForTimeout(50);
+
+  const afterInterrupt = await page.evaluate(() => ({ midiSuccessActive, rideOutActive }));
+  check('midiSuccessActive is cleared when scheduler is torn down mid-ride-out', afterInterrupt.midiSuccessActive, false);
+
+  // Prove MIDI answer detection is not permanently dead: simulate another correct answer.
+  await page.evaluate(() => {
+    currentPromptKey = 'chord|C|Major|';
+    promptStartTime = Date.now();
+    heldNotes = new Set([60, 64, 67]);
+    checkMidi();
+  });
+  await page.waitForTimeout(50);
+
+  const detectionRevived = await page.evaluate(() => midiSuccessActive);
+  check('MIDI answer detection works again after Band Mode is unchecked mid-ride-out', detectionRevived, true);
+
   check('no uncaught page errors during the whole test', errors.length, 0);
   if (errors.length) console.log('Errors seen:', errors);
 
