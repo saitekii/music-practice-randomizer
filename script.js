@@ -1529,6 +1529,110 @@ const SYNTH_PRESETS = {
       return { gain, oscs: [osc], release: 0, freeDecay: true };
     },
   },
+  'Piano': {
+    build(ctx, freq, vel, dest) {
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.85, now + 0.003);
+      gain.gain.exponentialRampToValueAtTime(vel * 0.38, now + 0.12);
+      gain.gain.exponentialRampToValueAtTime(vel * 0.16, now + 1.0);
+      gain.gain.exponentialRampToValueAtTime(0.0001,     now + 4.0);
+      gain.connect(dest);
+      const partials = [[1, 0.6], [2, 0.28], [3, 0.1], [4, 0.06], [6, 0.03]];
+      const oscs = partials.map(([h, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'triangle'; osc.frequency.value = freq * h; g.gain.value = lvl;
+        osc.connect(g); g.connect(gain); osc.start(now);
+        return osc;
+      });
+      return { gain, oscs, release: 0.35 };
+    },
+  },
+  'Marimba': {
+    build(ctx, freq, vel, dest) {
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.8, now + 0.004);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
+      gain.connect(dest);
+      const partials = [[1, 0.7], [4.07, 0.25], [10.3, 0.05]];
+      const oscs = partials.map(([h, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
+        osc.connect(g); g.connect(gain); osc.start(now); osc.stop(now + 1.5);
+        return osc;
+      });
+      return { gain, oscs, release: 0, freeDecay: true };
+    },
+  },
+  'Vibraphone': {
+    build(ctx, freq, vel, dest) {
+      const now = ctx.currentTime;
+      const dur = 3.0;
+      const envGain = ctx.createGain();
+      envGain.gain.setValueAtTime(0, now);
+      envGain.gain.linearRampToValueAtTime(vel * 0.65, now + 0.006);
+      envGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
+      const tremGain = ctx.createGain();
+      tremGain.gain.value = 1.0;
+      envGain.connect(tremGain); tremGain.connect(dest);
+      const lfo    = ctx.createOscillator();
+      const lfoAmp = ctx.createGain();
+      lfo.frequency.value = 5.5; lfoAmp.gain.value = 0.15;
+      lfo.connect(lfoAmp); lfoAmp.connect(tremGain.gain);
+      lfo.start(now); lfo.stop(now + dur + 0.1);
+      const partials = [[1, 0.7], [3.915, 0.25], [10.74, 0.05]];
+      const oscs = partials.map(([h, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
+        osc.connect(g); g.connect(envGain); osc.start(now); osc.stop(now + dur + 0.1);
+        return osc;
+      });
+      return { gain: envGain, oscs: [...oscs, lfo], release: 0, freeDecay: true };
+    },
+  },
+  'Strings': {
+    build(ctx, freq, vel, dest) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 2200; filter.Q.value = 1.0;
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.5, now + 0.32);
+      filter.connect(gain); gain.connect(dest);
+      const parts = [[-14, 0.55], [0, 0.65], [12, 0.3], [7, 0.25]];
+      const oscs = parts.map(([detune, lvl]) => {
+        const osc = ctx.createOscillator();
+        const g   = ctx.createGain();
+        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
+        g.gain.value = lvl;
+        osc.connect(g); g.connect(filter); osc.start(now);
+        return osc;
+      });
+      return { gain, oscs, release: 0.7 };
+    },
+  },
+  'Bass': {
+    build(ctx, freq, vel, dest) {
+      const filter = ctx.createBiquadFilter();
+      filter.type = 'lowpass'; filter.frequency.value = 900; filter.Q.value = 2.5;
+      const gain = ctx.createGain();
+      const now  = ctx.currentTime;
+      gain.gain.setValueAtTime(0, now);
+      gain.gain.linearRampToValueAtTime(vel * 0.9, now + 0.005);
+      gain.gain.exponentialRampToValueAtTime(vel * 0.45, now + 0.18);
+      filter.connect(gain); gain.connect(dest);
+      const osc = ctx.createOscillator();
+      osc.type = 'sawtooth'; osc.frequency.value = freq;
+      osc.connect(filter); osc.start(now);
+      return { gain, oscs: [osc], release: 0.15 };
+    },
+  },
 };
 
 function getSynthMasterGain() {
