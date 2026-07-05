@@ -493,6 +493,7 @@ let barsSinceConfirm  = 0;     // bars elapsed since confirmedChordPcs was last 
 
 const SCHEDULER_LOOKAHEAD_S  = 0.1;
 const SCHEDULER_INTERVAL_MS  = 25;
+const MAX_CATCHUP_STEPS      = 4; // cap a single tick's backlog processing at 2 beats
 
 let prevSettings  = null;
 let undoTimeout   = null;
@@ -2279,10 +2280,23 @@ function scheduleStep(step, time) {
 
 function bandSchedulerTick() {
   const ctx = getAudioCtx();
+  let caughtUp = 0;
   while (nextStepTime < ctx.currentTime + SCHEDULER_LOOKAHEAD_S) {
+    if (caughtUp >= MAX_CATCHUP_STEPS) {
+      // The housekeeping interval fell far behind real time (a backgrounded
+      // tab, a GC pause, main-thread contention from real MIDI/audio work --
+      // none of which a quick synthetic test ever triggers). Firing every
+      // backlogged step in one burst would play several bars' worth of
+      // click/kick/snare/bass/comp almost simultaneously and fire multiple
+      // downbeats within milliseconds of each other. Resync instead: jump
+      // straight to "now" and resume normal one-step-at-a-time scheduling.
+      nextStepTime = ctx.currentTime + SCHEDULER_LOOKAHEAD_S;
+      break;
+    }
     scheduleStep(stepIndex, nextStepTime);
     nextStepTime += (60 / getBpm()) / 2;
     stepIndex = (stepIndex + 1) % (getBeatsPerBar() * 2);
+    caughtUp++;
   }
 }
 
