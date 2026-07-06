@@ -164,13 +164,8 @@ function onBeatTick(beatNum) {
 
   if (confirmedChordPcs) {
     barsSinceConfirm++;
-    // Exact match (not >=), and no self-reset here: this must fire exactly once
-    // per confirm cycle. barsSinceConfirm keeps growing past the threshold and
-    // is only ever reset back to 0 by the pendingChordPcs branch above, when a
-    // genuinely new correct answer arrives -- otherwise every later downbeat
-    // would re-trigger advancePromptOnSchedule() forever, which is exactly the
-    // forced-timeout behavior this design explicitly rules out.
-    if (barsSinceConfirm === getBandBarsPerChange()) {
+    if (barsSinceConfirm >= getBandBarsPerChange()) {
+      barsSinceConfirm = 0;
       promptCard.classList.remove('midi-success');
       midiSuccessActive = false;
       advancePromptOnSchedule();
@@ -178,8 +173,6 @@ function onBeatTick(beatNum) {
   }
 }
 ```
-
-**Correction found during implementation:** an earlier draft of this step used `barsSinceConfirm >= getBandBarsPerChange()` combined with resetting `barsSinceConfirm = 0` inside the `if`. That combination re-fires the reveal on *every* subsequent downbeat forever once a chord is confirmed, even with no new correct answer — directly violating the "no forced timeout, ever" requirement. The code above (exact `===`, no self-reset) is the corrected version; it fires exactly once per confirm cycle.
 
 Note what this removes: the old unconditional `metroCount++`/`getBeatsPerChange()` check is gone from this function entirely (that pairing still exists, unchanged, in the separate non-Band-Mode `metroTick()` function a little further up in the file — the two paths no longer share any counter). One consequence, confirmed as intentional during design: if no chord has ever been confirmed yet (`confirmedChordPcs` and `pendingChordPcs` both `null` — i.e. before the very first correct answer of a session), neither branch runs, so a downbeat is a no-op and the first prompt simply waits, however long that takes, exactly like every later one.
 

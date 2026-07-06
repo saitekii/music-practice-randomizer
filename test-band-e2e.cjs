@@ -24,9 +24,8 @@ const path = require('path');
       document.querySelectorAll('input[data-note]').forEach(el => { el.checked = (el.dataset.note === 'C'); });
       document.querySelector('input[name="timer"][value="metronome"]').click();
       metroBpmInput.value = '300';
-      // "2 bars" -- getBandBarsPerChange() returns 2, so this is eligible for
-      // every tested time signature (bandModeEligible() only checks the
-      // metroNoteDuration value itself, not a beat-count comparison anymore).
+      // "2 bars" (beatsPerChange = 8) so eligibility (beatsPerChange >= beatsPerBar) holds
+      // for every tested time signature, including 5/4.
       document.getElementById('metroNoteDuration').value = '8';
       document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
       document.getElementById('metroTimeSig').value = sig;
@@ -39,44 +38,14 @@ const path = require('path');
     }, timeSig);
     await page.waitForTimeout(100);
 
-    const startBefore = await page.evaluate(() => promptStartTime);
+    const before = await page.evaluate(() => currentPromptKey);
     await page.evaluate(() => { heldNotes = new Set([60, 64, 67]); checkMidi(); });
-    // Worst case: up to 1 bar to confirm, then getBandBarsPerChange()=2 more
-    // bars to reveal = 3 bar-lengths total. At 300bpm, 3 bars of a 5-beat bar
-    // is 3s; pad generously for headless-browser/scheduler-housekeeping overhead.
-    await page.waitForTimeout(4500);
-    const startAfter = await page.evaluate(() => promptStartTime);
-    check(`time sig ${timeSig}/4: prompt advances after confirm+reveal`, startAfter !== startBefore, true);
+    // 8 beats @ 300bpm = 1.6s worst case (answered right at the top of the cycle); pad generously
+    // for headless-browser/scheduler-housekeeping overhead on top of that.
+    await page.waitForTimeout(3000);
+    const after = await page.evaluate(() => currentPromptKey);
+    check(`time sig ${timeSig}/4: prompt advances after ride-out`, after !== before, true);
   }
-
-  // Bar-alignment fix: 5/4 + "Whole note" was previously ineligible (the old
-  // fixed beat count, 4, was less than a 5-beat bar). getBandBarsPerChange()
-  // makes this a proper 1-bar cadence now.
-  await page.evaluate(() => {
-    document.getElementById('metroTimeSig').value = '5';
-    document.getElementById('metroTimeSig').dispatchEvent(new Event('change'));
-    document.getElementById('metroNoteDuration').value = '4'; // Whole note = 1 bar
-    document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
-  });
-  const fiveFourEligible = await page.evaluate(() => bandModeEligible());
-  check('5/4 + Whole note is now eligible (previously excluded)', fiveFourEligible, true);
-
-  await page.evaluate(() => {
-    document.getElementById('bandModeToggle').checked = true;
-    document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));
-    showPrompt();
-    currentPromptKey = 'chord|C|Major|';
-    promptStartTime = Date.now();
-  });
-  await page.waitForTimeout(100);
-
-  const startBefore5 = await page.evaluate(() => promptStartTime);
-  await page.evaluate(() => { heldNotes = new Set([60, 64, 67]); checkMidi(); });
-  // Worst case: 1 bar to confirm + 1 bar (getBandBarsPerChange()=1) to reveal
-  // = 2 bar-lengths of a 5-beat bar at 300bpm = 2s; pad generously.
-  await page.waitForTimeout(3000);
-  const startAfter5 = await page.evaluate(() => promptStartTime);
-  check('5/4 + Whole note: prompt advances after confirm+reveal', startAfter5 !== startBefore5, true);
 
   check('no uncaught page errors during the whole session', errors.length, 0);
   if (errors.length) console.log('Errors seen:', errors);

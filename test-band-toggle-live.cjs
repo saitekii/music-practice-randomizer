@@ -96,8 +96,8 @@ const path = require('path');
   });
   await page.waitForTimeout(50);
 
-  const rideOutState = await page.evaluate(() => ({ pendingChordPcs, midiSuccessActive }));
-  check('chord pending before interrupting Band Mode', !!rideOutState.pendingChordPcs && rideOutState.midiSuccessActive, true);
+  const rideOutState = await page.evaluate(() => ({ rideOutActive, midiSuccessActive }));
+  check('ride-out engaged before interrupting Band Mode', rideOutState.rideOutActive && rideOutState.midiSuccessActive, true);
 
   // Uncheck Band Mode WHILE the ride-out is still in progress (well before the 2s bar ends).
   await page.evaluate(() => {
@@ -106,10 +106,8 @@ const path = require('path');
   });
   await page.waitForTimeout(50);
 
-  const afterInterrupt = await page.evaluate(() => ({ midiSuccessActive, pendingChordPcs, confirmedChordPcs }));
+  const afterInterrupt = await page.evaluate(() => ({ midiSuccessActive, rideOutActive }));
   check('midiSuccessActive is cleared when scheduler is torn down mid-ride-out', afterInterrupt.midiSuccessActive, false);
-  check('pendingChordPcs is cleared on teardown too', afterInterrupt.pendingChordPcs, null);
-  check('confirmedChordPcs is cleared on teardown too', afterInterrupt.confirmedChordPcs, null);
 
   // Prove MIDI answer detection is not permanently dead: simulate another correct answer.
   await page.evaluate(() => {

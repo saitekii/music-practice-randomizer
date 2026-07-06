@@ -487,9 +487,8 @@ let bandActive       = false;  // true while the lookahead scheduler (not setInt
 let bandSchedulerId  = null;
 let nextStepTime     = 0;      // audioCtx time of the next unscheduled eighth-note step
 let stepIndex        = 0;      // eighth-note step counter, wraps at (beatsPerBar * 2)
-let confirmedChordPcs = null;  // pitch classes currently audible in the groove
-let pendingChordPcs   = null;  // a correctly-answered chord awaiting the next downbeat to become confirmed
-let barsSinceConfirm  = 0;     // bars elapsed since confirmedChordPcs was last set, counted on downbeats
+let rideOutActive    = false;  // true while playing the post-correct-answer groove (wired in Task 5)
+let rideOutChordPcs  = null;   // pitch classes of the chord being ridden out (wired in Task 5)
 
 const SCHEDULER_LOOKAHEAD_S  = 0.1;
 const SCHEDULER_INTERVAL_MS  = 25;
@@ -2139,13 +2138,8 @@ function getBeatsPerChange() {
   return parseFloat(document.getElementById('metroNoteDuration').value) || 4;
 }
 
-function getBandBarsPerChange() {
-  return document.getElementById('metroNoteDuration').value === '8' ? 2 : 1;
-}
-
 function bandModeEligible() {
-  const v = document.getElementById('metroNoteDuration').value;
-  return v === '4' || v === '8';
+  return getBeatsPerChange() >= getBeatsPerBar();
 }
 
 function pulseBeat(accented) {
@@ -2222,16 +2216,17 @@ const GROOVE_PATTERNS = {
 };
 
 function scheduleGrooveHit(localStep, time, beatsPerBar) {
-  if (!confirmedChordPcs) return;
+  if (!rideOutActive) return;
   const pattern = GROOVE_PATTERNS[beatsPerBar] || GROOVE_PATTERNS[4];
 
   if (pattern.hihat.includes(localStep)) playHihat(time);
   if (pattern.kick.includes(localStep))  playKick(time);
   if (pattern.snare.includes(localStep)) playSnare(time);
 
-  if (pattern.bass.includes(localStep)) playBandBass(confirmedChordPcs[0], time);
+  if (!rideOutChordPcs) return;
+  if (pattern.bass.includes(localStep)) playBandBass(rideOutChordPcs[0], time);
   if (pattern.comp.includes(localStep)) {
-    const compPcs = confirmedChordPcs.length > 1 ? confirmedChordPcs.slice(1) : confirmedChordPcs;
+    const compPcs = rideOutChordPcs.length > 1 ? rideOutChordPcs.slice(1) : rideOutChordPcs;
     playBandComp(compPcs, time);
   }
 }
@@ -2239,29 +2234,16 @@ function scheduleGrooveHit(localStep, time, beatsPerBar) {
 function onBeatTick(beatNum) {
   metroBeat = beatNum;
   pulseBeat(beatNum === 0);
-
-  if (beatNum !== 0) return; // only downbeats drive confirm/reveal
-
-  if (pendingChordPcs) {
-    confirmedChordPcs = pendingChordPcs;
-    pendingChordPcs    = null;
-    barsSinceConfirm   = 0;
-    return;
-  }
-
-  if (confirmedChordPcs) {
-    barsSinceConfirm++;
-    // Exact match (not >=), and no self-reset here: this must fire exactly once
-    // per confirm cycle. barsSinceConfirm keeps growing past the threshold and
-    // is only ever reset back to 0 by the pendingChordPcs branch above, when a
-    // genuinely new correct answer arrives -- otherwise every later downbeat
-    // would re-trigger advancePromptOnSchedule() forever, which is exactly the
-    // forced-timeout behavior this design explicitly rules out.
-    if (barsSinceConfirm === getBandBarsPerChange()) {
+  metroCount++;
+  if (metroCount >= getBeatsPerChange()) {
+    metroCount = 0;
+    if (rideOutActive) {
+      rideOutActive   = false;
+      rideOutChordPcs = null;
       promptCard.classList.remove('midi-success');
       midiSuccessActive = false;
-      advancePromptOnSchedule();
     }
+    advancePromptOnSchedule();
   }
 }
 
@@ -2273,6 +2255,19 @@ function scheduleStep(step, time) {
     playClick(localStep === 0, time);
     const delayMs = Math.max(0, (time - getAudioCtx().currentTime) * 1000);
     setTimeout(() => onBeatTick(localStep / 2), delayMs);
+
+    // If this on-beat is the ride-out's final beat, onBeatTick's boundary check
+    // (above) will clear rideOutActive at this beat's own audio time — but the
+    // lookahead loop wouldn't otherwise reach the *next* (off-beat) step until
+    // roughly half a beat later, well after that clearing already happened,
+    // silently dropping the pickup note leading into the next bar/chord.
+    // Schedule it eagerly, right now, while rideOutActive/rideOutChordPcs are
+    // still valid.
+    if (rideOutActive && metroCount + 1 >= getBeatsPerChange()) {
+      const secondsPerBeat = 60 / getBpm();
+      const nextLocalStep  = (localStep + 1) % (beatsPerBar * 2);
+      scheduleGrooveHit(nextLocalStep, time + secondsPerBeat / 2, beatsPerBar);
+    }
   }
 
   scheduleGrooveHit(localStep, time, beatsPerBar);
@@ -2302,24 +2297,23 @@ function bandSchedulerTick() {
 
 function startBandScheduler() {
   const ctx = getAudioCtx();
-  stepIndex         = 0;
-  metroBeat         = 0;
-  confirmedChordPcs = null;
-  pendingChordPcs   = null;
-  barsSinceConfirm  = 0;
-  nextStepTime      = ctx.currentTime + 0.05;
-  bandActive        = true;
-  bandSchedulerId   = setInterval(bandSchedulerTick, SCHEDULER_INTERVAL_MS);
+  stepIndex       = 0;
+  metroBeat       = 0;
+  metroCount      = 0;
+  rideOutActive   = false;
+  rideOutChordPcs = null;
+  nextStepTime    = ctx.currentTime + 0.05;
+  bandActive      = true;
+  bandSchedulerId = setInterval(bandSchedulerTick, SCHEDULER_INTERVAL_MS);
   syncWakeLock();
 }
 
 function stopBandScheduler() {
   clearInterval(bandSchedulerId);
-  bandSchedulerId   = null;
-  bandActive        = false;
-  confirmedChordPcs = null;
-  pendingChordPcs   = null;
-  barsSinceConfirm  = 0;
+  bandSchedulerId = null;
+  bandActive      = false;
+  rideOutActive   = false;
+  rideOutChordPcs = null;
   promptCard.classList.remove('midi-success');
   midiSuccessActive = false;
   syncWakeLock();
@@ -3201,7 +3195,8 @@ function triggerBandSuccess(expected) {
     }
   }
   promptCard.classList.add('midi-success');
-  pendingChordPcs = expected.pcs.slice();
+  rideOutActive   = true;
+  rideOutChordPcs = expected.pcs.slice();
 }
 
 function showResponseTime(ms) {

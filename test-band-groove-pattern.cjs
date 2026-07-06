@@ -19,17 +19,19 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       const ctx = getAudioCtx();
       const t   = ctx.currentTime + 0.05;
 
-      // Nothing confirmed yet: dispatch should be a no-op (no throw either way).
-      confirmedChordPcs = null;
+      // Inactive ride-out: dispatch should be a no-op (no throw either way).
+      rideOutActive = false;
       scheduleGrooveHit(0, t, 4);
 
-      // Confirmed C major chord (pcs [0, 4, 7]).
-      confirmedChordPcs = [0, 4, 7];
+      // Active ride-out with a C major chord (pcs [0, 4, 7]).
+      rideOutActive   = true;
+      rideOutChordPcs = [0, 4, 7];
       scheduleGrooveHit(0, t, 4);  // step 0: kick + hihat + bass (per GROOVE_PATTERNS[4])
       scheduleGrooveHit(3, t, 4);  // step 3: hihat + comp
       scheduleGrooveHit(2, t, 4);  // step 2: snare + hihat
 
-      confirmedChordPcs = null;
+      rideOutActive   = false;
+      rideOutChordPcs = null;
       return { threw: false };
     } catch (e) {
       return { threw: true, message: e.message };
