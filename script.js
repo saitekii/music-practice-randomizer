@@ -2227,20 +2227,6 @@ function stopMetronome() {
 
 // ── Band Mode scheduler ───────────────────────────────────────────────────────
 
-function advancePromptOnSchedule() {
-  const prompt = generatePrompt();
-  currentPromptKey = prompt ? prompt.key : '';
-  scaleNotesPlayed.clear();
-  updateHearBtn();
-  promptStartTime = Date.now();
-  clearHold();
-  historyIndex = 0;
-  addToHistory(prompt);
-  updateBackBtn();
-  if (sessionInterval) { sessionPromptCount++; checkSessionGoal(); }
-  renderPrompt(prompt);
-}
-
 // Step positions (0-indexed eighth notes within the bar) for each supported time signature.
 const GROOVE_PATTERNS = {
   4: { kick: [0, 4], snare: [2, 6], hihat: [0, 1, 2, 3, 4, 5, 6, 7], bass: [0, 4], comp: [3, 7] },
