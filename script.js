@@ -2264,6 +2264,9 @@ const GROOVE_STYLES = {
 function scheduleGrooveHit(localStep, time, beatsPerBar) {
   const style   = GROOVE_STYLES[getBandStyle()] || GROOVE_STYLES.rock;
   const pattern = style[beatsPerBar] || style[4];
+
+  // Drums always play once the scheduler is running -- the band never stops,
+  // even before the first correct answer of a session (rhythm only, no harmony yet).
   if (pattern.hihat.includes(localStep)) playHihat(time);
   if (pattern.kick.includes(localStep))  playKick(time);
   if (pattern.snare.includes(localStep)) playSnare(time);
@@ -2308,6 +2311,13 @@ function bandSchedulerTick() {
   let caughtUp = 0;
   while (nextStepTime < ctx.currentTime + SCHEDULER_LOOKAHEAD_S) {
     if (caughtUp >= MAX_CATCHUP_STEPS) {
+      // The housekeeping interval fell far behind real time (a backgrounded
+      // tab, a GC pause, main-thread contention from real MIDI/audio work --
+      // none of which a quick synthetic test ever triggers). Firing every
+      // backlogged step in one burst would play several bars' worth of
+      // click/kick/snare/bass/comp almost simultaneously and fire multiple
+      // downbeats within milliseconds of each other. Resync instead: jump
+      // straight to "now" and resume normal one-step-at-a-time scheduling.
       nextStepTime = ctx.currentTime + SCHEDULER_LOOKAHEAD_S;
       break;
     }
