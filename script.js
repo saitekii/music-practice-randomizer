@@ -434,6 +434,7 @@ const midiBtn             = document.getElementById('midiBtn');
 const midiStatus          = document.getElementById('midiStatus');
 const synthVolWrap        = document.getElementById('synthVolWrap');
 const synthVolumeSlider   = document.getElementById('synthVolume');
+const clickVolumeSlider   = document.getElementById('clickVolume');
 const synthPresetSelect   = document.getElementById('synthPreset');
 const rtDisplay           = document.getElementById('rtDisplay');
 const midiStats           = document.getElementById('midiStats');
@@ -508,6 +509,7 @@ let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
 let synthMasterGain    = null;
+let clickGain          = null;
 const synthNotes       = new Map();
 let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
 
@@ -1480,13 +1482,22 @@ function getAudioCtx() {
   return audioCtx;
 }
 
+function getClickGain() {
+  if (clickGain) return clickGain;
+  const ctx  = getAudioCtx();
+  clickGain  = ctx.createGain();
+  clickGain.gain.value = (parseInt(localStorage.getItem('mpr_click_vol') ?? '70')) / 100;
+  clickGain.connect(ctx.destination);
+  return clickGain;
+}
+
 function playClick(accented, time) {
   try {
     const ctx  = getAudioCtx();
     const osc  = ctx.createOscillator();
     const gain = ctx.createGain();
     osc.connect(gain);
-    gain.connect(ctx.destination);
+    gain.connect(getClickGain());
     osc.type = 'sine';
     osc.frequency.value = accented ? 1100 : 800;
     const now = time ?? ctx.currentTime;
@@ -3642,6 +3653,13 @@ synthVolumeSlider.addEventListener('input', () => {
   const vol = parseInt(synthVolumeSlider.value) / 100;
   if (synthMasterGain) synthMasterGain.gain.value = vol;
   localStorage.setItem('mpr_synth_vol', synthVolumeSlider.value);
+});
+
+clickVolumeSlider.value = localStorage.getItem('mpr_click_vol') ?? '70';
+clickVolumeSlider.addEventListener('input', () => {
+  const vol = parseInt(clickVolumeSlider.value) / 100;
+  if (clickGain) clickGain.gain.value = vol;
+  localStorage.setItem('mpr_click_vol', clickVolumeSlider.value);
 });
 
 synthPresetSelect.value = currentSynthPreset;
