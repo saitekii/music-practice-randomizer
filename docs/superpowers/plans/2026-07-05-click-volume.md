@@ -181,7 +181,12 @@ const path = require('path');
 
   let failed = false;
   const check = (label, actual, expected) => {
-    const ok = JSON.stringify(actual) === JSON.stringify(expected);
+    // GainNode values round-trip through 32-bit float storage (e.g. 0.7 reads
+    // back as 0.699999988079071), so numeric checks need a tolerance -- exact
+    // JSON.stringify equality would spuriously fail on clickGain.gain.value.
+    const ok = typeof expected === 'number'
+      ? Math.abs(actual - expected) < 0.0001
+      : JSON.stringify(actual) === JSON.stringify(expected);
     console.log(`${ok ? 'PASS' : 'FAIL'} ${label}: got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
     if (!ok) failed = true;
   };
@@ -249,3 +254,4 @@ git commit -m "Add independent click volume control"
 - **Spec coverage:** New slider in the metronome panel (Step 3), isolated audio routing via a new `clickGain` node (Step 2), `mpr_click_vol` persistence matching the existing pattern (Step 4) — all covered. No change to the instrument volume slider or its audio path (confirmed: `synthMasterGain` untouched by any step here).
 - **Placeholder scan:** every step has complete, runnable code; no TBD/TODO.
 - **Type/name consistency checked:** `clickGain`, `getClickGain()`, `clickVolumeSlider`, `mpr_click_vol` are spelled identically everywhere introduced and used.
+- **Correction found during implementation:** the test's `check()` used exact `JSON.stringify` equality, but `GainNode.gain.value` round-trips through 32-bit float storage (`0.7` reads back as `0.699999988079071`), so the `0.7`/`0.3` assertions would have spuriously failed. Fixed by adding a numeric tolerance path to `check()` (the code above reflects the fix).
