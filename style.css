@@ -201,6 +201,23 @@ header h1 {
   letter-spacing: 0;
 }
 
+.next-prompt-row {
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+.next-prompt-row.hidden {
+  display: none;
+}
+
+.next-prompt-label {
+  font-weight: 600;
+  opacity: 0.7;
+}
+
 /* ── Structure hint ─────────────────────────────────────────────────────────── */
 
 .hint-row {
@@ -1528,6 +1545,16 @@ input[type="number"]:focus-visible {
 
 .prompt-card.midi-success {
   animation: midi-success 0.7s ease;
+}
+
+@keyframes band-hit-flash {
+  0%   { box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.55), 0 0 90px rgba(124,109,250,0.1),  inset 0 1px 0 rgba(255,255,255,0.06); }
+  30%  { box-shadow: 0 2px 4px rgba(0,0,0,0.25), 0 20px 70px rgba(0,0,0,0.3), 0 0 140px rgba(255,214,90,0.6), inset 0 1px 0 rgba(255,255,255,0.08); }
+  100% { box-shadow: 0 2px 4px rgba(0,0,0,0.4), 0 20px 60px rgba(0,0,0,0.55), 0 0 90px rgba(124,109,250,0.1),  inset 0 1px 0 rgba(255,255,255,0.06); }
+}
+
+.prompt-card.band-hit-flash {
+  animation: band-hit-flash 0.25s ease;
 }
 
 /* ── Learning Path ───────────────────────────────────────────────────────────── */

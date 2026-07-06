@@ -417,6 +417,8 @@ const tapBtn         = document.getElementById('tapBtn');
 const metroPanel     = document.getElementById('metroPanel');
 const bandModeToggle = document.getElementById('bandModeToggle');
 const bandModeRow    = document.getElementById('bandModeRow');
+const nextPromptRow  = document.getElementById('nextPromptRow');
+const nextPromptText = document.getElementById('nextPromptText');
 
 const pathStart          = document.getElementById('pathStart');
 const pathActive         = document.getElementById('pathActive');
@@ -1586,6 +1588,27 @@ function playBandComp(pcs, time) {
   } catch (_) {}
 }
 
+function playHitChime(time) {
+  try {
+    const ctx  = getAudioCtx();
+    const gain = ctx.createGain();
+    gain.gain.setValueAtTime(0.001, time);
+    gain.gain.exponentialRampToValueAtTime(0.5, time + 0.006);
+    gain.gain.exponentialRampToValueAtTime(0.001, time + 0.5);
+    gain.connect(getSynthMasterGain());
+    // A5 then E6 (a fifth above), 30ms apart -- a bright, game-like "ding-ding"
+    // distinct in timbre from the drum/bass/comp voices.
+    [880, 1318.5].forEach((freq, i) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = freq;
+      osc.connect(gain);
+      osc.start(time + i * 0.03);
+      osc.stop(time + 0.5);
+    });
+  } catch (_) {}
+}
+
 const SYNTH_PRESETS = {
   'Rhodes': {
     build(ctx, freq, vel, dest) {
@@ -1998,6 +2021,16 @@ function renderPrompt(prompt) {
       hintEl.classList.toggle('hidden', !hintVisible);
     }
   }, noMotion ? 0 : 120);
+}
+
+function renderNextPreview(prompt) {
+  if (!prompt) {
+    nextPromptRow.classList.add('hidden');
+    nextPromptText.textContent = '';
+    return;
+  }
+  nextPromptRow.classList.remove('hidden');
+  nextPromptText.textContent = prompt.line1;
 }
 
 function addToHistory(prompt) {
