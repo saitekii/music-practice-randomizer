@@ -25,9 +25,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
 
       // Confirmed C major chord (pcs [0, 4, 7]): drums + bass/comp all fire.
       bandChordPcs = [0, 4, 7];
-      scheduleGrooveHit(0, t, 4);  // step 0: kick + hihat + bass (per GROOVE_PATTERNS[4])
-      scheduleGrooveHit(3, t, 4);  // step 3: hihat + comp
-      scheduleGrooveHit(2, t, 4);  // step 2: snare + hihat
+      scheduleGrooveHit(0, t, 4);  // step 0: kick + hihat + bass (rock pattern)
+      scheduleGrooveHit(3, t, 4);  // step 3: hihat + kick + bass (push)
+      scheduleGrooveHit(2, t, 4);  // step 2: snare + hihat + comp
 
       bandChordPcs = null;
       return { threw: false };
@@ -38,13 +38,13 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('scheduleGrooveHit runs without throwing (with and without a confirmed chord)', result.threw, false);
 
   const patternShape = await page.evaluate(() => ({
-    fourFour:  JSON.stringify(GROOVE_PATTERNS[4]),
-    threeFour: JSON.stringify(GROOVE_PATTERNS[3]),
-    fiveFour:  JSON.stringify(GROOVE_PATTERNS[5]),
+    fourFour:  JSON.stringify(GROOVE_STYLES.rock[4]),
+    threeFour: JSON.stringify(GROOVE_STYLES.rock[3]),
+    fiveFour:  JSON.stringify(GROOVE_STYLES.rock[5]),
   }));
-  check('4/4 pattern defined', patternShape.fourFour.includes('"kick":[0,4]'), true);
-  check('3/4 pattern defined', patternShape.threeFour.includes('"kick":[0]'), true);
-  check('5/4 pattern defined', patternShape.fiveFour.includes('"kick":[0,6]'), true);
+  check('rock 4/4 pattern defined', patternShape.fourFour.includes('"kick":[0,3,4]'), true);
+  check('rock 3/4 pattern defined', patternShape.threeFour.includes('"kick":[0,3,4]'), true);
+  check('rock 5/4 pattern defined', patternShape.fiveFour.includes('"kick":[0,5,6]'), true);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

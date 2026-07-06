@@ -2238,22 +2238,35 @@ function stopMetronome() {
 
 // ── Band Mode scheduler ───────────────────────────────────────────────────────
 
-// Step positions (0-indexed eighth notes within the bar) for each supported time signature.
-const GROOVE_PATTERNS = {
-  4: { kick: [0, 4], snare: [2, 6], hihat: [0, 1, 2, 3, 4, 5, 6, 7], bass: [0, 4], comp: [3, 7] },
-  3: { kick: [0],    snare: [2, 4], hihat: [0, 1, 2, 3, 4, 5],       bass: [0],    comp: [3] },
-  5: { kick: [0, 6], snare: [4, 8], hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9], bass: [0, 6], comp: [5, 9] },
+// Step positions (0-indexed eighth notes within the bar) for each style and time signature.
+// swingRatio: fraction of a beat the on-beat 8th note occupies (0.5 = straight/even).
+const GROOVE_STYLES = {
+  rock: {
+    swingRatio: 0.5,
+    4: { kick: [0, 3, 4], snare: [2, 6],    hihat: [0, 1, 2, 3, 4, 5, 6, 7],             bass: [0, 3, 4], comp: [2, 6] },
+    3: { kick: [0, 3, 4], snare: [2],       hihat: [0, 1, 2, 3, 4, 5],                   bass: [0, 3, 4], comp: [2] },
+    5: { kick: [0, 5, 6], snare: [2, 8],    hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],       bass: [0, 5, 6], comp: [2, 8] },
+  },
+  jazz: {
+    swingRatio: 0.63,
+    4: { kick: [0], snare: [],       hihat: [0, 3, 4, 7],       bass: [0, 4], comp: [3, 7] },
+    3: { kick: [0], snare: [],       hihat: [0, 3, 4],          bass: [0, 4], comp: [3] },
+    5: { kick: [0], snare: [],       hihat: [0, 3, 4, 7, 8],    bass: [0, 6], comp: [3, 7] },
+  },
+  latin: {
+    swingRatio: 0.5,
+    4: { kick: [0, 3], snare: [2, 5, 7],    hihat: [0, 1, 2, 3, 4, 5, 6, 7],             bass: [0, 3], comp: [1, 6] },
+    3: { kick: [0, 3], snare: [2, 5],       hihat: [0, 1, 2, 3, 4, 5],                   bass: [0, 3], comp: [1] },
+    5: { kick: [0, 5], snare: [2, 7, 9],    hihat: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9],       bass: [0, 5], comp: [1, 6] },
+  },
 };
 
 function scheduleGrooveHit(localStep, time, beatsPerBar) {
-  const pattern = GROOVE_PATTERNS[beatsPerBar] || GROOVE_PATTERNS[4];
-
-  // Drums always play once the scheduler is running -- the band never stops,
-  // even before the first correct answer of a session (rhythm only, no harmony yet).
+  const style   = GROOVE_STYLES[getBandStyle()] || GROOVE_STYLES.rock;
+  const pattern = style[beatsPerBar] || style[4];
   if (pattern.hihat.includes(localStep)) playHihat(time);
   if (pattern.kick.includes(localStep))  playKick(time);
   if (pattern.snare.includes(localStep)) playSnare(time);
-
   if (!bandChordPcs) return;
   if (pattern.bass.includes(localStep)) playBandBass(bandChordPcs[0], time);
   if (pattern.comp.includes(localStep)) {
@@ -2280,23 +2293,26 @@ function scheduleStep(step, time) {
   scheduleGrooveHit(localStep, time, beatsPerBar);
 }
 
+// Each on-beat/off-beat step pair still totals exactly one beat's duration, so tempo
+// and bar length are unaffected -- only where within the beat the off-beat 8th lands.
+function getStepDuration(localStepIndex, styleName) {
+  const style         = GROOVE_STYLES[styleName] || GROOVE_STYLES.rock;
+  const swingRatio    = style.swingRatio ?? 0.5;
+  const secondsPerBeat = 60 / getBpm();
+  const isOnBeatStep  = localStepIndex % 2 === 0;
+  return isOnBeatStep ? secondsPerBeat * swingRatio : secondsPerBeat * (1 - swingRatio);
+}
+
 function bandSchedulerTick() {
   const ctx = getAudioCtx();
   let caughtUp = 0;
   while (nextStepTime < ctx.currentTime + SCHEDULER_LOOKAHEAD_S) {
     if (caughtUp >= MAX_CATCHUP_STEPS) {
-      // The housekeeping interval fell far behind real time (a backgrounded
-      // tab, a GC pause, main-thread contention from real MIDI/audio work --
-      // none of which a quick synthetic test ever triggers). Firing every
-      // backlogged step in one burst would play several bars' worth of
-      // click/kick/snare/bass/comp almost simultaneously and fire multiple
-      // downbeats within milliseconds of each other. Resync instead: jump
-      // straight to "now" and resume normal one-step-at-a-time scheduling.
       nextStepTime = ctx.currentTime + SCHEDULER_LOOKAHEAD_S;
       break;
     }
     scheduleStep(stepIndex, nextStepTime);
-    nextStepTime += (60 / getBpm()) / 2;
+    nextStepTime += getStepDuration(stepIndex, getBandStyle());
     stepIndex = (stepIndex + 1) % (getBeatsPerBar() * 2);
     caughtUp++;
   }
