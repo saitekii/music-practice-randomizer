@@ -435,6 +435,7 @@ const midiStatus          = document.getElementById('midiStatus');
 const synthVolWrap        = document.getElementById('synthVolWrap');
 const synthVolumeSlider   = document.getElementById('synthVolume');
 const clickVolumeSlider   = document.getElementById('clickVolume');
+const bandStyleSelect     = document.getElementById('bandStyle');
 const synthPresetSelect   = document.getElementById('synthPreset');
 const rtDisplay           = document.getElementById('rtDisplay');
 const midiStats           = document.getElementById('midiStats');
@@ -2181,6 +2182,10 @@ function getBeatsPerChange() {
   return parseFloat(document.getElementById('metroNoteDuration').value) || 4;
 }
 
+function getBandStyle() {
+  return bandStyleSelect.value || 'rock';
+}
+
 function pulseBeat(accented) {
   // Remove and re-add class to retrigger CSS animation on every beat
   timerDisplay.className = 'timer-display';
@@ -3660,6 +3665,11 @@ clickVolumeSlider.addEventListener('input', () => {
   const vol = parseInt(clickVolumeSlider.value) / 100;
   if (clickGain) clickGain.gain.value = vol;
   localStorage.setItem('mpr_click_vol', clickVolumeSlider.value);
+});
+
+bandStyleSelect.value = localStorage.getItem('mpr_band_style') ?? 'rock';
+bandStyleSelect.addEventListener('change', () => {
+  localStorage.setItem('mpr_band_style', bandStyleSelect.value);
 });
 
 synthPresetSelect.value = currentSynthPreset;
