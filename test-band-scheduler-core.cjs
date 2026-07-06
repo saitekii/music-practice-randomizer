@@ -21,7 +21,7 @@ const path = require('path');
     document.getElementById('chordMajor').checked = true;
     document.querySelector('input[name="timer"][value="metronome"]').click();
     metroBpmInput.value = '300'; // fast, so the test doesn't take long
-    document.getElementById('metroNoteDuration').value = '4'; // Whole note — eligible
+    document.getElementById('metroNoteDuration').value = '4'; // Whole note
     document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
     document.getElementById('bandModeToggle').checked = true;
     document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));

@@ -416,7 +416,6 @@ const metroBpmInput  = document.getElementById('metroBpm');
 const tapBtn         = document.getElementById('tapBtn');
 const metroPanel     = document.getElementById('metroPanel');
 const bandModeToggle = document.getElementById('bandModeToggle');
-const bandModeRow    = document.getElementById('bandModeRow');
 const nextPromptRow  = document.getElementById('nextPromptRow');
 const nextPromptText = document.getElementById('nextPromptText');
 
