@@ -14,43 +14,35 @@ const path = require('path');
     if (!ok) failed = true;
   };
 
-  // Switch to metronome timer mode
   await page.evaluate(() => {
     document.querySelector('input[name="timer"][value="metronome"]').click();
   });
   await page.waitForTimeout(100);
 
-  // Default "Whole note" — should be eligible and enabled
-  const state1 = await page.evaluate(() => ({
-    rowDisabled: document.getElementById('bandModeRow').classList.contains('disabled'),
-    inputDisabled: document.getElementById('bandModeToggle').disabled,
-  }));
-  check('eligible at Whole note: row disabled class', state1.rowDisabled, false);
-  check('eligible at Whole note: input.disabled', state1.inputDisabled, false);
+  // Band Mode is never disabled anymore, regardless of "Change every" or time signature.
+  for (const noteDuration of ['4', '2', '1', '8']) {
+    const state = await page.evaluate((val) => {
+      const sel = document.getElementById('metroNoteDuration');
+      sel.value = val;
+      sel.dispatchEvent(new Event('change'));
+      return {
+        rowDisabled: document.getElementById('bandModeRow').classList.contains('disabled'),
+        inputDisabled: document.getElementById('bandModeToggle').disabled,
+      };
+    }, noteDuration);
+    check(`Change-every "${noteDuration}": row not disabled`, state.rowDisabled, false);
+    check(`Change-every "${noteDuration}": input not disabled`, state.inputDisabled, false);
+  }
 
-  // Switch "Change every" to Quarter note — should become ineligible
-  await page.evaluate(() => {
-    const sel = document.getElementById('metroNoteDuration');
-    sel.value = '1';
-    sel.dispatchEvent(new Event('change'));
-  });
-  await page.waitForTimeout(100);
-  const state2 = await page.evaluate(() => ({
-    rowDisabled: document.getElementById('bandModeRow').classList.contains('disabled'),
-    inputDisabled: document.getElementById('bandModeToggle').disabled,
-  }));
-  check('ineligible at Quarter note: row disabled class', state2.rowDisabled, true);
-  check('ineligible at Quarter note: input.disabled', state2.inputDisabled, true);
-
-  // Switch back to "2 bars" — should be eligible again
-  await page.evaluate(() => {
-    const sel = document.getElementById('metroNoteDuration');
-    sel.value = '8';
-    sel.dispatchEvent(new Event('change'));
-  });
-  await page.waitForTimeout(100);
-  const state3 = await page.evaluate(() => document.getElementById('bandModeRow').classList.contains('disabled'));
-  check('eligible again at 2 bars', state3, false);
+  for (const timeSig of ['4', '3', '5']) {
+    const rowDisabled = await page.evaluate((sig) => {
+      const sel = document.getElementById('metroTimeSig');
+      sel.value = sig;
+      sel.dispatchEvent(new Event('change'));
+      return document.getElementById('bandModeRow').classList.contains('disabled');
+    }, timeSig);
+    check(`Time sig ${timeSig}/4: row not disabled`, rowDisabled, false);
+  }
 
   // Toggle persists across reload
   await page.evaluate(() => {

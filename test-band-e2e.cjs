@@ -24,10 +24,6 @@ const path = require('path');
       document.querySelectorAll('input[data-note]').forEach(el => { el.checked = (el.dataset.note === 'C'); });
       document.querySelector('input[name="timer"][value="metronome"]').click();
       metroBpmInput.value = '300';
-      // "2 bars" (beatsPerChange = 8) so eligibility (beatsPerChange >= beatsPerBar) holds
-      // for every tested time signature, including 5/4.
-      document.getElementById('metroNoteDuration').value = '8';
-      document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
       document.getElementById('metroTimeSig').value = sig;
       document.getElementById('metroTimeSig').dispatchEvent(new Event('change'));
       document.getElementById('bandModeToggle').checked = true;
@@ -38,13 +34,11 @@ const path = require('path');
     }, timeSig);
     await page.waitForTimeout(100);
 
-    const before = await page.evaluate(() => currentPromptKey);
+    const before = await page.evaluate(() => promptStartTime);
     await page.evaluate(() => { heldNotes = new Set([60, 64, 67]); checkMidi(); });
-    // 8 beats @ 300bpm = 1.6s worst case (answered right at the top of the cycle); pad generously
-    // for headless-browser/scheduler-housekeeping overhead on top of that.
-    await page.waitForTimeout(3000);
-    const after = await page.evaluate(() => currentPromptKey);
-    check(`time sig ${timeSig}/4: prompt advances after ride-out`, after !== before, true);
+    await page.waitForTimeout(50); // advance is instant now -- no bar-length wait needed
+    const after = await page.evaluate(() => promptStartTime);
+    check(`time sig ${timeSig}/4: prompt advances instantly after a correct answer`, after !== before, true);
   }
 
   check('no uncaught page errors during the whole session', errors.length, 0);

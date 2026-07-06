@@ -2171,10 +2171,6 @@ function getBeatsPerChange() {
   return parseFloat(document.getElementById('metroNoteDuration').value) || 4;
 }
 
-function bandModeEligible() {
-  return getBeatsPerChange() >= getBeatsPerBar();
-}
-
 function pulseBeat(accented) {
   // Remove and re-add class to retrigger CSS animation on every beat
   timerDisplay.className = 'timer-display';
@@ -2201,7 +2197,7 @@ function startMetronome() {
   stopTimer();
   stopMetronome();
 
-  if (bandModeToggle.checked && bandModeEligible() && midiEnabled) {
+  if (bandModeToggle.checked && midiEnabled) {
     startBandScheduler();
     return;
   }
@@ -2437,10 +2433,6 @@ function syncUI() {
   customTimer.disabled = mode !== 'custom';
   customTimerRow.classList.toggle('hidden', mode !== 'custom');
   metroPanel.classList.toggle('hidden', mode !== 'metronome');
-
-  const bandEligible = bandModeEligible();
-  bandModeRow.classList.toggle('disabled', !bandEligible);
-  bandModeToggle.disabled = !bandEligible;
 }
 
 // ── Undo toast ────────────────────────────────────────────────────────────────
