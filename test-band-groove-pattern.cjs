@@ -19,25 +19,23 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       const ctx = getAudioCtx();
       const t   = ctx.currentTime + 0.05;
 
-      // Inactive ride-out: dispatch should be a no-op (no throw either way).
-      rideOutActive = false;
+      // No chord confirmed yet: drums still fire (band is never silent), bass/comp don't.
+      bandChordPcs = null;
       scheduleGrooveHit(0, t, 4);
 
-      // Active ride-out with a C major chord (pcs [0, 4, 7]).
-      rideOutActive   = true;
-      rideOutChordPcs = [0, 4, 7];
+      // Confirmed C major chord (pcs [0, 4, 7]): drums + bass/comp all fire.
+      bandChordPcs = [0, 4, 7];
       scheduleGrooveHit(0, t, 4);  // step 0: kick + hihat + bass (per GROOVE_PATTERNS[4])
       scheduleGrooveHit(3, t, 4);  // step 3: hihat + comp
       scheduleGrooveHit(2, t, 4);  // step 2: snare + hihat
 
-      rideOutActive   = false;
-      rideOutChordPcs = null;
+      bandChordPcs = null;
       return { threw: false };
     } catch (e) {
       return { threw: true, message: e.message };
     }
   });
-  check('scheduleGrooveHit runs without throwing (active and inactive)', result.threw, false);
+  check('scheduleGrooveHit runs without throwing (with and without a confirmed chord)', result.threw, false);
 
   const patternShape = await page.evaluate(() => ({
     fourFour:  JSON.stringify(GROOVE_PATTERNS[4]),

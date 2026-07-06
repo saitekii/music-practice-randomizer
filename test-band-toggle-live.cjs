@@ -11,7 +11,7 @@ const path = require('path');
 
   let failed = false;
   const check = (label, actual, expected) => {
-    const ok = actual === expected;
+    const ok = JSON.stringify(actual) === JSON.stringify(expected);
     console.log(`${ok ? 'PASS' : 'FAIL'} ${label}: got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
     if (!ok) failed = true;
   };
@@ -71,17 +71,14 @@ const path = require('path');
   check('bandSchedulerId set again after re-checking bandModeToggle', reengaged.bandSchedulerId, true);
   check('plain metronome interval torn down after re-checking bandModeToggle', reengaged.metroIntervalId, false);
 
-  // ── Fix 1 regression: unchecking Band Mode mid-ride-out must not leave
-  // midiSuccessActive stuck true (and must not permanently kill MIDI detection). ──
+  // Band Mode teardown must not leave midiSuccessActive stuck true (which would
+  // permanently kill MIDI detection), and bandChordPcs must clear on teardown.
   await page.evaluate(() => {
     document.getElementById('catChords').checked = true;
     document.getElementById('chordMajor').checked = true;
     document.querySelectorAll('input[data-note]').forEach(el => { el.checked = (el.dataset.note === 'C'); });
     document.getElementById('bandModeToggle').checked = true;
     document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));
-    metroBpmInput.value = '120'; // slow bar (2s) so we have time to interrupt the ride-out
-    document.getElementById('metroNoteDuration').value = '4'; // whole note = 4 beats/bar
-    document.getElementById('metroNoteDuration').dispatchEvent(new Event('change'));
     document.querySelector('input[name="timer"][value="metronome"]').click();
     showPrompt();
     currentPromptKey = 'chord|C|Major|';
@@ -96,20 +93,28 @@ const path = require('path');
   });
   await page.waitForTimeout(50);
 
-  const rideOutState = await page.evaluate(() => ({ rideOutActive, midiSuccessActive }));
-  check('ride-out engaged before interrupting Band Mode', rideOutState.rideOutActive && rideOutState.midiSuccessActive, true);
+  const afterAnswer = await page.evaluate(() => ({
+    bandChordPcsSet: bandChordPcs !== null,
+    midiSuccessActive,
+  }));
+  check('bandChordPcs is set and midiSuccessActive is released right after answering (instant advance)', afterAnswer, { bandChordPcsSet: true, midiSuccessActive: false });
 
-  // Uncheck Band Mode WHILE the ride-out is still in progress (well before the 2s bar ends).
+  // Turn Band Mode off entirely.
   await page.evaluate(() => {
     document.getElementById('bandModeToggle').checked = false;
     document.getElementById('bandModeToggle').dispatchEvent(new Event('change'));
   });
   await page.waitForTimeout(50);
 
-  const afterInterrupt = await page.evaluate(() => ({ midiSuccessActive, rideOutActive }));
-  check('midiSuccessActive is cleared when scheduler is torn down mid-ride-out', afterInterrupt.midiSuccessActive, false);
+  const afterTeardown = await page.evaluate(() => ({
+    bandChordPcs,
+    midiSuccessActive,
+  }));
+  check('bandChordPcs is cleared on teardown', afterTeardown.bandChordPcs, null);
+  check('midiSuccessActive stays false after teardown', afterTeardown.midiSuccessActive, false);
 
-  // Prove MIDI answer detection is not permanently dead: simulate another correct answer.
+  // Prove MIDI answer detection is not dead: simulate another correct answer,
+  // now on the non-Band-Mode 700ms path.
   await page.evaluate(() => {
     currentPromptKey = 'chord|C|Major|';
     promptStartTime = Date.now();
@@ -119,7 +124,7 @@ const path = require('path');
   await page.waitForTimeout(50);
 
   const detectionRevived = await page.evaluate(() => midiSuccessActive);
-  check('MIDI answer detection works again after Band Mode is unchecked mid-ride-out', detectionRevived, true);
+  check('MIDI answer detection works again after Band Mode is turned off', detectionRevived, true);
 
   check('no uncaught page errors during the whole test', errors.length, 0);
   if (errors.length) console.log('Errors seen:', errors);

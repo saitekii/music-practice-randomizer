@@ -38,27 +38,26 @@ const path = require('path');
 
   const keyBefore = await page.evaluate(() => currentPromptKey);
 
-  // At BPM 300 and Whole note (4 beats), one bar is 4 * 60/300 = 0.8s. Wait for it to elapse.
+  // With no correct answer ever given, the prompt no longer auto-advances at
+  // all -- advancing now only happens from a correct answer (checkMidi), not
+  // from the beat scheduler counting bars. Waiting doesn't change anything.
   await page.waitForTimeout(1500);
 
   const keyAfter = await page.evaluate(() => currentPromptKey);
-  check('prompt key changed after one bar elapsed', keyAfter !== keyBefore, true);
+  check('prompt does NOT auto-advance without ever answering correctly', keyAfter, keyBefore);
 
   // Manual "Next" (showPrompt()) while Band Mode is running must NOT tear down and
-  // restart the scheduler — it should just reset the beat/change counters in place,
-  // the same way the old setInterval path's `else` branch does.
+  // restart the scheduler — it should just reset the beat position in place, the
+  // same way the old setInterval path's `else` branch does.
   const result = await page.evaluate(() => {
-    metroCount = 2; // simulate partway through a change
     const bandSchedulerIdBefore = bandSchedulerId;
     showPrompt();
     return {
       bandSchedulerIdSame: bandSchedulerId === bandSchedulerIdBefore,
       bandActiveStillTrue: bandActive === true,
-      metroCount: metroCount,
     };
   });
   check('showPrompt() does not tear down/recreate the running scheduler', result.bandSchedulerIdSame && result.bandActiveStillTrue, true);
-  check('showPrompt() resets metroCount in place', result.metroCount, 0);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

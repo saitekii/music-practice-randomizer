@@ -40,7 +40,7 @@ const path = require('path');
     promptStartTime = Date.now();
 
     heldNotes = new Set([60, 64, 67]);
-    checkMidi(); // triggerBandSuccess sets rideOutActive/rideOutChordPcs immediately
+    checkMidi(); // triggerBandSuccess sets bandChordPcs and advances the prompt immediately
   });
 
   const result = await page.evaluate(() => {
@@ -61,19 +61,17 @@ const path = require('path');
   check('nextStepTime is not left far behind real time', result.nextStepTimeStillFarBehind, false);
 
   // Let any deferred onBeatTick callbacks from the (now-capped) catch-up fire.
-  // This test's job is proving the burst itself is capped -- the reveal-timing
-  // arithmetic (exactly when rideOutActive clears) is already covered by
+  // This test's job is proving the burst itself is capped -- the instant-advance
+  // arithmetic (exactly when bandChordPcs is set) is already covered by
   // test-band-trigger-flow.cjs and others. Here we only need to confirm the
   // capped catch-up didn't corrupt state or throw.
   await page.evaluate(() => new Promise(resolve => setTimeout(resolve, 200)));
   const after = await page.evaluate(() => ({
-    metroCount,
-    beatsPerChange: getBeatsPerChange(),
-    rideOutActive,
+    bandChordPcsSet: bandChordPcs !== null,
     midiSuccessActive,
   }));
-  check('metroCount stayed within a sane range (not corrupted by the capped burst)', after.metroCount < after.beatsPerChange * 2, true);
-  check('rideOutActive/midiSuccessActive stayed consistent with each other', after.rideOutActive, after.midiSuccessActive);
+  check('bandChordPcs was set by the earlier correct answer and the capped burst did not corrupt it', after.bandChordPcsSet, true);
+  check('midiSuccessActive is not left stuck true by the capped burst', after.midiSuccessActive, false);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

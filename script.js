@@ -489,8 +489,8 @@ let bandActive       = false;  // true while the lookahead scheduler (not setInt
 let bandSchedulerId  = null;
 let nextStepTime     = 0;      // audioCtx time of the next unscheduled eighth-note step
 let stepIndex        = 0;      // eighth-note step counter, wraps at (beatsPerBar * 2)
-let rideOutActive    = false;  // true while playing the post-correct-answer groove (wired in Task 5)
-let rideOutChordPcs  = null;   // pitch classes of the chord being ridden out (wired in Task 5)
+let bandChordPcs     = null;   // pitch classes of the last correctly-answered chord; persists all session
+let nextPromptObj    = null;   // pre-generated "up next" prompt, always one step ahead of currentPromptKey
 
 const SCHEDULER_LOOKAHEAD_S  = 0.1;
 const SCHEDULER_INTERVAL_MS  = 25;
@@ -2249,17 +2249,18 @@ const GROOVE_PATTERNS = {
 };
 
 function scheduleGrooveHit(localStep, time, beatsPerBar) {
-  if (!rideOutActive) return;
   const pattern = GROOVE_PATTERNS[beatsPerBar] || GROOVE_PATTERNS[4];
 
+  // Drums always play once the scheduler is running -- the band never stops,
+  // even before the first correct answer of a session (rhythm only, no harmony yet).
   if (pattern.hihat.includes(localStep)) playHihat(time);
   if (pattern.kick.includes(localStep))  playKick(time);
   if (pattern.snare.includes(localStep)) playSnare(time);
 
-  if (!rideOutChordPcs) return;
-  if (pattern.bass.includes(localStep)) playBandBass(rideOutChordPcs[0], time);
+  if (!bandChordPcs) return;
+  if (pattern.bass.includes(localStep)) playBandBass(bandChordPcs[0], time);
   if (pattern.comp.includes(localStep)) {
-    const compPcs = rideOutChordPcs.length > 1 ? rideOutChordPcs.slice(1) : rideOutChordPcs;
+    const compPcs = bandChordPcs.length > 1 ? bandChordPcs.slice(1) : bandChordPcs;
     playBandComp(compPcs, time);
   }
 }
@@ -2267,17 +2268,6 @@ function scheduleGrooveHit(localStep, time, beatsPerBar) {
 function onBeatTick(beatNum) {
   metroBeat = beatNum;
   pulseBeat(beatNum === 0);
-  metroCount++;
-  if (metroCount >= getBeatsPerChange()) {
-    metroCount = 0;
-    if (rideOutActive) {
-      rideOutActive   = false;
-      rideOutChordPcs = null;
-      promptCard.classList.remove('midi-success');
-      midiSuccessActive = false;
-    }
-    advancePromptOnSchedule();
-  }
 }
 
 function scheduleStep(step, time) {
@@ -2288,19 +2278,6 @@ function scheduleStep(step, time) {
     playClick(localStep === 0, time);
     const delayMs = Math.max(0, (time - getAudioCtx().currentTime) * 1000);
     setTimeout(() => onBeatTick(localStep / 2), delayMs);
-
-    // If this on-beat is the ride-out's final beat, onBeatTick's boundary check
-    // (above) will clear rideOutActive at this beat's own audio time — but the
-    // lookahead loop wouldn't otherwise reach the *next* (off-beat) step until
-    // roughly half a beat later, well after that clearing already happened,
-    // silently dropping the pickup note leading into the next bar/chord.
-    // Schedule it eagerly, right now, while rideOutActive/rideOutChordPcs are
-    // still valid.
-    if (rideOutActive && metroCount + 1 >= getBeatsPerChange()) {
-      const secondsPerBeat = 60 / getBpm();
-      const nextLocalStep  = (localStep + 1) % (beatsPerBar * 2);
-      scheduleGrooveHit(nextLocalStep, time + secondsPerBeat / 2, beatsPerBar);
-    }
   }
 
   scheduleGrooveHit(localStep, time, beatsPerBar);
@@ -2328,16 +2305,33 @@ function bandSchedulerTick() {
   }
 }
 
+function advanceToNextPrompt() {
+  const prompt = nextPromptObj || generatePrompt();
+  currentPromptKey = prompt ? prompt.key : '';
+  scaleNotesPlayed.clear();
+  updateHearBtn();
+  promptStartTime = Date.now();
+  clearHold();
+  historyIndex = 0;
+  addToHistory(prompt);
+  updateBackBtn();
+  if (sessionInterval) { sessionPromptCount++; checkSessionGoal(); }
+  renderPrompt(prompt);
+
+  nextPromptObj = generatePrompt();
+  renderNextPreview(nextPromptObj);
+}
+
 function startBandScheduler() {
   const ctx = getAudioCtx();
   stepIndex       = 0;
   metroBeat       = 0;
-  metroCount      = 0;
-  rideOutActive   = false;
-  rideOutChordPcs = null;
+  bandChordPcs    = null;
   nextStepTime    = ctx.currentTime + 0.05;
   bandActive      = true;
   bandSchedulerId = setInterval(bandSchedulerTick, SCHEDULER_INTERVAL_MS);
+  nextPromptObj   = generatePrompt();
+  renderNextPreview(nextPromptObj);
   syncWakeLock();
 }
 
@@ -2345,9 +2339,11 @@ function stopBandScheduler() {
   clearInterval(bandSchedulerId);
   bandSchedulerId = null;
   bandActive      = false;
-  rideOutActive   = false;
-  rideOutChordPcs = null;
+  bandChordPcs    = null;
+  nextPromptObj   = null;
+  renderNextPreview(null);
   promptCard.classList.remove('midi-success');
+  promptCard.classList.remove('band-hit-flash');
   midiSuccessActive = false;
   syncWakeLock();
 }
@@ -3185,7 +3181,7 @@ function checkMidi() {
   }
 
   if (matched) {
-    if (bandActive && expected.type === 'chord') {
+    if (bandActive) {
       triggerBandSuccess(expected);
     } else {
       triggerMidiSuccess();
@@ -3227,9 +3223,16 @@ function triggerBandSuccess(expected) {
       updateStreakDisplay();
     }
   }
-  promptCard.classList.add('midi-success');
-  rideOutActive   = true;
-  rideOutChordPcs = expected.pcs.slice();
+  if (expected.type === 'chord') {
+    bandChordPcs = expected.pcs.slice();
+  }
+
+  playHitChime(getAudioCtx().currentTime);
+  promptCard.classList.add('band-hit-flash');
+  setTimeout(() => promptCard.classList.remove('band-hit-flash'), 250);
+
+  advanceToNextPrompt();
+  midiSuccessActive = false;
 }
 
 function showResponseTime(ms) {
