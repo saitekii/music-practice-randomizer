@@ -1570,7 +1570,9 @@ function playBandBass(pc, time) {
     const ctx    = getAudioCtx();
     const freq   = 440 * Math.pow(2, ((36 + pc) - 69) / 12); // low bass register
     const filter = ctx.createBiquadFilter();
-    filter.type = 'lowpass'; filter.frequency.value = 900; filter.Q.value = 1.5;
+    filter.type = 'lowpass'; filter.Q.value = 1.5;
+    filter.frequency.setValueAtTime(1400, time);
+    filter.frequency.exponentialRampToValueAtTime(500, time + 0.2); // filter envelope: bright attack -> warm sustain
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.001, time);
     gain.gain.exponentialRampToValueAtTime(0.8, time + 0.008);
@@ -1846,18 +1848,23 @@ const SYNTH_PRESETS = {
   },
   'Bass': {
     build(ctx, freq, vel, dest) {
+      const now = ctx.currentTime;
       const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.frequency.value = 900; filter.Q.value = 2.5;
+      filter.type = 'lowpass'; filter.Q.value = 2.5;
+      filter.frequency.setValueAtTime(1800, now);
+      filter.frequency.exponentialRampToValueAtTime(500, now + 0.25); // filter envelope: bright pluck -> warm sustain
       const gain = ctx.createGain();
-      const now  = ctx.currentTime;
       gain.gain.setValueAtTime(0, now);
       gain.gain.linearRampToValueAtTime(vel * 0.9, now + 0.005);
       gain.gain.exponentialRampToValueAtTime(vel * 0.45, now + 0.18);
       filter.connect(gain); gain.connect(dest);
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth'; osc.frequency.value = freq;
-      osc.connect(filter); osc.start(now);
-      return { gain, oscs: [osc], release: 0.15 };
+      const oscs = [0, -6].map(detune => { // subtle 2-osc unison for warmth, matching Pad/Strings' technique
+        const osc = ctx.createOscillator();
+        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
+        osc.connect(filter); osc.start(now);
+        return osc;
+      });
+      return { gain, oscs, release: 0.15 };
     },
   },
 };
