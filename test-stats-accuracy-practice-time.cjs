@@ -44,6 +44,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   const behavior = await page.evaluate(() => {
     localStorage.removeItem('mpr_daily');
     midiEnabled = true;
+    updateMidiUI(); // populates keyElements via buildKeyboard() -- updateKeyboard()'s per-key
+                     // loop (where promptHadWrongNote gets set) is a no-op without this, the
+                     // same way it is in the real app before MIDI is actually enabled
     const results = {};
 
     // Prompt 1: play a wrong note, then correct it -- should log as NOT first-try.
@@ -72,8 +75,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
 
     return results;
   });
-  check('a wrong note played before the correct answer is NOT counted as first-try', behavior.wrongNoteFirstLogsAsNotFirstTry, 1);
-  check('a clean first-try answer brings the running firstTryCount to 2', behavior.cleanFirstTryLogsAsFirstTry, 2);
+  check('a wrong note played before the correct answer does NOT increment firstTryCount', behavior.wrongNoteFirstLogsAsNotFirstTry, 0);
+  check('a clean first-try answer brings the running firstTryCount to 1', behavior.cleanFirstTryLogsAsFirstTry, 1);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
