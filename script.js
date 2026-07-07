@@ -798,6 +798,12 @@ function renderStats() {
     return `<p class="stats-empty">No data yet. Play prompts with MIDI enabled — each correct answer starts building your profile.</p>`;
   }
 
+  const totalFirstTry   = log.reduce((s, e) => s + (e.firstTryCount ?? 0), 0);
+  const accuracyPct     = totalAns > 0 ? Math.round(totalFirstTry / totalAns * 100) : null;
+  const totalPracticeMs = log.reduce((s, e) => s + (e.totalMs ?? 0), 0);
+  const todayPracticeMin = Math.round((todayEntry?.totalMs ?? 0) / 60000);
+  const totalPracticeMin = Math.round(totalPracticeMs / 60000);
+
   const streak     = calcStreak();
   const headerHtml = `<div class="stats-header-row">
     <div class="stats-header-stat">
@@ -815,6 +821,14 @@ function renderStats() {
     <div class="stats-header-stat">
       <span class="stats-header-num">${streak}</span>
       <span class="stats-header-lbl">day streak</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${accuracyPct !== null ? accuracyPct + '%' : '—'}</span>
+      <span class="stats-header-lbl">first-try accuracy</span>
+    </div>
+    <div class="stats-header-stat">
+      <span class="stats-header-num">${todayPracticeMin} min</span>
+      <span class="stats-header-lbl">today · ${totalPracticeMin} min (30 days)</span>
     </div>
   </div>`;
 
