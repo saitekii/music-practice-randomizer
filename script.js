@@ -521,7 +521,8 @@ let currentSynthPreset = localStorage.getItem('mpr_synth_preset') || 'Rhodes';
 const MAX_RESPONSE_MS = 30_000; // ignore answers after 30 s — user was probably away
 
 let hintVisible     = false;
-let promptStartTime = null;
+let promptStartTime    = null;
+let promptHadWrongNote = false; // true once any wrong note is held during the current prompt
 let responseTimes   = [];
 const keyElements   = new Map(); // midiNote → DOM element
 let rtFadeTimer     = null;
@@ -652,7 +653,7 @@ function updateStreakDisplay() {
   el.classList.toggle('hidden', n === 0);
 }
 
-function updateDailyLog(ms, isEar = false) {
+function updateDailyLog(ms, isEar = false, firstTryCorrect = false) {
   const log   = loadDailyLog();
   const today = new Date().toISOString().slice(0, 10);
   const idx   = log.findIndex(e => e.date === today);
@@ -665,12 +666,14 @@ function updateDailyLog(ms, isEar = false) {
     } else {
       e.avgMs  = Math.round((e.avgMs * e.answers + ms) / (e.answers + 1));
       e.answers++;
+      e.totalMs = (e.totalMs ?? 0) + ms;
+      e.firstTryCount = (e.firstTryCount ?? 0) + (firstTryCorrect ? 1 : 0);
     }
   } else {
     if (isEar) {
       log.push({ date: today, answers: 0, avgMs: 0, earAnswers: 1, earAvgMs: ms });
     } else {
-      log.push({ date: today, answers: 1, avgMs: ms });
+      log.push({ date: today, answers: 1, avgMs: ms, totalMs: ms, firstTryCount: firstTryCorrect ? 1 : 0 });
     }
   }
   while (log.length > 30) log.shift();
@@ -2154,6 +2157,7 @@ function showPrompt() {
   scaleNotesPlayed.clear();
   updateHearBtn();
   promptStartTime = Date.now();
+  promptHadWrongNote = false;
   clearHold();
   historyIndex = 0;
   addToHistory(prompt);
@@ -2417,6 +2421,7 @@ function advanceToNextPrompt() {
   scaleNotesPlayed.clear();
   updateHearBtn();
   promptStartTime = Date.now();
+  promptHadWrongNote = false;
   clearHold();
   historyIndex = 0;
   addToHistory(prompt);
@@ -3314,7 +3319,7 @@ function triggerMidiSuccess() {
     if (ms <= MAX_RESPONSE_MS) {
       responseTimes.push(ms);
       recordAdaptiveResult(currentPromptKey, ms);
-      updateDailyLog(ms);
+      updateDailyLog(ms, false, !promptHadWrongNote);
       showResponseTime(ms);
       updateMidiStats();
       updateStreakDisplay();
@@ -3335,7 +3340,7 @@ function triggerBandSuccess(expected) {
     if (ms <= MAX_RESPONSE_MS) {
       responseTimes.push(ms);
       recordAdaptiveResult(currentPromptKey, ms);
-      updateDailyLog(ms);
+      updateDailyLog(ms, false, !promptHadWrongNote);
       showResponseTime(ms);
       updateMidiStats();
       updateStreakDisplay();
@@ -3431,6 +3436,7 @@ function updateKeyboard() {
     const isHeld       = heldNotes.has(n) || demoNotes.has(n);
     const isWrong      = heldNotes.has(n) && isNoteWrong(n % 12, expected);
     const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
+    if (isWrong) promptHadWrongNote = true;
     el.classList.toggle('active', isHeld && !isWrong);
     el.classList.toggle('wrong',  isWrong);
     el.classList.toggle('bass-target', isBassTarget);
