@@ -15,7 +15,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   };
 
   const wrongVoicing = await page.evaluate(() => {
-    buildKeyboard();
+    midiEnabled = true;
+    updateMidiUI(); // makes #pianoKeyboard visible -- needed for real layout/geometry below
     currentPromptKey = 'chord|C|Major|1st inversion';
     heldNotes = new Set([60, 64, 67]); // C4, E4, G4 -- root position, wrong for "1st inversion"
     updateKeyboard();
@@ -28,6 +29,29 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('wrong inversion: the correct bass key (E) is marked bass-target', wrongVoicing.eIsMarked, true);
   check('wrong inversion: the currently-lowest key (C) is not marked', wrongVoicing.cIsMarked, false);
   check('marked key is still shown active (correct pitch class) alongside the marker', wrongVoicing.eIsActive, true);
+
+  // Regression guard for a real bug caught in review: the marker's CSS previously
+  // positioned it entirely above the key's own box (top: -9px), which got silently
+  // clipped by .piano-keyboard's forced overflow-y: auto (a side effect of
+  // overflow-x: auto per the CSS Overflow spec) -- classList checks alone can't
+  // catch that, since the class was still applied, it just never rendered visibly.
+  // This checks the marker's actual computed geometry falls inside both the key's
+  // own box and the keyboard container's visible (unclipped) client rect.
+  const geometry = await page.evaluate(() => {
+    const eKey = keyElements.get(64);
+    const eRect = eKey.getBoundingClientRect();
+    const keyboardRect = pianoKeyboard.getBoundingClientRect();
+    const style = getComputedStyle(eKey, '::after');
+    const markerTopOffset = parseFloat(style.top) || 0;
+    const markerHeight = parseFloat(style.height) || 0;
+    const markerY = eRect.top + markerTopOffset + markerHeight / 2;
+    return {
+      markerWithinKeyBox: markerY >= eRect.top && markerY <= eRect.bottom,
+      markerWithinKeyboardBounds: markerY >= keyboardRect.top && markerY <= keyboardRect.bottom,
+    };
+  });
+  check('bass-target marker geometry falls within the key\'s own box (not clipped)', geometry.markerWithinKeyBox, true);
+  check('bass-target marker geometry falls within the keyboard\'s visible bounds', geometry.markerWithinKeyboardBounds, true);
 
   const correctVoicing = await page.evaluate(() => {
     buildKeyboard();
