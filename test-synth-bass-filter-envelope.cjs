@@ -25,29 +25,36 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const buffer = await offlineCtx.startRendering();
     const data = buffer.getChannelData(0);
 
-    function zeroCrossingRate(samples) {
-      let crossings = 0;
-      for (let i = 1; i < samples.length; i++) {
-        if ((samples[i - 1] >= 0) !== (samples[i] >= 0)) crossings++;
+    // Direct spectral check of the filter sweep: 1320Hz is the 12th harmonic of the
+    // 110Hz fundamental, sitting between the filter's start (1800Hz) and end (500Hz)
+    // cutoff. If the sweep is real, that harmonic should be strong while the cutoff
+    // is still above it and fade once the cutoff sweeps below it.
+    function magnitudeAtFreq(samples, freq) {
+      let real = 0, imag = 0;
+      for (let n = 0; n < samples.length; n++) {
+        const angle = 2 * Math.PI * freq * n / sampleRate;
+        real += samples[n] * Math.cos(angle);
+        imag -= samples[n] * Math.sin(angle);
       }
-      return crossings / samples.length;
+      return Math.sqrt(real * real + imag * imag) / samples.length;
     }
 
-    const earlyWindow = data.slice(0, Math.floor(sampleRate * 0.02));
-    const lateWindow  = data.slice(Math.floor(sampleRate * 0.3), Math.floor(sampleRate * 0.32));
+    const earlyWindow = data.slice(Math.floor(sampleRate * 0.02), Math.floor(sampleRate * 0.05));
+    const lateWindow  = data.slice(Math.floor(sampleRate * 0.3),  Math.floor(sampleRate * 0.33));
+    const testFreq = 1320;
 
     return {
       oscCount: note.oscs.length,
-      earlyZcr: zeroCrossingRate(earlyWindow),
-      lateZcr: zeroCrossingRate(lateWindow),
+      earlyMag: magnitudeAtFreq(earlyWindow, testFreq),
+      lateMag: magnitudeAtFreq(lateWindow, testFreq),
     };
   });
 
   check('Bass preset has 2-oscillator subtle unison', result.oscCount, 2);
   checkTrue(
-    'Bass filter envelope: brighter attack than sustain (cutoff sweeping down)',
-    result.earlyZcr > result.lateZcr,
-    `early=${result.earlyZcr}, late=${result.lateZcr}`
+    'Bass filter envelope: a mid-harmonic (1320Hz) is much stronger early (cutoff~1800Hz) than late (cutoff~500Hz)',
+    result.earlyMag > result.lateMag * 3,
+    `early=${result.earlyMag}, late=${result.lateMag}`
   );
 
   const bandBassResult = await page.evaluate(() => {
