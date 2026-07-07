@@ -3420,12 +3420,20 @@ function isNoteWrong(pc, expected) {
 }
 
 function updateKeyboard() {
-  const expected = getExpectedPCs(currentPromptKey);
+  const expected   = getExpectedPCs(currentPromptKey);
+  const heldPCs    = new Set([...heldNotes].map(n => n % 12));
+  const sortedHeld = [...heldNotes].sort((a, b) => a - b);
+  const pcsSatisfied = expected?.type === 'chord' && expected.pcs.every(pc => heldPCs.has(pc));
+  const wrongBass = expected?.type === 'chord' && expected.requiredBassPc != null
+    && pcsSatisfied && sortedHeld.length > 0 && sortedHeld[0] % 12 !== expected.requiredBassPc;
+
   for (const [n, el] of keyElements) {
-    const isHeld  = heldNotes.has(n) || demoNotes.has(n);
-    const isWrong = heldNotes.has(n) && isNoteWrong(n % 12, expected);
+    const isHeld       = heldNotes.has(n) || demoNotes.has(n);
+    const isWrong      = heldNotes.has(n) && isNoteWrong(n % 12, expected);
+    const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
     el.classList.toggle('active', isHeld && !isWrong);
     el.classList.toggle('wrong',  isWrong);
+    el.classList.toggle('bass-target', isBassTarget);
   }
 }
 

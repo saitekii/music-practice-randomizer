@@ -1491,6 +1491,20 @@ input[type="number"]:focus-visible {
   transform: translateY(1px);
 }
 
+.piano-key.bass-target::after {
+  content: '';
+  position: absolute;
+  top: -9px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 0;
+  height: 0;
+  border-left: 5px solid transparent;
+  border-right: 5px solid transparent;
+  border-top: 7px solid #ffb020;
+  filter: drop-shadow(0 0 4px rgba(255, 176, 32, 0.8));
+}
+
 .white-key.wrong {
   background: linear-gradient(180deg, #ff3c3c 0%, #ff6060 55%, #ff8a8a 100%);
   border-color: #ff3c3c;
