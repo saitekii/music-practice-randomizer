@@ -38,6 +38,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     }
 
     const earlyWindow = data.slice(Math.floor(sampleRate * 0.05), Math.floor(sampleRate * 0.15));
+    const midWindow   = data.slice(Math.floor(sampleRate * 0.15), Math.floor(sampleRate * 0.25));
     const lateWindow  = data.slice(Math.floor(sampleRate * 2.0),  Math.floor(sampleRate * 2.1));
 
     return {
@@ -45,6 +46,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       release: note.release,
       overallPeak: peakAbs(data),
       earlyRms: rms(earlyWindow),
+      midRms: rms(midWindow),
       lateRms: rms(lateWindow),
     };
   });
@@ -55,6 +57,11 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     'Pluck output never blows past a sane amplitude ceiling (no runaway feedback)',
     result.overallPeak < 1.5,
     `peak=${result.overallPeak}`
+  );
+  checkTrue(
+    'Pluck genuinely rings -- still has meaningful energy 150-250ms in, not a one-period click',
+    result.midRms > result.earlyRms * 0.1,
+    `early=${result.earlyRms}, mid=${result.midRms}`
   );
   checkTrue(
     'Pluck decays -- energy 2s in is much lower than energy shortly after the pluck',

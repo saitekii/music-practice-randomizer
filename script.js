@@ -1718,9 +1718,10 @@ const SYNTH_PRESETS = {
       // this specific delay+filter+feedback cycle in Chromium's Web Audio engine
       // becomes numerically unstable (runaway exponential growth) once feedback
       // gain crosses roughly 0.85-0.88, regardless of filter Q/cutoff -- verified
-      // across the app's full pitch range (65-880Hz). 0.7 keeps a solid safety
-      // margin below that cliff while still giving an audible sustain/decay.
-      feedback.gain.value = 0.7;
+      // across the app's full pitch range (65-880Hz). 0.78 keeps a ~0.07 safety
+      // margin below that cliff while ringing for several hundred ms (measured
+      // ~670ms at 220Hz) instead of a too-short pluck.
+      feedback.gain.value = 0.78;
 
       const burst = ctx.createBufferSource();
       burst.buffer = getNoiseBuffer(ctx);
