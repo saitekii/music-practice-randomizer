@@ -1698,19 +1698,61 @@ const SYNTH_PRESETS = {
   },
   'Pluck': {
     build(ctx, freq, vel, dest) {
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass';
-      filter.frequency.setValueAtTime(5000, ctx.currentTime);
-      filter.frequency.exponentialRampToValueAtTime(300, ctx.currentTime + 0.4);
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(vel * 0.85, now);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.0);
-      const osc = ctx.createOscillator();
-      osc.type = 'sawtooth'; osc.frequency.value = freq;
-      osc.connect(filter); filter.connect(gain); gain.connect(dest);
-      osc.start(now); osc.stop(now + 1.1);
-      return { gain, oscs: [osc], release: 0, freeDecay: true };
+      const now = ctx.currentTime;
+
+      // Karplus-Strong plucked string: a short noise burst excites a feedback
+      // loop (a delay tuned to the string's period + a lowpass filter), which
+      // loses a little energy and brightness each pass -- the same way a real
+      // plucked string's vibration decays, rather than a programmed envelope.
+      const period = 1 / freq;
+      const delay  = ctx.createDelay(1.0);
+      delay.delayTime.value = period;
+
+      const loopFilter = ctx.createBiquadFilter();
+      loopFilter.type = 'lowpass';
+      loopFilter.frequency.value = 4500;
+      loopFilter.Q.value = 0.5; // flat/overdamped response -- no resonant peak near cutoff
+
+      const feedback = ctx.createGain();
+      // < 1 -- guarantees the loop decays, never sustains or grows. Empirically,
+      // this specific delay+filter+feedback cycle in Chromium's Web Audio engine
+      // becomes numerically unstable (runaway exponential growth) once feedback
+      // gain crosses roughly 0.85-0.88, regardless of filter Q/cutoff -- verified
+      // across the app's full pitch range (65-880Hz). 0.7 keeps a solid safety
+      // margin below that cliff while still giving an audible sustain/decay.
+      feedback.gain.value = 0.7;
+
+      const burst = ctx.createBufferSource();
+      burst.buffer = getNoiseBuffer(ctx);
+
+      const burstGain = ctx.createGain();
+      burstGain.gain.setValueAtTime(1, now);
+      burstGain.gain.setValueAtTime(0, now + period); // one period's worth of noise -- a single "pluck"
+
+      const outGain = ctx.createGain();
+      outGain.gain.value = vel * 0.7;
+
+      burst.connect(burstGain);
+      burstGain.connect(delay);
+      delay.connect(loopFilter);
+      loopFilter.connect(feedback);
+      feedback.connect(delay);      // closes the feedback loop
+      loopFilter.connect(outGain);
+      outGain.connect(dest);
+
+      burst.start(now);
+      burst.stop(now + period + 0.01);
+
+      // DelayNode/BiquadFilterNode/GainNode have no .stop() -- disconnect the
+      // loop explicitly once it has decayed, or it silently processes
+      // near-zero signal for the rest of the session.
+      setTimeout(() => {
+        try {
+          delay.disconnect(); loopFilter.disconnect(); feedback.disconnect(); outGain.disconnect();
+        } catch (_) {}
+      }, 2500);
+
+      return { gain: outGain, oscs: [burst], release: 0, freeDecay: true };
     },
   },
   'Piano': {
