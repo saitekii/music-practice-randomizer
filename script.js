@@ -1623,16 +1623,26 @@ function playHitChime(time) {
 const SYNTH_PRESETS = {
   'Rhodes': {
     build(ctx, freq, vel, dest) {
-      const osc  = ctx.createOscillator();
+      const now       = ctx.currentTime;
+      const carrier   = ctx.createOscillator();
+      const modulator = ctx.createOscillator();
+      carrier.type   = 'sine'; carrier.frequency.value   = freq;
+      modulator.type = 'sine'; modulator.frequency.value = freq; // 1:1 ratio -- classic mellow FM e-piano ratio
+
+      const modGain = ctx.createGain(); // modulation index, in Hz of frequency deviation
+      modGain.gain.setValueAtTime(freq * 1.5, now);                                     // bright "tine" attack transient
+      modGain.gain.exponentialRampToValueAtTime(Math.max(freq * 0.15, 0.01), now + 0.3); // settles into a mellow tone
+      modulator.connect(modGain);
+      modGain.connect(carrier.frequency);
+
       const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      osc.type = 'triangle';
-      osc.frequency.value = freq;
       gain.gain.setValueAtTime(0, now);
       gain.gain.linearRampToValueAtTime(vel * 0.7,  now + 0.006);
       gain.gain.exponentialRampToValueAtTime(vel * 0.35, now + 0.45);
-      osc.connect(gain); gain.connect(dest); osc.start(now);
-      return { gain, oscs: [osc], release: 0.55 };
+
+      carrier.connect(gain); gain.connect(dest);
+      modulator.start(now); carrier.start(now);
+      return { gain, oscs: [carrier, modulator], release: 0.55 };
     },
   },
   'Organ': {
