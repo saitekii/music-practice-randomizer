@@ -31,6 +31,10 @@ const CHORD_TYPES = [
 
 const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
 const SEVENTH_INVERSIONS = ['Root position', '1st inversion', '2nd inversion', '3rd inversion'];
+const INVERTIBLE_CHORD_TYPES = new Set([
+  'Major', 'Minor', 'Diminished', 'Augmented', 'sus2', 'sus4',
+  'Major 7', 'Minor 7', 'Dominant 7', '7sus4', 'Minor 7♭5', 'Diminished 7',
+]);
 
 const JAZZ_SYMBOLS = {
   chordMajor:      ['', 'M'],
@@ -3147,6 +3151,15 @@ function applyTheme(theme) {
 
 // ── MIDI ──────────────────────────────────────────────────────────────────────
 
+// TRIAD_INVERSIONS is a strict prefix of SEVENTH_INVERSIONS (same first 3 labels),
+// so looking the label up in SEVENTH_INVERSIONS always gives the right index for
+// both triads and seventh chords -- no need to separately branch on chord size.
+function getRequiredBassPc(typeLabel, invLabel, pcs) {
+  if (!invLabel || !INVERTIBLE_CHORD_TYPES.has(typeLabel)) return null;
+  const idx = SEVENTH_INVERSIONS.indexOf(invLabel);
+  return idx === -1 ? null : (pcs[idx] ?? null);
+}
+
 function getExpectedPCs(key) {
   if (!key) return null;
   const parts = key.split('|');
@@ -3161,7 +3174,8 @@ function getExpectedPCs(key) {
     const rootPC    = (NOTE_TO_PC[parts[1]] ?? -1);
     const intervals = CHORD_INTERVALS[parts[2]];
     if (rootPC === -1 || !intervals) return null;
-    return { type: 'chord', pcs: intervals.map(i => (rootPC + i) % 12) };
+    const pcs = intervals.map(i => (rootPC + i) % 12);
+    return { type: 'chord', pcs, requiredBassPc: getRequiredBassPc(parts[2], parts[3], pcs) };
   }
 
   if (type === 'scale') {
@@ -3264,7 +3278,13 @@ function checkMidi() {
   if (expected.type === 'note') {
     matched = heldPCs.has(expected.pc);
   } else if (expected.type === 'chord') {
-    matched = expected.pcs.every(pc => heldPCs.has(pc));
+    const pcsMatch = expected.pcs.every(pc => heldPCs.has(pc));
+    let bassMatch = true;
+    if (expected.requiredBassPc != null) {
+      const sortedHeld = [...heldNotes].sort((a, b) => a - b);
+      bassMatch = sortedHeld.length > 0 && sortedHeld[0] % 12 === expected.requiredBassPc;
+    }
+    matched = pcsMatch && bassMatch;
   } else if (expected.type === 'scale') {
     matched = expected.pcs.every(pc => scaleNotesPlayed.has(pc));
   } else if (expected.type === 'interval') {
