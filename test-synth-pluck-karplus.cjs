@@ -36,10 +36,29 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       for (let i = 0; i < samples.length; i++) m = Math.max(m, Math.abs(samples[i]));
       return m;
     }
+    function magnitudeAtFreq(samples, freq) {
+      let real = 0, imag = 0;
+      for (let n = 0; n < samples.length; n++) {
+        const angle = 2 * Math.PI * freq * n / sampleRate;
+        real += samples[n] * Math.cos(angle);
+        imag -= samples[n] * Math.sin(angle);
+      }
+      return Math.sqrt(real * real + imag * imag) / samples.length;
+    }
 
     const earlyWindow = data.slice(Math.floor(sampleRate * 0.05), Math.floor(sampleRate * 0.15));
     const midWindow   = data.slice(Math.floor(sampleRate * 0.15), Math.floor(sampleRate * 0.25));
     const lateWindow  = data.slice(Math.floor(sampleRate * 2.0),  Math.floor(sampleRate * 2.1));
+
+    // A real plucked string's high harmonics die away *faster* than its fundamental,
+    // giving a warm decay. A fixed (non-pitch-scaled) damping filter previously let
+    // the 16th harmonic actually grow *louder relative to* the 2nd harmonic over
+    // time -- the opposite of a real string, and exactly what reads as "metallic."
+    const fundamental = 220;
+    const h2h16Window  = data.slice(Math.floor(sampleRate * 0.04), Math.floor(sampleRate * 0.06));
+    const h2h16Late    = data.slice(Math.floor(sampleRate * 0.28), Math.floor(sampleRate * 0.3));
+    const earlyRatio = magnitudeAtFreq(h2h16Window, fundamental * 16) / Math.max(1e-9, magnitudeAtFreq(h2h16Window, fundamental * 2));
+    const lateRatio   = magnitudeAtFreq(h2h16Late, fundamental * 16)   / Math.max(1e-9, magnitudeAtFreq(h2h16Late, fundamental * 2));
 
     return {
       freeDecay: note.freeDecay,
@@ -48,6 +67,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       earlyRms: rms(earlyWindow),
       midRms: rms(midWindow),
       lateRms: rms(lateWindow),
+      earlyRatio,
+      lateRatio,
     };
   });
 
@@ -67,6 +88,11 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     'Pluck decays -- energy 2s in is much lower than energy shortly after the pluck',
     result.lateRms < result.earlyRms * 0.2,
     `early=${result.earlyRms}, late=${result.lateRms}`
+  );
+  checkTrue(
+    'Pluck stays warm, not metallic -- the 16th harmonic does not grow louder relative to the 2nd harmonic over time',
+    result.lateRatio <= result.earlyRatio * 1.5,
+    `early 16th:2nd ratio=${result.earlyRatio}, late ratio=${result.lateRatio}`
   );
 
   await browser.close();

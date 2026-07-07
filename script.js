@@ -1725,7 +1725,13 @@ const SYNTH_PRESETS = {
 
       const loopFilter = ctx.createBiquadFilter();
       loopFilter.type = 'lowpass';
-      loopFilter.frequency.value = 4500;
+      // Scaled to the note's own pitch, not a fixed frequency: a fixed cutoff left
+      // dozens of harmonics almost undamped on low notes (measured: the 16th harmonic
+      // of a 110Hz pluck actually grew *louder relative to* the fundamental over time
+      // instead of dying away faster, the opposite of a real string) -- which is what
+      // reads as a metallic/bell-like ring rather than a warm pluck. Capping at 4500
+      // keeps high notes from sounding artificially muffled.
+      loopFilter.frequency.value = Math.min(4500, freq * 6);
       loopFilter.Q.value = 0.5; // flat/overdamped response -- no resonant peak near cutoff
 
       const feedback = ctx.createGain();
