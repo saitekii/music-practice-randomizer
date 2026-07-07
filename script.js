@@ -1547,6 +1547,15 @@ function playSnare(time) {
     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.14);
     noise.connect(filter); filter.connect(gain); gain.connect(getSynthMasterGain());
     noise.start(time); noise.stop(time + 0.16);
+
+    // Low body tone -- the drum shell's thump underneath the wire-rattle noise.
+    const body     = ctx.createOscillator();
+    const bodyGain = ctx.createGain();
+    body.type = 'triangle'; body.frequency.value = 180;
+    bodyGain.gain.setValueAtTime(0.25, time);
+    bodyGain.gain.exponentialRampToValueAtTime(0.001, time + 0.08);
+    body.connect(bodyGain); bodyGain.connect(getSynthMasterGain());
+    body.start(time); body.stop(time + 0.1);
   } catch (_) {}
 }
 
@@ -1586,17 +1595,21 @@ function playBandBass(pc, time) {
 
 function playBandComp(pcs, time) {
   try {
-    const ctx  = getAudioCtx();
+    const ctx    = getAudioCtx();
+    const filter = ctx.createBiquadFilter();
+    filter.type = 'lowpass'; filter.Q.value = 1.0;
+    filter.frequency.setValueAtTime(2500, time);
+    filter.frequency.exponentialRampToValueAtTime(700, time + 0.25); // filter envelope: bright stab -> warm sustain
     const gain = ctx.createGain();
     gain.gain.setValueAtTime(0.001, time);
     gain.gain.exponentialRampToValueAtTime(0.45 / Math.max(1, pcs.length), time + 0.006);
     gain.gain.exponentialRampToValueAtTime(0.001, time + 0.3);
-    gain.connect(getSynthMasterGain());
+    filter.connect(gain); gain.connect(getSynthMasterGain());
     pcs.forEach(pc => {
       const freq = 440 * Math.pow(2, ((60 + pc) - 69) / 12); // mid-register comp voicing
       const osc  = ctx.createOscillator();
       osc.type = 'triangle'; osc.frequency.value = freq;
-      osc.connect(gain); osc.start(time); osc.stop(time + 0.32);
+      osc.connect(filter); osc.start(time); osc.stop(time + 0.32);
     });
   } catch (_) {}
 }
