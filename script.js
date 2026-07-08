@@ -954,7 +954,10 @@ function recordAdaptiveResult(key, ms) {
   }
   else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
-  else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
+  else if (type === 'func')     {
+    updateAdaptWeight('roots', parts[1], ms);
+    if (parts[3] && parts[3].includes('–')) updateAdaptWeight('variations', parts[3], ms);
+  }
   saveAdaptWeights();
   updateMasteryUI();
 }
@@ -2026,11 +2029,12 @@ function genFunctional() {
   const isMinor = Math.random() < 0.5;
   const mode    = isMinor ? 'minor' : 'Major';
   const pattern = pick(FUNCTIONAL[isMinor ? 'minor' : 'major']);
+  const steps   = pattern.split('–');
 
   return {
     line1: `Key: ${note} ${mode}`,
-    line2: `Play: ${pattern}`,
-    key:   `func|${note}|${mode}|${pattern}`,
+    line2: steps.length > 1 ? `Play: ${steps[0]} (chord 1 of ${steps.length})` : `Play: ${pattern}`,
+    key:   `func|${note}|${mode}|${pattern}|0`,
   };
 }
 
@@ -3255,15 +3259,18 @@ function getExpectedPCs(key) {
   }
 
   if (type === 'func') {
-    const pattern = parts[3];
-    if (pattern.includes('–')) return null;
+    const fullPattern = parts[3];
+    const steps       = fullPattern.split('–');
+    const stepIndex   = parseInt(parts[4]) || 0;
+    const numeral     = steps[stepIndex];
+    if (!numeral) return null;
     const rootIdx = (NOTE_TO_PC[parts[1]] ?? -1);
     const modeKey = parts[2] === 'Major' ? 'major' : 'minor';
     const data    = DIATONIC[modeKey];
-    let degree    = data.numerals.indexOf(pattern);
+    let degree    = data.numerals.indexOf(numeral);
     let quality;
     if (degree === -1) {
-      if (pattern === 'V' && modeKey === 'minor') { degree = 4; quality = 'Major'; }
+      if (numeral === 'V' && modeKey === 'minor') { degree = 4; quality = 'Major'; }
       else return null;
     } else {
       quality = data.qualities[degree];
@@ -3312,6 +3319,39 @@ function onMidiMessage(e) {
   }
 }
 
+// Returns null for any key that isn't a multi-chord func progression (including
+// single-chord func prompts, which are just a "progression" of length 1 and don't
+// need this special handling). Otherwise returns the current step's position.
+function getProgressionInfo(key) {
+  const parts = key.split('|');
+  if (parts[0] !== 'func') return null;
+  const steps = parts[3].split('–');
+  if (steps.length <= 1) return null;
+  const stepIndex = parseInt(parts[4]) || 0;
+  return { parts, steps, stepIndex, isLastStep: stepIndex >= steps.length - 1 };
+}
+
+// Advances to the next chord in the same progression without generating a whole new
+// prompt -- deliberately does NOT touch promptStartTime or promptHadWrongNote, so both
+// keep accumulating across every step until the final step's normal success flow runs.
+function advanceProgressionStep(progInfo) {
+  midiSuccessActive = true;
+  const nextIndex = progInfo.stepIndex + 1;
+  const parts = progInfo.parts.slice();
+  parts[4] = String(nextIndex);
+  currentPromptKey = parts.join('|');
+  renderPrompt({
+    line1: `Key: ${parts[1]} ${parts[2]}`,
+    line2: `Play: ${progInfo.steps[nextIndex]} (chord ${nextIndex + 1} of ${progInfo.steps.length})`,
+    key:   currentPromptKey,
+  });
+  promptCard.classList.add('midi-success');
+  setTimeout(() => {
+    promptCard.classList.remove('midi-success');
+    midiSuccessActive = false;
+  }, 700);
+}
+
 function checkMidi() {
   if (!midiEnabled || midiSuccessActive || heldNotes.size === 0) return;
   const expected = getExpectedPCs(currentPromptKey);
@@ -3351,7 +3391,10 @@ function checkMidi() {
   }
 
   if (matched) {
-    if (bandActive) {
+    const progInfo = getProgressionInfo(currentPromptKey);
+    if (progInfo && !progInfo.isLastStep) {
+      advanceProgressionStep(progInfo);
+    } else if (bandActive) {
       triggerBandSuccess(expected);
     } else {
       triggerMidiSuccess();
