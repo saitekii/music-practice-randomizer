@@ -728,6 +728,11 @@ kbd {
   pointer-events: none;
 }
 
+.inversion-toggle.disabled {
+  opacity: 0.3;
+  pointer-events: none;
+}
+
 .option-divider {
   width: 100%;
   font-size: 0.68rem;

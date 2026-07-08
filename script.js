@@ -2519,7 +2519,7 @@ function saveSettings() {
     'chordSus2', 'chordSus4', 'chord7sus4',
     'chordDom9', 'chordMaj9', 'chordMin9', 'chordDom13',
     'chord7b9', 'chord7s9', 'chord7s11', 'chordHalfDim', 'chordDim7',
-    'inversions', 'jazzSymbols',
+    'inversions', 'jazzSymbols', 'leftHandMode',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
     'scaleMajPent', 'scaleMinPent', 'scaleModes',
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
@@ -2581,6 +2581,10 @@ function syncUI() {
   document.getElementById('scalesOptions').classList.toggle('disabled', !checked('catScales'));
   document.getElementById('intervalsOptions').classList.toggle('disabled', !checked('catIntervals'));
   document.getElementById('diatonicOptions').classList.toggle('disabled', !checked('catDiatonic'));
+
+  const leftHandOn = checked('leftHandMode');
+  document.getElementById('inversions').disabled = leftHandOn;
+  document.getElementById('inversionsRow').classList.toggle('disabled', leftHandOn);
 
   const mode = getTimerMode();
   customTimer.disabled = mode !== 'custom';
