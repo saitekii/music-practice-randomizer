@@ -929,7 +929,8 @@ function renderStats() {
   const calHtml = renderCalendar(log);
   return headerHtml + calHtml + weakSpotsHtml + legendHtml + chartHtml
     + buildSection(rootEntries, 'Root Notes')
-    + buildSection(typeEntries, 'Types');
+    + buildSection(typeEntries, 'Types')
+    + buildSection(Object.entries(adaptWeights.variations), 'Inversions');
 }
 
 function recordAdaptiveResult(key, ms) {
