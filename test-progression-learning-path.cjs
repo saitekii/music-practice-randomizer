@@ -46,12 +46,12 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('applyStage() unchecks other progressions not listed either', applyStageResult.iiViChecked, false);
 
   const backCompat = await page.evaluate(() => {
-    const idx = LEARNING_PATH.findIndex(s => s.name === 'Functional Harmony — C'); // no `progressions` field
+    const idx = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys'); // no `progressions` field
     applyStage(idx);
-    const patterns = ['ii–V–I', 'I–IV–V', 'vi–IV–I–V', 'I–V–vi–IV', 'IV–V–I', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V'];
+    const patterns = ['ii–V–I', 'I–IV–V', 'vi–IV–I–V', 'I–V–vi–IV', 'IV–V–I', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V', 'I–iii–IV–V', 'i–VII–VI–V'];
     return patterns.map(p => document.querySelector(`input[data-pattern="${p}"]`).checked);
   });
-  checkTrue('a stage with no progressions field enables all 8 (backward compatible)', backCompat.every(c => c === true), JSON.stringify(backCompat));
+  checkTrue('a stage with no progressions field enables all 10 checked (backward compatible)', backCompat.every(c => c === true), JSON.stringify(backCompat));
 
   const masteryResult = await page.evaluate(() => {
     document.getElementById('adaptiveToggle').checked = true;
