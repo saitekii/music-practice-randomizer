@@ -63,17 +63,33 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     checkMidi();
     results.rightNotesWrongRegisterDoesNotMatch = midiSuccessActive;
 
-    // Recording: a correct LH answer should land in adaptWeights.variations under 'Left Hand'.
-    adaptWeights.variations = {};
+    // Recording: a correct LH answer should land in adaptWeights.variations under 'Left Hand'
+    // and must NOT touch the shared roots/types/combos stats -- two-handed coordination is a
+    // different skill from single-hand chord recognition, so Left-Hand-mode practice of e.g.
+    // F minor must not skew the normal single-hand F/Minor/F|Minor stats.
+    adaptWeights = { roots: {}, types: {}, combos: {}, variations: {} };
     document.getElementById('adaptiveToggle').checked = true;
-    recordAdaptiveResult('chord|C|Major||LH', 1000);
+    recordAdaptiveResult('chord|F|Minor||LH', 1000);
     results.leftHandCount = adaptWeights.variations['Left Hand']?.count;
+    results.rootsUntouched = Object.keys(adaptWeights.roots).length;
+    results.typesUntouched = Object.keys(adaptWeights.types).length;
+    results.combosUntouched = Object.keys(adaptWeights.combos).length;
+
+    // A normal (non-LH) F minor answer right after should still update roots/types/combos as usual.
+    recordAdaptiveResult('chord|F|Minor||', 1200);
+    results.normalFRootTracked = adaptWeights.roots['F']?.count;
+    results.normalMinorTypeTracked = adaptWeights.types['Minor']?.count;
 
     return results;
   });
   check('correct two-hand voicing (right notes, right registers) matches', behavior.correctTwoHandVoicingMatches, true);
   check('right pitch classes but wrong register does NOT match', behavior.rightNotesWrongRegisterDoesNotMatch, false);
   check('a correct Left-Hand answer is tracked in adaptWeights.variations under "Left Hand"', behavior.leftHandCount, 1);
+  check('Left-Hand answer does NOT create any roots entries', behavior.rootsUntouched, 0);
+  check('Left-Hand answer does NOT create any types entries', behavior.typesUntouched, 0);
+  check('Left-Hand answer does NOT create any combos entries', behavior.combosUntouched, 0);
+  check('a subsequent normal F minor answer still tracks roots.F normally', behavior.normalFRootTracked, 1);
+  check('a subsequent normal F minor answer still tracks types.Minor normally', behavior.normalMinorTypeTracked, 1);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

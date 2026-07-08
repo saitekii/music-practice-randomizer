@@ -939,11 +939,18 @@ function recordAdaptiveResult(key, ms) {
   const type  = parts[0];
   if      (type === 'note')     { updateAdaptWeight('roots', parts[1], ms); }
   else if (type === 'chord')    {
-    updateAdaptWeight('roots', parts[1], ms);
-    updateAdaptWeight('types', parts[2], ms);
-    updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms);
-    if (parts[3]) updateAdaptWeight('variations', parts[3], ms);
-    if (parts[4] === 'LH') updateAdaptWeight('variations', 'Left Hand', ms);
+    if (parts[4] === 'LH') {
+      // Left-Hand mode answers are a different skill (two-handed coordination, not
+      // single-hand chord recognition) -- keep them out of the shared roots/types/combos
+      // stats entirely, so practicing e.g. F minor with Left-Hand mode on can't skew the
+      // normal single-hand F minor stat. They still get their own "Left Hand" stat.
+      updateAdaptWeight('variations', 'Left Hand', ms);
+    } else {
+      updateAdaptWeight('roots', parts[1], ms);
+      updateAdaptWeight('types', parts[2], ms);
+      updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms);
+      if (parts[3]) updateAdaptWeight('variations', parts[3], ms);
+    }
   }
   else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
