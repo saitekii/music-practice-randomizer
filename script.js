@@ -943,6 +943,7 @@ function recordAdaptiveResult(key, ms) {
     updateAdaptWeight('types', parts[2], ms);
     updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms);
     if (parts[3]) updateAdaptWeight('variations', parts[3], ms);
+    if (parts[4] === 'LH') updateAdaptWeight('variations', 'Left Hand', ms);
   }
   else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
@@ -1967,8 +1968,11 @@ function genChord() {
   const typeLabel = weightedPick(types.map(t => t.label), 'types');
   const type      = types.find(t => t.label === typeLabel) || pick(types);
   const note      = weightedPick(notes, 'roots');
-  const useInv = checked('inversions');
-  const inv    = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
+
+  const useLeftHand = checked('leftHandMode') && (type.label === 'Major' || type.label === 'Minor');
+  const useInv = !useLeftHand && checked('inversions');
+  const inv      = useInv ? pick(type.seventh ? SEVENTH_INVERSIONS : TRIAD_INVERSIONS) : '';
+  const handMode = useLeftHand ? 'LH' : '';
 
   let display;
   if (checked('jazzSymbols') && JAZZ_SYMBOLS[type.id]) {
@@ -1980,8 +1984,8 @@ function genChord() {
 
   return {
     line1: display,
-    line2: inv,
-    key:   `chord|${note}|${type.label}|${inv}`,
+    line2: useLeftHand ? 'Left hand: root + 5th' : inv,
+    key:   `chord|${note}|${type.label}|${inv}|${handMode}`,
   };
 }
 
@@ -3200,7 +3204,12 @@ function getExpectedPCs(key) {
     const intervals = CHORD_INTERVALS[parts[2]];
     if (rootPC === -1 || !intervals) return null;
     const pcs = intervals.map(i => (rootPC + i) % 12);
-    return { type: 'chord', pcs, requiredBassPc: getRequiredBassPc(parts[2], parts[3], pcs) };
+    const result = { type: 'chord', pcs, requiredBassPc: getRequiredBassPc(parts[2], parts[3], pcs) };
+    if (parts[4] === 'LH') {
+      result.leftHandPcs  = [pcs[0], pcs[2]];
+      result.rightHandPcs = pcs;
+    }
+    return result;
   }
 
   if (type === 'scale') {
@@ -3309,7 +3318,14 @@ function checkMidi() {
       const sortedHeld = [...heldNotes].sort((a, b) => a - b);
       bassMatch = sortedHeld.length > 0 && sortedHeld[0] % 12 === expected.requiredBassPc;
     }
-    matched = pcsMatch && bassMatch;
+    let handMatch = true;
+    if (expected.leftHandPcs) {
+      const leftHeld  = [...heldNotes].filter(n => n < 60).map(n => n % 12);
+      const rightHeld = [...heldNotes].filter(n => n >= 60).map(n => n % 12);
+      handMatch = expected.leftHandPcs.every(pc => leftHeld.includes(pc))
+        && expected.rightHandPcs.every(pc => rightHeld.includes(pc));
+    }
+    matched = pcsMatch && bassMatch && handMatch;
   } else if (expected.type === 'scale') {
     matched = expected.pcs.every(pc => scaleNotesPlayed.has(pc));
   } else if (expected.type === 'interval') {
