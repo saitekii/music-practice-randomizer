@@ -2021,15 +2021,26 @@ function genScale() {
   };
 }
 
+function enabledProgressions(mode) {
+  return FUNCTIONAL[mode].filter(pattern => {
+    if (!pattern.includes('–')) return true; // single-chord numerals are never filtered
+    const el = document.querySelector(`input[data-pattern="${pattern}"]`);
+    return el ? el.checked : true;
+  });
+}
+
 function genFunctional() {
   const notes = enabledNotes();
   if (!notes.length) return null;
 
-  const note    = weightedPick(notes, 'roots');
-  const isMinor = Math.random() < 0.5;
-  const mode    = isMinor ? 'minor' : 'Major';
-  const pattern = pick(FUNCTIONAL[isMinor ? 'minor' : 'major']);
-  const steps   = pattern.split('–');
+  const note     = weightedPick(notes, 'roots');
+  const isMinor  = Math.random() < 0.5;
+  const mode     = isMinor ? 'minor' : 'Major';
+  const modeKey  = isMinor ? 'minor' : 'major';
+  const patterns = enabledProgressions(modeKey);
+  if (!patterns.length) return null;
+  const pattern  = pick(patterns);
+  const steps    = pattern.split('–');
 
   return {
     line1: `Key: ${note} ${mode}`,
@@ -2539,11 +2550,14 @@ function saveSettings() {
     'adaptiveToggle', 'bandModeToggle',
   ];
 
+  const ALL_PROGRESSIONS = [...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'));
+
   localStorage.setItem('mpr_settings', JSON.stringify({
     timer:            getTimerMode(),
     customTimer:      customTimer.value,
     checks:           Object.fromEntries(ids.map(id => [id, checked(id)])),
     notes:            Object.fromEntries([...NOTES, ...ENHARMONIC_NOTES].map(n => [n, document.querySelector(`input[data-note="${n}"]`)?.checked ?? false])),
+    progressions:     Object.fromEntries(ALL_PROGRESSIONS.map(p => [p, document.querySelector(`input[data-pattern="${p}"]`)?.checked ?? false])),
     diatonicRoot:     document.getElementById('diatonicRoot').value,
     diatonicMode:     document.getElementById('diatonicMode').value,
     metroBpm:         metroBpmInput.value,
@@ -2577,6 +2591,14 @@ function loadSettings() {
       });
     }
 
+    if (s.progressions) {
+      const allProgressions = [...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'));
+      allProgressions.forEach(p => {
+        const el = document.querySelector(`input[data-pattern="${p}"]`);
+        if (el && s.progressions[p] !== undefined) el.checked = s.progressions[p];
+      });
+    }
+
     if (s.diatonicRoot) document.getElementById('diatonicRoot').value = s.diatonicRoot;
     if (s.diatonicMode) document.getElementById('diatonicMode').value = s.diatonicMode;
     if (s.metroBpm)          metroBpmInput.value = s.metroBpm;
@@ -2592,6 +2614,7 @@ function syncUI() {
   document.getElementById('scalesOptions').classList.toggle('disabled', !checked('catScales'));
   document.getElementById('intervalsOptions').classList.toggle('disabled', !checked('catIntervals'));
   document.getElementById('diatonicOptions').classList.toggle('disabled', !checked('catDiatonic'));
+  document.getElementById('functionalOptions').classList.toggle('disabled', !checked('catFunctional'));
 
   const leftHandOn = checked('leftHandMode');
   document.getElementById('inversions').disabled = leftHandOn;
