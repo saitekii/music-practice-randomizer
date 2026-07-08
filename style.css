@@ -2867,6 +2867,56 @@ input[type="number"]:focus-visible {
   flex-shrink: 0;
 }
 
+.stage-list-search-row {
+  padding: 8px 18px;
+  border-bottom: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.stage-list-search-input {
+  width: 100%;
+  box-sizing: border-box;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.stage-list-search-input:focus {
+  outline: none;
+  border-color: var(--accent);
+}
+
+.stage-list-phase-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 18px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-dim);
+  user-select: none;
+}
+
+.stage-list-phase-header:hover { background: var(--accent-dim); }
+
+.stage-list-phase-chevron {
+  flex-shrink: 0;
+  width: 12px;
+}
+
+.stage-list-phase-name { flex: 1; }
+
+.stage-list-phase-count {
+  font-size: 0.7rem;
+  color: var(--text-dim);
+}
+
+.stage-list-phase-body.collapsed { display: none; }
+
 .show-stages-btn {
   display: block;
   width: 100%;

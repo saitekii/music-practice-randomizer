@@ -301,6 +301,30 @@ const LEARNING_PATH = [
   { name: 'Full Theory Workout',      hint: 'Diatonic chords, functional patterns, chord voicings, and scales — everything together',              cats: ['catDiatonic','catFunctional','catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'], chords: ['chordMajor','chordMinor','chordMaj7','chordMin7','chordDom7','inversions'], scales: ['scaleMajor','scaleNatMinor'], diatonicKey: 'C', diatonicMode: 'major', timer: '10' },
 ];
 
+// Phase boundaries for LEARNING_PATH, used by the All Paths popup to group stages.
+// Each count is the number of consecutive LEARNING_PATH stages in that phase;
+// counts must sum to LEARNING_PATH.length. Bump a count when inserting stages
+// into that phase — do not add a per-stage field (see All Paths popup redesign spec).
+const LEARNING_PATH_PHASES = [
+  { name: 'Note Finder', count: 7 },
+  { name: 'Major chords, natural keys, no timer', count: 7 },
+  { name: 'Introduce minor', count: 3 },
+  { name: 'Add timer pressure', count: 3 },
+  { name: 'Accidentals one at a time', count: 6 },
+  { name: 'Triad inversions', count: 9 },
+  { name: 'Major scales', count: 7 },
+  { name: 'Combine chords + scales', count: 3 },
+  { name: 'Seventh chords — root position', count: 4 },
+  { name: 'Seventh chord inversions', count: 5 },
+  { name: 'Full Foundation', count: 1 },
+  { name: 'Scales beyond natural minor', count: 11 },
+  { name: 'Enharmonic spellings', count: 3 },
+  { name: 'Extended chords', count: 9 },
+  { name: 'Functional harmony', count: 22 },
+  { name: 'Interval reading', count: 7 },
+  { name: 'Diatonic chords', count: 5 },
+];
+
 // ── Ear Training constants ────────────────────────────────────────────────────
 
 const EAR_INT_MAP = {
@@ -2943,21 +2967,59 @@ function updateLearningUI() {
   }
 }
 
-function renderStageList() {
-  return LEARNING_PATH.map((stage, i) => {
-    const isCurrent = i === learningStage;
-    const mastery = adaptiveOn() ? getStageMastery(i) : null;
-    let dotHtml = '';
-    if (mastery) {
-      const dotColor = mastery.ready ? '#22c55e' : mastery.pct >= 50 ? '#f59e0b' : 'var(--border)';
-      dotHtml = `<span class="stage-dot" style="background:${dotColor}" title="${mastery.pct}% mastered"></span>`;
-    }
-    return `<div class="stage-list-row${isCurrent ? ' current' : ''}" data-idx="${i}">
-      <span class="stage-list-num">${i + 1}</span>
-      <span class="stage-list-name">${stage.name}</span>
-      ${dotHtml}
+function renderStageRow(stage, i) {
+  const isCurrent = i === learningStage;
+  const mastery = adaptiveOn() ? getStageMastery(i) : null;
+  let dotHtml = '';
+  if (mastery) {
+    const dotColor = mastery.ready ? '#22c55e' : mastery.pct >= 50 ? '#f59e0b' : 'var(--border)';
+    dotHtml = `<span class="stage-dot" style="background:${dotColor}" title="${mastery.pct}% mastered"></span>`;
+  }
+  return `<div class="stage-list-row${isCurrent ? ' current' : ''}" data-idx="${i}">
+    <span class="stage-list-num">${i + 1}</span>
+    <span class="stage-list-name">${stage.name}</span>
+    ${dotHtml}
+  </div>`;
+}
+
+function currentPhaseIndex() {
+  let running = 0;
+  for (let p = 0; p < LEARNING_PATH_PHASES.length; p++) {
+    running += LEARNING_PATH_PHASES[p].count;
+    if (learningStage < running) return p;
+  }
+  return -1;
+}
+
+function renderStageList(filterText) {
+  const filter = (filterText || '').trim().toLowerCase();
+
+  if (filter) {
+    return LEARNING_PATH
+      .map((stage, i) => ({ stage, i }))
+      .filter(({ stage }) => stage.name.toLowerCase().includes(filter))
+      .map(({ stage, i }) => renderStageRow(stage, i))
+      .join('');
+  }
+
+  const openPhase = currentPhaseIndex();
+  let html = '';
+  let idx = 0;
+  LEARNING_PATH_PHASES.forEach((phase, p) => {
+    const isOpen = p === openPhase;
+    html += `<div class="stage-list-phase-header${isOpen ? ' open' : ''}" data-phase="${p}">
+      <span class="stage-list-phase-chevron">${isOpen ? '▾' : '▸'}</span>
+      <span class="stage-list-phase-name">${phase.name}</span>
+      <span class="stage-list-phase-count">${phase.count}</span>
     </div>`;
-  }).join('');
+    html += `<div class="stage-list-phase-body${isOpen ? '' : ' collapsed'}" data-phase-body="${p}">`;
+    for (let k = 0; k < phase.count; k++) {
+      html += renderStageRow(LEARNING_PATH[idx], idx);
+      idx++;
+    }
+    html += `</div>`;
+  });
+  return html;
 }
 
 // ── Practice session timer ────────────────────────────────────────────────────
@@ -3128,10 +3190,15 @@ leavePathBtn.addEventListener('click', () => {
 });
 
 document.getElementById('showStageListBtn').addEventListener('click', () => {
+  document.getElementById('stageListSearch').value = '';
   document.getElementById('stageListContent').innerHTML = renderStageList();
   document.getElementById('stageListModal').classList.remove('hidden');
   const current = document.querySelector('#stageListContent .stage-list-row.current');
   if (current) setTimeout(() => current.scrollIntoView({ block: 'center', behavior: 'instant' }), 30);
+});
+
+document.getElementById('stageListSearch').addEventListener('input', e => {
+  document.getElementById('stageListContent').innerHTML = renderStageList(e.target.value);
 });
 
 document.getElementById('stageListClose').addEventListener('click', () => {
@@ -3144,6 +3211,15 @@ document.getElementById('stageListModal').addEventListener('click', e => {
 });
 
 document.getElementById('stageListContent').addEventListener('click', e => {
+  const header = e.target.closest('.stage-list-phase-header');
+  if (header) {
+    const body = document.querySelector(`.stage-list-phase-body[data-phase-body="${header.dataset.phase}"]`);
+    if (body) body.classList.toggle('collapsed');
+    header.classList.toggle('open');
+    const chevron = header.querySelector('.stage-list-phase-chevron');
+    if (chevron) chevron.textContent = header.classList.contains('open') ? '▾' : '▸';
+    return;
+  }
   const row = e.target.closest('.stage-list-row');
   if (!row) return;
   const idx = parseInt(row.dataset.idx);
