@@ -536,10 +536,10 @@ let hearItActive = false;
 let adaptWeights = (() => {
   try {
     const p = JSON.parse(localStorage.getItem('mpr_weights'));
-    if (!p) return { roots: {}, types: {}, combos: {} };
-    return { roots: p.roots || {}, types: p.types || {}, combos: p.combos || {} };
+    if (!p) return { roots: {}, types: {}, combos: {}, variations: {} };
+    return { roots: p.roots || {}, types: p.types || {}, combos: p.combos || {}, variations: p.variations || {} };
   }
-  catch (_) { return { roots: {}, types: {}, combos: {} }; }
+  catch (_) { return { roots: {}, types: {}, combos: {}, variations: {} }; }
 })();
 
 let earAdaptWeights = (() => {
@@ -937,7 +937,12 @@ function recordAdaptiveResult(key, ms) {
   const parts = key.split('|');
   const type  = parts[0];
   if      (type === 'note')     { updateAdaptWeight('roots', parts[1], ms); }
-  else if (type === 'chord')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
+  else if (type === 'chord')    {
+    updateAdaptWeight('roots', parts[1], ms);
+    updateAdaptWeight('types', parts[2], ms);
+    updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms);
+    if (parts[3]) updateAdaptWeight('variations', parts[3], ms);
+  }
   else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
   else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
   else if (type === 'func')     { updateAdaptWeight('roots', parts[1], ms); }
@@ -3716,6 +3721,7 @@ document.getElementById('importFileInput').addEventListener('change', function (
       const restored = [];
       if (data.adaptive_weights) {
         adaptWeights = data.adaptive_weights;
+        adaptWeights.variations = adaptWeights.variations || {};
         localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
         restored.push('adaptive weights');
       }
@@ -3799,7 +3805,7 @@ document.addEventListener('keydown', e => {
 
 document.getElementById('resetWeightsBtn').addEventListener('click', function () {
   confirmAction(this, 'Reset learning data', btn => {
-    adaptWeights = { roots: {}, types: {}, combos: {} };
+    adaptWeights = { roots: {}, types: {}, combos: {}, variations: {} };
     localStorage.removeItem('mpr_weights');
     btn.textContent = 'Cleared!';
     setTimeout(() => { btn.textContent = 'Reset learning data'; }, 1800);
