@@ -232,7 +232,6 @@ const LEARNING_PATH = [
   { name: 'Speed Up',            hint: 'All 12 keys, Major + Minor root position — 5 seconds',                                                    cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
   // ── Phase 6: Triad inversions ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Meet Inversions',     hint: 'C Major in all three positions — root, 1st, and 2nd inversion. Same notes, different bass note',          cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','inversions'],                                                     scales: [],                             timer: 'off' },
-  { name: 'Two Keys, Inverted',  hint: 'C and G Major — any inversion, no timer',                                                                 cats: ['catChords'],             notes: ['C','G'],                                                        chords: ['chordMajor','inversions'],                                                     scales: [],                             timer: 'off' },
   { name: 'Natural Majors Inv.', hint: 'All seven natural keys — Major chord, any inversion',                                                     cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','inversions'],                                                     scales: [],                             timer: 'off' },
   { name: 'Add Minor Inversions',hint: 'Major and Minor chords — any inversion, natural keys',                                                    cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','inversions'],                                        scales: [],                             timer: 'off' },
   { name: 'Inversion Timer',     hint: 'Major + Minor inversions — 15 seconds',                                                                   cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','inversions'],                                        scales: [],                             timer: '15' },
@@ -353,7 +352,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Introduce minor', count: 3 },
   { name: 'Add timer pressure', count: 3 },
   { name: 'Accidentals one at a time', count: 6 },
-  { name: 'Triad inversions', count: 9 },
+  { name: 'Triad inversions', count: 8 },
   { name: 'Major scales', count: 7 },
   { name: 'Combine chords + scales', count: 3 },
   { name: 'Seventh chords — root position', count: 4 },
