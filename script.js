@@ -113,7 +113,7 @@ const DIATONIC = {
   minor: {
     intervals: [0, 2, 3, 5, 7, 8, 10],
     qualities: ['Minor', 'Diminished', 'Major', 'Minor', 'Minor', 'Major', 'Major'],
-    numerals:  ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII'],
+    numerals:  ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
   },
 };
 
@@ -138,6 +138,17 @@ const FUNCTIONAL_NUMERALS = {
     'v': [7, 'Minor'], 'V': [7, 'Major'], 'VI': [8, 'Major'], 'VII': [10, 'Major'],
     '♭II': [1, 'Major'],
   },
+};
+
+// The 7 canonical diatonic numerals per mode that are always available in
+// Functional Harmony, regardless of checkbox state -- distinct from DIATONIC's
+// numerals (which drive the separate Diatonic Chords feature's display and use
+// lowercase 'v' for natural minor's actual minor-quality 5th degree; Functional
+// Harmony's 'V' is the different, harmonic-minor-style dominant -- see
+// FUNCTIONAL_NUMERALS.minor's separate 'v' and 'V' entries above).
+const CANONICAL_FUNCTIONAL_NUMERALS = {
+  major: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°'],
+  minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII'],
 };
 
 const CHORD_INTERVALS = {
@@ -2089,14 +2100,14 @@ function genScale() {
 
 function checkboxGatedPatterns() {
   return [
-    ...FUNCTIONAL.major.filter(p => !DIATONIC.major.numerals.includes(p)),
-    ...FUNCTIONAL.minor.filter(p => !DIATONIC.minor.numerals.includes(p)),
+    ...FUNCTIONAL.major.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.major.includes(p)),
+    ...FUNCTIONAL.minor.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(p)),
   ];
 }
 
 function enabledProgressions(mode) {
   return FUNCTIONAL[mode].filter(pattern => {
-    if (DIATONIC[mode].numerals.includes(pattern)) return true; // canonical diatonic numerals are never filtered
+    if (CANONICAL_FUNCTIONAL_NUMERALS[mode].includes(pattern)) return true; // canonical diatonic numerals are never filtered
     const el = document.querySelector(`input[data-pattern="${pattern}"]`);
     return el ? el.checked : true;
   });

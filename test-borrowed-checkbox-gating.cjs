@@ -68,6 +68,13 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   });
   check('applyStage() uses checkboxGatedPatterns() and unchecks ZZZ (not in the stage\'s list)', appliedByStage, false);
 
+  const diatonicUntouched = await page.evaluate(() => ({
+    minorNumerals: DIATONIC.minor.numerals,
+    minorQualities: DIATONIC.minor.qualities,
+  }));
+  check('DIATONIC.minor.numerals is untouched (still lowercase v at index 4, unrelated to Functional Harmony gating)', diatonicUntouched.minorNumerals, ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII']);
+  check('DIATONIC.minor.qualities is untouched', diatonicUntouched.minorQualities, ['Minor', 'Diminished', 'Major', 'Minor', 'Minor', 'Major', 'Major']);
+
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
   console.log('RESULT: PASS');
