@@ -122,6 +122,24 @@ const FUNCTIONAL = {
   minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V', 'i–VII–VI–V', 'i–iv–VI–V', 'i–VI–iv–V', 'i–III–VII–VI'],
 };
 
+// Numeral -> [semitone offset from tonic, CHORD_INTERVALS quality key].
+// Covers the 7 canonical diatonic degrees per mode (same values DIATONIC already
+// has) plus borrowed/chromatic-mediant tokens that aren't diatonic to either mode.
+const FUNCTIONAL_NUMERALS = {
+  major: {
+    'I': [0, 'Major'], 'ii': [2, 'Minor'], 'iii': [4, 'Minor'], 'IV': [5, 'Major'],
+    'V': [7, 'Major'], 'vi': [9, 'Minor'], 'vii°': [11, 'Diminished'],
+    'iv': [5, 'Minor'], '♭II': [1, 'Major'], '♭III': [3, 'Major'],
+    '♭VI': [8, 'Major'], '♭VII': [10, 'Major'],
+    'II': [2, 'Major'], 'III': [4, 'Major'], 'VI': [9, 'Major'],
+  },
+  minor: {
+    'i': [0, 'Minor'], 'ii°': [2, 'Diminished'], 'III': [3, 'Major'], 'iv': [5, 'Minor'],
+    'v': [7, 'Minor'], 'V': [7, 'Major'], 'VI': [8, 'Major'], 'VII': [10, 'Major'],
+    '♭II': [1, 'Major'],
+  },
+};
+
 const CHORD_INTERVALS = {
   'Major':        [0, 4, 7],
   'Minor':        [0, 3, 7],
@@ -3396,16 +3414,10 @@ function getExpectedPCs(key) {
     if (!numeral) return null;
     const rootIdx = (NOTE_TO_PC[parts[1]] ?? -1);
     const modeKey = parts[2] === 'Major' ? 'major' : 'minor';
-    const data    = DIATONIC[modeKey];
-    let degree    = data.numerals.indexOf(numeral);
-    let quality;
-    if (degree === -1) {
-      if (numeral === 'V' && modeKey === 'minor') { degree = 4; quality = 'Major'; }
-      else return null;
-    } else {
-      quality = data.qualities[degree];
-    }
-    const chordRootPC = (rootIdx + data.intervals[degree]) % 12;
+    const entry   = FUNCTIONAL_NUMERALS[modeKey][numeral];
+    if (rootIdx === -1 || !entry) return null;
+    const [offset, quality] = entry;
+    const chordRootPC = (rootIdx + offset) % 12;
     const intervals   = CHORD_INTERVALS[quality];
     if (!intervals) return null;
     return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
