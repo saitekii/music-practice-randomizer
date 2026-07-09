@@ -3543,10 +3543,19 @@ function checkMidi() {
     }
     let handMatch = true;
     if (expected.leftHandPcs) {
-      const leftHeld  = [...heldNotes].filter(n => n < 60).map(n => n % 12);
-      const rightHeld = [...heldNotes].filter(n => n >= 60).map(n => n % 12);
-      handMatch = expected.leftHandPcs.every(pc => leftHeld.includes(pc))
-        && expected.rightHandPcs.every(pc => rightHeld.includes(pc));
+      // Not a fixed MIDI-60 (middle C) cutoff: for roots close to C (F through B), the left hand's
+      // own 5th can land at or past 60, misclassifying it as a right-hand note despite being
+      // correctly played. Instead, try every possible split of the sorted held notes into a lower
+      // group and a higher group, and accept if ANY split satisfies both hands' required pitch
+      // classes -- this works regardless of which absolute octave either hand is played in.
+      const sorted = [...heldNotes].sort((a, b) => a - b);
+      handMatch = false;
+      for (let k = 0; k <= sorted.length && !handMatch; k++) {
+        const leftHeld  = sorted.slice(0, k).map(n => n % 12);
+        const rightHeld = sorted.slice(k).map(n => n % 12);
+        handMatch = expected.leftHandPcs.every(pc => leftHeld.includes(pc))
+          && expected.rightHandPcs.every(pc => rightHeld.includes(pc));
+      }
     }
     matched = pcsMatch && bassMatch && handMatch;
   } else if (expected.type === 'scale') {
