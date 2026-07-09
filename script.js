@@ -118,8 +118,8 @@ const DIATONIC = {
 };
 
 const FUNCTIONAL = {
-  major: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°', 'ii–V–I', 'I–IV–V', 'vi–IV–I–V', 'I–V–vi–IV', 'IV–V–I', 'I–IV–V–I', 'I–vi–IV–V', 'I–iii–IV–V', 'I–V–IV–I', 'I–iii–vi–ii–V', 'vi–ii–V–I', 'iii–vi–ii–V–I', 'IV–V–iii–vi', 'IV–V–I–vi', 'I–ii–IV–V', 'I–IV–ii–V', 'I–V–ii–IV', 'I–IV–vi–V', 'vi–V–I–IV'],
-  minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V', 'i–VII–VI–V', 'i–iv–VI–V', 'i–VI–iv–V', 'i–III–VII–VI'],
+  major: ['I', 'ii', 'iii', 'IV', 'V', 'vi', 'vii°', 'ii–V–I', 'I–IV–V', 'vi–IV–I–V', 'I–V–vi–IV', 'IV–V–I', 'I–IV–V–I', 'I–vi–IV–V', 'I–iii–IV–V', 'I–V–IV–I', 'I–iii–vi–ii–V', 'vi–ii–V–I', 'iii–vi–ii–V–I', 'IV–V–iii–vi', 'IV–V–I–vi', 'I–ii–IV–V', 'I–IV–ii–V', 'I–V–ii–IV', 'I–IV–vi–V', 'vi–V–I–IV', 'iv', '♭II', '♭III', '♭VI', '♭VII', 'II', 'III', 'VI', 'I–iv–I', 'I–♭VII–IV', 'I–♭III–IV', 'I–♭VI–IV', 'I–♭III', 'I–♭VI', 'I–♭VII', 'I–♭II', 'I–iv', '♭III–I', '♭VI–I', '♭VII–I', '♭II–I', 'I–♭III–I', 'I–♭VI–I', 'IV–♭VII–I', 'ii–♭VII–I', 'iv–♭VII–I', 'I–IV–♭VII', 'V–♭VI', 'V–♭III', 'vi–IV–I', 'V–ii', 'I–♭VI–♭VII–I', 'I–♭III–♭VI', 'I–iv–♭VII–I', 'I–♭III–♭VI–IV', 'I–♭VII–♭VI–V', 'I–ii–♭III–IV', 'I–iii–IV–iv', 'I–♭III–IV–iv', 'I–♭III–IV–V', 'I–vi–ii–♭II', 'I–♭II–vi', 'I–III–♭II–vi', 'I–♭II–IV–III', 'I–VI–ii–V', 'I–III–vi–II–ii–V–I', 'iii–VI–ii–V–I', 'vi–II–ii–V–I', 'I–III', 'I–VI', 'III–♭VI', 'I–III–vi–IV', 'I–III–♭VI–IV'],
+  minor: ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII', 'ii°–V–i', 'i–VI–III–VII', 'i–iv–V', 'i–VII–VI–V', 'i–iv–VI–V', 'i–VI–iv–V', 'i–III–VII–VI', '♭II', 'i–♭II–VII–i'],
 };
 
 // Numeral -> [semitone offset from tonic, CHORD_INTERVALS quality key].
