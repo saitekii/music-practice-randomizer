@@ -20,31 +20,30 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
 
   const stageData = await page.evaluate(() => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Borrowed Chords — Intro');
-    const stages = LEARNING_PATH.slice(idx, idx + 6);
+    const stages = LEARNING_PATH.slice(idx, idx + 5);
     return {
       idx,
-      afterAddE: LEARNING_PATH[idx - 1]?.name === 'Progressions, Add E',
-      beforeNatKeys: LEARNING_PATH[idx + 6]?.name === 'Functional, Nat. Keys',
+      afterMoreMinor: LEARNING_PATH[idx - 1]?.name === 'More Minor Progressions',
+      beforeNatKeys: LEARNING_PATH[idx + 5]?.name === 'Functional, Nat. Keys',
       names: stages.map(s => s.name),
       counts: stages.map(s => (s.progressions || []).length),
       notes: stages.map(s => s.notes),
       timers: stages.map(s => s.timer),
     };
   });
-  checkTrue('the 6 new stages start right after "Progressions, Add E"', stageData.afterAddE, JSON.stringify(stageData.names));
-  checkTrue('"Functional, Nat. Keys" immediately follows the 6 new stages', stageData.beforeNatKeys, null);
+  checkTrue('the 5 borrowed-chord stages start right after "More Minor Progressions" (the old 5-stage key ramp and the 2-key stage were removed by the key-ramp audit)', stageData.afterMoreMinor, JSON.stringify(stageData.names));
+  checkTrue('"Functional, Nat. Keys" immediately follows the 5 stages', stageData.beforeNatKeys, null);
   check('stage names in order', stageData.names, [
     'Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords',
-    'Raised Mediants', 'Minor Borrowed — ♭II', 'Borrowed Content, Two Keys',
+    'Raised Mediants', 'Minor Borrowed — ♭II',
   ]);
-  check('cumulative progression counts', stageData.counts, [34, 57, 70, 79, 81, 81]);
-  check('all 6 stages are timer off', stageData.timers, ['off','off','off','off','off','off']);
-  check('stages 1-5 are C only', stageData.notes.slice(0, 5), [['C'],['C'],['C'],['C'],['C']]);
-  check('stage 6 is C and G', stageData.notes[5], ['C', 'G']);
+  check('cumulative progression counts', stageData.counts, [34, 57, 70, 79, 81]);
+  check('all 5 stages are timer off', stageData.timers, ['off','off','off','off','off']);
+  check('all 5 stages are C only (no key ramp needed here anymore)', stageData.notes, [['C'],['C'],['C'],['C'],['C']]);
 
   const contentSpotCheck = await page.evaluate(() => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Borrowed Chords — Intro');
-    const [intro, single, combo, mediants, minor, twoKeys] = LEARNING_PATH.slice(idx, idx + 6);
+    const [intro, single, combo, mediants, minor] = LEARNING_PATH.slice(idx, idx + 5);
     return {
       introHasStandalones: ['iv','♭II','♭III','♭VI','♭VII','II','III','VI'].every(p => intro.progressions.includes(p)),
       singleHasNewOnes: ['I–♭VII–IV','vi–IV–I','V–ii'].every(p => single.progressions.includes(p)),
@@ -52,7 +51,6 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       comboHasNewOnes: ['I–♭VI–♭VII–I','I–vi–ii–♭II'].every(p => combo.progressions.includes(p)),
       mediantsHasNewOnes: ['I–VI–ii–V','I–III–vi–II–ii–V–I'].every(p => mediants.progressions.includes(p)),
       minorHasNewOnes: ['♭II','i–♭II–VII–i'].every(p => minor.progressions.includes(p)),
-      twoKeysMatchesMinorContent: JSON.stringify([...twoKeys.progressions].sort()) === JSON.stringify([...minor.progressions].sort()),
     };
   });
   checkTrue('stage 1 has the 8 standalone borrowed chords', contentSpotCheck.introHasStandalones, null);
@@ -61,7 +59,6 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   checkTrue('stage 3 has its new two-borrowed-chord combos', contentSpotCheck.comboHasNewOnes, null);
   checkTrue('stage 4 has its new raised-mediant progressions', contentSpotCheck.mediantsHasNewOnes, null);
   checkTrue('stage 5 has the new minor content', contentSpotCheck.minorHasNewOnes, null);
-  checkTrue('stage 6 has the same progression list as stage 5 (only the key changed)', contentSpotCheck.twoKeysMatchesMinorContent, null);
 
   const applyStageCheck = await page.evaluate(() => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Borrowed Chords — Intro');
@@ -81,9 +78,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseCountSum: LEARNING_PATH_PHASES.reduce((s, p) => s + p.count, 0),
     totalStages: LEARNING_PATH.length,
   }));
-  check('Functional harmony phase count is now 28 (22 + 6 new stages)', phaseCheck.functionalHarmonyCount, 28);
+  check('Functional harmony phase count is 22 (28 minus the 6 redundant key-ramp stages removed by the key-ramp audit)', phaseCheck.functionalHarmonyCount, 22);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 125 stages total (119 + 6 new)', phaseCheck.totalStages, 125);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

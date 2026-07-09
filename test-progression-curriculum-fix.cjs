@@ -41,30 +41,30 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }, [ALL_26]);
   checkTrue('applyStage() on Functional Harmony — C leaves all 26 progression checkboxes unchecked', stage1ApplyCheck, null);
 
-  // --- 11 stages now exist between 'More Minor Progressions' and 'Functional, Nat. Keys' (5 ramps + 6 borrowed chord stages) ---
+  // --- The old 5-stage key ramp and the 2-key borrowed-content stage were removed by the key-ramp
+  //     audit (redundant: key fluency is already established well before Phase 14). Only the 5 C-only
+  //     borrowed-content stages remain between 'More Minor Progressions' and 'Functional, Nat. Keys'. ---
   const rampCheck = await page.evaluate(([all26]) => {
     const idxMoreMinor = LEARNING_PATH.findIndex(s => s.name === 'More Minor Progressions');
     const idxNatKeys    = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys');
     const between = LEARNING_PATH.slice(idxMoreMinor + 1, idxNatKeys);
-    const expectedNames = ['Progressions, Two Keys', 'Progressions, Three Keys', 'Progressions, Add D', 'Progressions, Add A', 'Progressions, Add E', 'Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords', 'Raised Mediants', 'Minor Borrowed — ♭II', 'Borrowed Content, Two Keys'];
-    const expectedNotes  = [['C','G'], ['C','F','G'], ['C','D','F','G'], ['C','D','F','G','A'], ['C','D','E','F','G','A'], ['C'], ['C'], ['C'], ['C'], ['C'], ['C','G']];
+    const expectedNames = ['Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords', 'Raised Mediants', 'Minor Borrowed — ♭II'];
+    const removedNames  = ['Progressions, Two Keys', 'Progressions, Three Keys', 'Progressions, Add D', 'Progressions, Add A', 'Progressions, Add E', 'Borrowed Content, Two Keys'];
     return {
       count: between.length,
       namesMatch: between.map(s => s.name).every((n, i) => n === expectedNames[i]),
-      notesMatch: between.every((s, i) => JSON.stringify(s.notes) === JSON.stringify(expectedNotes[i])),
-      progressionsMatch: between.slice(0, 5).every(s => all26.every(p => (s.progressions || []).includes(p)) && (s.progressions || []).length === 26),
+      allCOnly: between.every(s => JSON.stringify(s.notes) === JSON.stringify(['C'])),
       allHaveNoTimer: between.every(s => s.timer === 'off'),
-      allHaveEmptyChordsScales: between.every(s => (s.chords || []).length === 0 && (s.scales || []).length === 0),
-      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 12,
+      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 6,
+      noneOfTheRemovedStagesExist: !LEARNING_PATH.some(s => removedNames.includes(s.name)),
     };
   }, [ALL_26]);
-  check('exactly 11 stages inserted between More Minor Progressions and Functional, Nat. Keys (5 ramps + 6 borrowed)', rampCheck.count, 11);
-  checkTrue('the 11 stages are named and ordered correctly', rampCheck.namesMatch, null);
-  checkTrue('each stage has the correct notes array', rampCheck.notesMatch, null);
-  checkTrue('each ramp stage keeps all 26 progressions enabled', rampCheck.progressionsMatch, null);
-  checkTrue('each ramp stage has timer: off', rampCheck.allHaveNoTimer, null);
-  checkTrue('each ramp stage has empty chords/scales arrays', rampCheck.allHaveEmptyChordsScales, null);
-  checkTrue('Functional, Nat. Keys sits exactly 12 stages after More Minor Progressions (11 between + itself)', rampCheck.immediatelyAdjacent, null);
+  check('exactly 5 stages remain between More Minor Progressions and Functional, Nat. Keys (down from 11)', rampCheck.count, 5);
+  checkTrue('the 5 stages are named and ordered correctly', rampCheck.namesMatch, null);
+  checkTrue('all 5 stages are C only (no key ramp needed anymore)', rampCheck.allCOnly, null);
+  checkTrue('each stage has timer: off', rampCheck.allHaveNoTimer, null);
+  checkTrue('Functional, Nat. Keys sits exactly 6 stages after More Minor Progressions (5 between + itself)', rampCheck.immediatelyAdjacent, null);
+  checkTrue('all 6 removed stages (5 old ramp + Borrowed Content, Two Keys) are gone', rampCheck.noneOfTheRemovedStagesExist, null);
 
   // --- 'Functional, Nat. Keys' and 'Functional, All 12' remain unchanged ---
   const tailCheck = await page.evaluate(() => {
@@ -78,28 +78,22 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('Functional, Nat. Keys notes unchanged (7 naturals)', JSON.stringify(tailCheck.natKeysNotes), JSON.stringify(['C','D','E','F','G','A','B']));
   check('Functional, All 12 notes unchanged (12 keys)', JSON.stringify(tailCheck.all12Notes), JSON.stringify(['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B']));
 
-  // --- applyStage() on 'Progressions, Two Keys' sets notes to C,G and checks all 26 progressions ---
-  // Guarded: this stage doesn't exist until Step 3's edit lands, and calling applyStage(-1) would
-  // throw (LEARNING_PATH[-1] is undefined), crashing page.evaluate before any result comes back.
-  const twoKeysApplyCheck = await page.evaluate(([all26]) => {
-    const idx = LEARNING_PATH.findIndex(s => s.name === 'Progressions, Two Keys');
-    if (idx === -1) return { found: false };
+  // --- applyStage() on 'Functional, Nat. Keys' (the stage that now immediately follows the C-only
+  //     content buildup) still checks all 26+ progressions via its no-progressions-field fallback ---
+  const natKeysApplyCheck = await page.evaluate(([all26]) => {
+    const idx = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys');
     applyStage(idx);
     return {
-      found: true,
       cChecked: document.querySelector('input[data-note="C"]').checked,
       gChecked: document.querySelector('input[data-note="G"]').checked,
-      dUnchecked: document.querySelector('input[data-note="D"]').checked,
+      dChecked: document.querySelector('input[data-note="D"]').checked,
       allProgressionsChecked: all26.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === true),
     };
   }, [ALL_26]);
-  checkTrue('Progressions, Two Keys stage exists', twoKeysApplyCheck.found, null);
-  if (twoKeysApplyCheck.found) {
-    check('applyStage() on Progressions, Two Keys checks C', twoKeysApplyCheck.cChecked, true);
-    check('applyStage() on Progressions, Two Keys checks G', twoKeysApplyCheck.gChecked, true);
-    check('applyStage() on Progressions, Two Keys leaves D unchecked', twoKeysApplyCheck.dUnchecked, false);
-    checkTrue('applyStage() on Progressions, Two Keys checks all 26 progression checkboxes', twoKeysApplyCheck.allProgressionsChecked, null);
-  }
+  check('applyStage() on Functional, Nat. Keys checks C', natKeysApplyCheck.cChecked, true);
+  check('applyStage() on Functional, Nat. Keys checks G', natKeysApplyCheck.gChecked, true);
+  check('applyStage() on Functional, Nat. Keys checks D (all 7 naturals, not a partial ramp)', natKeysApplyCheck.dChecked, true);
+  checkTrue('applyStage() on Functional, Nat. Keys checks all 26 original progression checkboxes (fallback still works)', natKeysApplyCheck.allProgressionsChecked, null);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
