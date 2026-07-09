@@ -3204,7 +3204,7 @@ sessionStopBtn.addEventListener('click', stopSession);
 
 startPathBtn.addEventListener('click', () => {
   learningStage = 0;
-  localStorage.setItem('mpr_learning_stage', '0');
+  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[0].name);
   updateLearningUI();
   applyStage(0);
 });
@@ -3212,7 +3212,7 @@ startPathBtn.addEventListener('click', () => {
 stagePrevBtn.addEventListener('click', () => {
   if (learningStage <= 0) return;
   learningStage--;
-  localStorage.setItem('mpr_learning_stage', String(learningStage));
+  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
   updateLearningUI();
   applyStage(learningStage);
 });
@@ -3220,7 +3220,7 @@ stagePrevBtn.addEventListener('click', () => {
 stageNextBtn.addEventListener('click', () => {
   if (learningStage >= LEARNING_PATH.length - 1) return;
   learningStage++;
-  localStorage.setItem('mpr_learning_stage', String(learningStage));
+  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
   updateLearningUI();
   applyStage(learningStage);
 });
@@ -3267,7 +3267,7 @@ document.getElementById('stageListContent').addEventListener('click', e => {
   const idx = parseInt(row.dataset.idx);
   if (isNaN(idx)) return;
   learningStage = idx;
-  localStorage.setItem('mpr_learning_stage', String(idx));
+  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[idx].name);
   updateLearningUI();
   applyStage(idx);
   document.getElementById('stageListModal').classList.add('hidden');
@@ -3850,9 +3850,10 @@ loadSettings();
 syncUI();
 updateStreakDisplay();
 
-const _savedStage = parseInt(localStorage.getItem('mpr_learning_stage') ?? '-1');
-if (!isNaN(_savedStage) && _savedStage >= 0 && _savedStage < LEARNING_PATH.length) {
-  learningStage = _savedStage;
+const _savedStageName = localStorage.getItem('mpr_learning_stage');
+const _savedStageIdx  = _savedStageName ? LEARNING_PATH.findIndex(s => s.name === _savedStageName) : -1;
+if (_savedStageIdx >= 0) {
+  learningStage = _savedStageIdx;
 }
 updateLearningUI();
 
@@ -3969,7 +3970,7 @@ document.getElementById('importFileInput').addEventListener('change', function (
       }
       if (data.learning_stage != null) {
         localStorage.setItem('mpr_learning_stage', data.learning_stage);
-        learningStage = parseInt(data.learning_stage) ?? -1;
+        learningStage = LEARNING_PATH.findIndex(s => s.name === data.learning_stage);
         updateLearningUI();
         restored.push('learning stage');
       }
@@ -4148,7 +4149,7 @@ document.querySelectorAll('.onboard-choice').forEach(btn => {
     const c = btn.dataset.choice;
     if (c === 'beginner') {
       learningStage = 0;
-      localStorage.setItem('mpr_learning_stage', '0');
+      localStorage.setItem('mpr_learning_stage', LEARNING_PATH[0].name);
       updateLearningUI();
       applyStage(0);
       document.getElementById('onboardOverlay').classList.add('hidden');

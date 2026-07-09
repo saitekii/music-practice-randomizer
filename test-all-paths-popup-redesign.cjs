@@ -40,7 +40,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
 
   // --- Set a known stage, open the popup, check grouped view ---
   await page.evaluate(() => {
-    localStorage.setItem('mpr_learning_stage', '20'); // an arbitrary mid-path stage
+    localStorage.setItem('mpr_learning_stage', LEARNING_PATH[20].name); // an arbitrary mid-path stage
     location.reload();
   });
   await page.waitForTimeout(500);
