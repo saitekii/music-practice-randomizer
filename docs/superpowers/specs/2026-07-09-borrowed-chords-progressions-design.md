@@ -58,13 +58,23 @@ if (!pattern.includes('–')) return true; // single-chord numerals are never fi
 
 This was written when the only single-chord entries were the 14 canonical diatonic numerals (7 per mode), which are meant to always be available. If the 9 new borrowed/mediant standalone chords are added as plain entries, they'd inherit that same "always enabled" behavior — silently making brand-new borrowed chords playable from the very first `'Functional Harmony — C'` stage, meant for absolute beginners. This is the same class of bug the prior Learning Path audit found and fixed for the progressions themselves ([[learning-path-audit]]).
 
-Fix: narrow the check from "no dash" to "is one of the 7 canonical diatonic numerals for this mode":
+The same "no dash = never filtered" assumption is duplicated in **three more places**, not just `enabledProgressions()` — `saveSettings()`, `loadSettings()`, and `applyStage()` each independently build an `ALL_PROGRESSIONS` list via `[...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'))` to know which patterns have a checkbox to save/load/apply. All four call sites need the same correction, or the new standalone chords would get checkboxes in the UI but those checkboxes wouldn't persist across reloads or respond to `applyStage()`.
+
+Fix: replace the "no dash" test everywhere it appears with "is one of the 7 canonical diatonic numerals for this mode," and introduce one shared helper so the list-building logic isn't triplicated:
 
 ```js
-if (DIATONIC[mode].numerals.includes(pattern)) return true; // canonical diatonic numerals are never filtered
+function checkboxGatedPatterns() {
+  return [
+    ...FUNCTIONAL.major.filter(p => !DIATONIC.major.numerals.includes(p)),
+    ...FUNCTIONAL.minor.filter(p => !DIATONIC.minor.numerals.includes(p)),
+  ];
+}
 ```
 
-The existing 14 keep their exact current behavior. The 9 new standalone borrowed/mediant chords fall through to checkbox filtering like any other content, and default unchecked.
+- `saveSettings()`, `loadSettings()`, `applyStage()`: replace their local `ALL_PROGRESSIONS` definition with a call to `checkboxGatedPatterns()`.
+- `enabledProgressions(mode)`: replace `if (!pattern.includes('–')) return true;` with `if (DIATONIC[mode].numerals.includes(pattern)) return true;`.
+
+The existing 14 canonical diatonic numerals keep their exact current behavior (never gated, no checkbox needed). The 9 new standalone borrowed/mediant chords fall through to checkbox filtering like any other content, get checkboxes, persist through save/load, and respond to `applyStage()` — and default unchecked, same as the progressions.
 
 ### Data and checkboxes
 
