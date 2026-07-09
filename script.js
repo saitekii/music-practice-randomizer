@@ -230,6 +230,12 @@ const LEARNING_PATH = [
   { name: 'Add A♭',              hint: 'A flat added',                                                                                            cats: ['catChords'],             notes: ['C','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Add C♯',              hint: 'Last accidental — all 12 keys now',                                                                       cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Speed Up',            hint: 'All 12 keys, Major + Minor root position — 5 seconds',                                                    cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
+  // ── Phase 5b: Left-Hand Voicing ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  { name: 'Meet Left Hand',      hint: 'Left hand plays root + 5th below middle C, right hand plays the full chord — two hands, one chord',        cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','leftHandMode'],                                                   scales: [],                             timer: 'off' },
+  { name: 'Left Hand, Nat. Keys',hint: 'Same two-handed voicing — all seven natural keys, Major only',                                             cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','leftHandMode'],                                                   scales: [],                             timer: 'off' },
+  { name: 'Add Minor, Left Hand',hint: 'Minor chords added to the two-handed voicing',                                                              cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','leftHandMode'],                                      scales: [],                             timer: 'off' },
+  { name: 'Left Hand Timer',     hint: 'Same two-handed voicing — 15 seconds to respond',                                                           cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','leftHandMode'],                                      scales: [],                             timer: '15' },
+  { name: 'Left Hand, All 12',   hint: 'Every key — two-handed Major and Minor voicings, 10 seconds',                                               cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','leftHandMode'],                                      scales: [],                             timer: '10' },
   // ── Phase 6: Triad inversions ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Meet Inversions',     hint: 'C Major in all three positions — root, 1st, and 2nd inversion. Same notes, different bass note',          cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','inversions'],                                                     scales: [],                             timer: 'off' },
   { name: 'Natural Majors Inv.', hint: 'All seven natural keys — Major chord, any inversion',                                                     cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','inversions'],                                                     scales: [],                             timer: 'off' },
@@ -343,6 +349,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Introduce minor', count: 3 },
   { name: 'Add timer pressure', count: 3 },
   { name: 'Accidentals one at a time', count: 6 },
+  { name: 'Left-Hand Voicing', count: 5 },
   { name: 'Triad inversions', count: 8 },
   { name: 'Major scales', count: 4 },
   { name: 'Combine chords + scales', count: 3 },
@@ -2810,7 +2817,7 @@ function randomizeSettings() {
 function applyStage(idx) {
   const stage = LEARNING_PATH[idx];
   const ALL_CATS   = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
-  const ALL_CHORDS = CHORD_TYPES.map(c => c.id).concat(['inversions']);
+  const ALL_CHORDS = CHORD_TYPES.map(c => c.id).concat(['inversions', 'leftHandMode']);
   const ALL_SCALES = SCALE_TYPES.map(s => s.id);
   const ALL_PROGRESSIONS = checkboxGatedPatterns();
   const onCats   = new Set(stage.cats);
@@ -2864,18 +2871,27 @@ function getStageMastery(stageIdx) {
     : (parseInt(stage.timer) || 10) * 1000;
 
   const items = [];
-  (stage.chords || []).forEach(id => {
-    if (id === 'inversions') return;
-    const ct = CHORD_TYPES.find(c => c.id === id);
-    if (ct) items.push({ dim: 'types', key: ct.label });
-  });
+  const isLeftHandStage = (stage.chords || []).includes('leftHandMode');
+  if (isLeftHandStage) {
+    // Left-hand answers update ONLY adaptWeights.variations['Left Hand'] (see recordAdaptiveResult) --
+    // never .types or .roots. Falling through to the normal per-chord-type/per-root items below would
+    // pull mastery weights from earlier, unrelated one-handed practice, making this stage look
+    // instantly "100% mastered" without a single left-hand answer given.
+    items.push({ dim: 'variations', key: 'Left Hand' });
+  } else {
+    (stage.chords || []).forEach(id => {
+      if (id === 'inversions') return;
+      const ct = CHORD_TYPES.find(c => c.id === id);
+      if (ct) items.push({ dim: 'types', key: ct.label });
+    });
+  }
   (stage.scales || []).forEach(id => {
     const st = SCALE_TYPES.find(s => s.id === id);
     if (st && st.label) items.push({ dim: 'types', key: st.label });
   });
   (stage.progressions || []).forEach(p => items.push({ dim: 'variations', key: p }));
   const hasChordOrScale = (stage.cats || []).some(c => c === 'catChords' || c === 'catScales');
-  if (hasChordOrScale) {
+  if (hasChordOrScale && !isLeftHandStage) {
     (stage.notes || []).forEach(n => items.push({ dim: 'roots', key: n }));
   }
   if (!items.length) return null;

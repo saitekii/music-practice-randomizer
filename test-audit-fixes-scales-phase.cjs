@@ -51,7 +51,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   }, [NAT7, ALL12]);
 
-  check('LEARNING_PATH has the expected 125 stages', data.totalStages, 125);
+  check('LEARNING_PATH has the expected 120 stages', data.totalStages, 120);
   check('Scales beyond natural minor phase count is 15', data.phaseCount, 15);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', data.phaseCountSum, data.totalStages);
 

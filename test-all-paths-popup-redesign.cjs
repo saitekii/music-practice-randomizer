@@ -32,9 +32,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     firstName: LEARNING_PATH_PHASES[0].name,
     lastName: LEARNING_PATH_PHASES[LEARNING_PATH_PHASES.length - 1].name,
   }));
-  check('LEARNING_PATH_PHASES has 17 entries', phaseData.phaseCount, 17);
+  check('LEARNING_PATH_PHASES has 18 entries', phaseData.phaseCount, 18);
   check('phase counts sum to LEARNING_PATH.length', phaseData.countSum, phaseData.stageCount);
-  check('LEARNING_PATH.length matches the expected 125 stages', phaseData.stageCount, 125);
+  check('LEARNING_PATH.length matches the expected 120 stages', phaseData.stageCount, 120);
   check('first phase is Note Finder', phaseData.firstName, 'Note Finder');
   check('last phase is Diatonic chords', phaseData.lastName, 'Diatonic chords');
 
@@ -66,9 +66,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       searchValueOnOpen: document.getElementById('stageListSearch').value,
     };
   });
-  check('17 phase headers rendered', groupedView.headerCount, 17);
-  check('17 phase bodies rendered', groupedView.bodyCount, 17);
-  check('all 125 stage rows exist in the DOM (even inside collapsed groups)', groupedView.rowCount, 125);
+  check('18 phase headers rendered', groupedView.headerCount, 18);
+  check('18 phase bodies rendered', groupedView.bodyCount, 18);
+  check('all 120 stage rows exist in the DOM (even inside collapsed groups)', groupedView.rowCount, 120);
   check('exactly one phase header is open by default', groupedView.openHeaderCount, 1);
   check('exactly one phase body is open by default', groupedView.openBodyCount, 1);
   check('the current stage (idx 20) is marked current', groupedView.currentIdx, 20);
@@ -109,7 +109,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   await page.fill('#stageListSearch', '');
   await page.waitForTimeout(200);
   const clearedView = await page.evaluate(() => document.querySelectorAll('.stage-list-phase-header').length);
-  check('clearing search restores the 17 phase headers', clearedView, 17);
+  check('clearing search restores the 18 phase headers', clearedView, 18);
 
   // --- Reopen popup: search resets, grouped view resets to current-phase-open ---
   await page.click('#stageListClose');
