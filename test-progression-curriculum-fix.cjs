@@ -41,30 +41,30 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }, [ALL_26]);
   checkTrue('applyStage() on Functional Harmony — C leaves all 26 progression checkboxes unchecked', stage1ApplyCheck, null);
 
-  // --- 5 new key-ramp stages exist, in order, between 'More Minor Progressions' and 'Functional, Nat. Keys' ---
+  // --- 11 stages now exist between 'More Minor Progressions' and 'Functional, Nat. Keys' (5 ramps + 6 borrowed chord stages) ---
   const rampCheck = await page.evaluate(([all26]) => {
     const idxMoreMinor = LEARNING_PATH.findIndex(s => s.name === 'More Minor Progressions');
     const idxNatKeys    = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys');
     const between = LEARNING_PATH.slice(idxMoreMinor + 1, idxNatKeys);
-    const expectedNames = ['Progressions, Two Keys', 'Progressions, Three Keys', 'Progressions, Add D', 'Progressions, Add A', 'Progressions, Add E'];
-    const expectedNotes  = [['C','G'], ['C','F','G'], ['C','D','F','G'], ['C','D','F','G','A'], ['C','D','E','F','G','A']];
+    const expectedNames = ['Progressions, Two Keys', 'Progressions, Three Keys', 'Progressions, Add D', 'Progressions, Add A', 'Progressions, Add E', 'Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords', 'Raised Mediants', 'Minor Borrowed — ♭II', 'Borrowed Content, Two Keys'];
+    const expectedNotes  = [['C','G'], ['C','F','G'], ['C','D','F','G'], ['C','D','F','G','A'], ['C','D','E','F','G','A'], ['C'], ['C'], ['C'], ['C'], ['C'], ['C','G']];
     return {
       count: between.length,
       namesMatch: between.map(s => s.name).every((n, i) => n === expectedNames[i]),
       notesMatch: between.every((s, i) => JSON.stringify(s.notes) === JSON.stringify(expectedNotes[i])),
-      progressionsMatch: between.every(s => all26.every(p => (s.progressions || []).includes(p)) && (s.progressions || []).length === 26),
+      progressionsMatch: between.slice(0, 5).every(s => all26.every(p => (s.progressions || []).includes(p)) && (s.progressions || []).length === 26),
       allHaveNoTimer: between.every(s => s.timer === 'off'),
       allHaveEmptyChordsScales: between.every(s => (s.chords || []).length === 0 && (s.scales || []).length === 0),
-      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 6,
+      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 12,
     };
   }, [ALL_26]);
-  check('exactly 5 stages inserted between More Minor Progressions and Functional, Nat. Keys', rampCheck.count, 5);
-  checkTrue('the 5 stages are named and ordered correctly', rampCheck.namesMatch, null);
-  checkTrue('each ramp stage has the correct notes array', rampCheck.notesMatch, null);
+  check('exactly 11 stages inserted between More Minor Progressions and Functional, Nat. Keys (5 ramps + 6 borrowed)', rampCheck.count, 11);
+  checkTrue('the 11 stages are named and ordered correctly', rampCheck.namesMatch, null);
+  checkTrue('each stage has the correct notes array', rampCheck.notesMatch, null);
   checkTrue('each ramp stage keeps all 26 progressions enabled', rampCheck.progressionsMatch, null);
   checkTrue('each ramp stage has timer: off', rampCheck.allHaveNoTimer, null);
   checkTrue('each ramp stage has empty chords/scales arrays', rampCheck.allHaveEmptyChordsScales, null);
-  checkTrue('Functional, Nat. Keys sits exactly 6 stages after More Minor Progressions (5 new + itself)', rampCheck.immediatelyAdjacent, null);
+  checkTrue('Functional, Nat. Keys sits exactly 12 stages after More Minor Progressions (11 between + itself)', rampCheck.immediatelyAdjacent, null);
 
   // --- 'Functional, Nat. Keys' and 'Functional, All 12' remain unchanged ---
   const tailCheck = await page.evaluate(() => {

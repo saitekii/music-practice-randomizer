@@ -29,8 +29,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }), [NEW_MAJOR, NEW_MINOR]);
   checkTrue('FUNCTIONAL.major contains all 14 new major progressions', dataCheck.majorHasAll, null);
   checkTrue('FUNCTIONAL.minor contains all 4 new minor progressions', dataCheck.minorHasAll, null);
-  check('FUNCTIONAL.major has 26 entries total (7 single-chord + 19 progressions)', dataCheck.majorTotalCount, 26);
-  check('FUNCTIONAL.minor has 14 entries total (7 single-chord + 3 original + 4 new progressions)', dataCheck.minorTotalCount, 14);
+  check('FUNCTIONAL.major has 79 entries total (after Task 3 added 55 borrowed/mediant entries)', dataCheck.majorTotalCount, 79);
+  check('FUNCTIONAL.minor has 16 entries total (after Task 3 added borrowed/mediant entries)', dataCheck.minorTotalCount, 16);
 
   const checkboxCheck = await page.evaluate(([newMajor, newMinor]) => {
     const all = [...newMajor, ...newMinor];

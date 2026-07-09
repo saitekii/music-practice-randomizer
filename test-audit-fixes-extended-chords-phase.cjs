@@ -50,7 +50,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   }, [NAT7, ALL12]);
 
-  check('LEARNING_PATH has 119 stages (116 + 3 new)', data.totalStages, 119);
+  check('LEARNING_PATH has 125 stages (119 + 6 new)', data.totalStages, 125);
   check('Extended chords phase count is 12', data.phaseCount, 12);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', data.phaseCountSum, data.totalStages);
 
