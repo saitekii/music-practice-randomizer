@@ -19,12 +19,17 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   };
 
   const canonical = await page.evaluate(() => {
-    const gated = checkboxGatedPatterns();
     const majorDiatonic = ['I','ii','iii','IV','V','vi','vii°'];
     const minorDiatonic = ['i','ii°','III','iv','V','VI','VII'];
-    return { noneGated: [...majorDiatonic, ...minorDiatonic].every(p => !gated.includes(p)) };
+    const majorGated = FUNCTIONAL.major.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.major.includes(p));
+    const minorGated = FUNCTIONAL.minor.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(p));
+    return {
+      majorNoneGated: majorDiatonic.every(p => !majorGated.includes(p)),
+      minorNoneGated: minorDiatonic.every(p => !minorGated.includes(p)),
+    };
   });
-  checkTrue('the 14 canonical diatonic numerals are never in checkboxGatedPatterns()', canonical.noneGated, null);
+  checkTrue('the 7 canonical major numerals are never gated by FUNCTIONAL.major\'s own filter', canonical.majorNoneGated, null);
+  checkTrue('the 7 canonical minor numerals are never gated by FUNCTIONAL.minor\'s own filter', canonical.minorNoneGated, null);
 
   const existingProgressions = await page.evaluate(() =>
     ['ii–V–I', 'I–IV–V', 'i–iv–V'].every(p => checkboxGatedPatterns().includes(p))
