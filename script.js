@@ -113,7 +113,7 @@ const DIATONIC = {
   minor: {
     intervals: [0, 2, 3, 5, 7, 8, 10],
     qualities: ['Minor', 'Diminished', 'Major', 'Minor', 'Minor', 'Major', 'Major'],
-    numerals:  ['i', 'ii°', 'III', 'iv', 'v', 'VI', 'VII'],
+    numerals:  ['i', 'ii°', 'III', 'iv', 'V', 'VI', 'VII'],
   },
 };
 
@@ -2087,9 +2087,16 @@ function genScale() {
   };
 }
 
+function checkboxGatedPatterns() {
+  return [
+    ...FUNCTIONAL.major.filter(p => !DIATONIC.major.numerals.includes(p)),
+    ...FUNCTIONAL.minor.filter(p => !DIATONIC.minor.numerals.includes(p)),
+  ];
+}
+
 function enabledProgressions(mode) {
   return FUNCTIONAL[mode].filter(pattern => {
-    if (!pattern.includes('–')) return true; // single-chord numerals are never filtered
+    if (DIATONIC[mode].numerals.includes(pattern)) return true; // canonical diatonic numerals are never filtered
     const el = document.querySelector(`input[data-pattern="${pattern}"]`);
     return el ? el.checked : true;
   });
@@ -2616,7 +2623,7 @@ function saveSettings() {
     'adaptiveToggle', 'bandModeToggle',
   ];
 
-  const ALL_PROGRESSIONS = [...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'));
+  const ALL_PROGRESSIONS = checkboxGatedPatterns();
 
   localStorage.setItem('mpr_settings', JSON.stringify({
     timer:            getTimerMode(),
@@ -2658,7 +2665,7 @@ function loadSettings() {
     }
 
     if (s.progressions) {
-      const allProgressions = [...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'));
+      const allProgressions = checkboxGatedPatterns();
       allProgressions.forEach(p => {
         const el = document.querySelector(`input[data-pattern="${p}"]`);
         if (el && s.progressions[p] !== undefined) el.checked = s.progressions[p];
@@ -2798,7 +2805,7 @@ function applyStage(idx) {
   const ALL_CATS   = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
   const ALL_CHORDS = CHORD_TYPES.map(c => c.id).concat(['inversions']);
   const ALL_SCALES = SCALE_TYPES.map(s => s.id);
-  const ALL_PROGRESSIONS = [...FUNCTIONAL.major, ...FUNCTIONAL.minor].filter(p => p.includes('–'));
+  const ALL_PROGRESSIONS = checkboxGatedPatterns();
   const onCats   = new Set(stage.cats);
   const onChords = new Set(stage.chords);
   const onScales = new Set(stage.scales);
