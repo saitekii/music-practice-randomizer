@@ -33,32 +33,35 @@ This app is a fully offline-capable static site (`file://` friendly, no network 
 `getExpectedPCs()`'s `func` branch currently does one lookup: `FUNCTIONAL_NUMERALS[modeKey][numeral]`. That stays exactly as-is for all ~110 existing bare-numeral tokens (fast path, zero behavior change). Add a **fallback** for when that lookup misses: split the token into a base numeral (e.g. `I`, `♭II`, `♯IV`, `vii`) and a quality suffix (e.g. `maj7`, `13sus`, `ø7`, `♯11`), resolve the base numeral's semitone offset from the *same* `FUNCTIONAL_NUMERALS` table (reusing its offset half only, ignoring the stored default quality — a numeral with an explicit suffix always has its quality overridden by that suffix), then resolve the actual chord via Tonal:
 
 ```js
-const jazzMatch = numeral.match(/^(♭|♯)?(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)(°)?(.*)$/);
+const jazzMatch = numeral.match(/^(♭|♯)?(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)(°|ø)?(.+)$/);
 if (jazzMatch) {
-  const base = (jazzMatch[1] || '') + jazzMatch[2] + (jazzMatch[3] || '');
-  const suffix = jazzMatch[4];
-  const baseEntry = FUNCTIONAL_NUMERALS[modeKey][base];
-  if (baseEntry && suffix) {
+  const accLetters   = (jazzMatch[1] || '') + jazzMatch[2];
+  const degreeMarker = jazzMatch[3] || '';
+  const suffix       = jazzMatch[4];
+  const isUpper      = jazzMatch[2] === jazzMatch[2].toUpperCase();
+  const baseEntry = FUNCTIONAL_NUMERALS[modeKey][accLetters] || FUNCTIONAL_NUMERALS[modeKey][accLetters + '°'];
+  if (baseEntry) {
     const rootNote = NOTES[(rootIdx + baseEntry[0]) % 12];
-    const quality = resolveJazzQuality(base, suffix);
+    const quality = resolveJazzQuality(degreeMarker, isUpper, suffix);
     const chord = Tonal.Chord.getChord(quality, rootNote);
-    if (chord && !chord.empty) {
+    if (chord && !chord.empty && chord.notes.length) {
       return { type: 'chord', pcs: chord.notes.map(n => Tonal.Note.chroma(n)) };
     }
   }
 }
 ```
 
+**Found and fixed two bugs while verifying this against every token the batch actually uses** (not just the happy-path cases from the earlier spike): the degree-marker capture only recognized `°` (fully-diminished), not `ø` (half-diminished — a different Unicode character), so `viiø7` failed to split at all; and `♯IV°7`'s base numeral doesn't exist as a combined `♯IV°` key in the table (the table's existing `vii°`/`ii°` entries bake the degree symbol into the key itself, an existing inconsistency, not something to repeat for the new `♯IV` entry). Fixed by separating the degree marker from the numeral-letters lookup entirely — look up the accidental+letters form first (e.g. `♯IV`), fall back to that form with `°` appended (catches `vii`/`ii` which are only stored in `°`-suffixed form) — and resolving quality from the degree marker directly rather than from string-matching the combined base. Verified against all 21 distinct numeral tokens the 31-entry batch uses, plus two end-to-end pitch checks (`viiø7` in C major → B-D-F-A; `♯IV°7` in C major → F♯-A-C-E♭, both hand-confirmed correct).
+
 `Tonal.Note.chroma()` converts Tonal's returned note names straight to the app's 0–11 pitch-class numbering, so there's no enharmonic-spelling reconciliation needed against the app's own `NOTES` array — verified directly (F♯ half-diminished → chromas `[6, 9, 0, 4]`, matching hand-computed values).
 
-`resolveJazzQuality(base, suffix)` — the suffix-to-Tonal-quality mapping, built and verified against every quality this batch actually uses (`maj7`, `maj9`, `m7`, `m9`, `m11`, `7`, `9`, `13`, `13#11`, `m7b5`, `dim7`, `maj7#11`):
-- No suffix: diatonic default (dim if the base numeral carries `°`, major if uppercase, minor if lowercase) — this path is actually unreachable in the fallback (a numeral with no suffix always hits the fast-path `FUNCTIONAL_NUMERALS` lookup directly), kept only as a defensive default.
-- Suffix is exactly `ø7` (the only half-diminished form this batch uses): `m7b5`.
-- Base numeral carries `°` and suffix is exactly `7` (fully diminished 7th, e.g. `♯IV°7`): `dim7`.
-- Suffix is a bare number optionally followed by `sus`/`sus4`/`sus2` (e.g. `7`, `9`, `13`, `13sus`): case-sensitive — uppercase base → dominant extension (`7`, `9`, `13`, `13sus` as Tonal quality strings directly), lowercase base → minor extension (prefix `m`: `m7`, `m9`, `m11`).
-- Otherwise (an explicit spelled-out quality: `maj7`, `maj9`, `m7`, `m11`, `maj7♯11`, `13♯11`): use the suffix directly as the Tonal quality string, converting `♯`→`#` and `♭`→`b` first (Tonal expects ASCII accidentals).
+`resolveJazzQuality(degreeMarker, isUpper, suffix)` — the suffix-to-Tonal-quality mapping, built and verified against every quality this batch actually uses (`maj7`, `maj9`, `m7`, `m9`, `m11`, `7`, `9`, `13`, `13#11`, `m7b5`, `dim7`, `maj7#11`):
+- `degreeMarker` is `ø` and `suffix` is exactly `7` (the only half-diminished form this batch uses): `m7b5`.
+- `degreeMarker` is `°` and `suffix` is exactly `7` (fully diminished 7th, e.g. `♯IV°7`): `dim7`.
+- `suffix` is a bare number optionally followed by `sus`/`sus4`/`sus2` (e.g. `7`, `9`, `13`): case-sensitive — `isUpper` true → dominant extension (`7`, `9`, `13` as Tonal quality strings directly), `isUpper` false → minor extension (prefix `m`: `m7`, `m9`, `m11`).
+- Otherwise (an explicit spelled-out quality: `maj7`, `maj9`, `maj7♯11`, `13♯11`): use the suffix directly as the Tonal quality string, converting `♯`→`#` and `♭`→`b` first (Tonal expects ASCII accidentals).
 
-New offset-table entry needed: `♯IV` (6 semitones) — added to `FUNCTIONAL_NUMERALS.major` alongside the existing borrowed/mediant entries from the prior tier (quality field unused for this entry specifically, since every occurrence carries an explicit suffix, but filled in as `'Diminished'` for consistency with the table's shape).
+New offset-table entry needed: `♯IV` (6 semitones) — added to `FUNCTIONAL_NUMERALS.major` alongside the existing borrowed/mediant entries from the prior tier, stored as a bare key (no `°` suffix — unlike `vii°`, this is a fresh entry with no pre-existing bare-vs-suffixed inconsistency to match, and the bare-first lookup order above resolves it directly).
 
 ### 3. Data and checkboxes
 
