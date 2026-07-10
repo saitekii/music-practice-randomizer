@@ -26,7 +26,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     return renderStats();
   });
 
-  checkTrue('stats page shows an Inversions section', html.includes('Inversions'), null);
+  checkTrue('stats page shows a Voicings section', html.includes('Voicings'), null);
   checkTrue('the section lists Root position', html.includes('Root position'), null);
   checkTrue('the section lists 1st inversion', html.includes('1st inversion'), null);
 
@@ -39,7 +39,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
     return renderStats();
   });
-  checkTrue('no empty Inversions heading when there is no variation data yet', !emptyVariations.includes('Inversions'), null);
+  checkTrue('no empty Voicings heading when there is no variation data yet', !emptyVariations.includes('Voicings'), null);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

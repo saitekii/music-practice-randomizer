@@ -995,10 +995,10 @@ function renderStats() {
   </div>` : '';
 
   const calHtml = renderCalendar(log);
-  return headerHtml + calHtml + weakSpotsHtml + legendHtml + chartHtml
+  return headerHtml + weakSpotsHtml + calHtml + chartHtml + legendHtml
     + buildSection(rootEntries, 'Root Notes')
     + buildSection(typeEntries, 'Types')
-    + buildSection(Object.entries(adaptWeights.variations), 'Inversions');
+    + buildSection(Object.entries(adaptWeights.variations), 'Voicings');
 }
 
 function recordAdaptiveResult(key, ms) {
