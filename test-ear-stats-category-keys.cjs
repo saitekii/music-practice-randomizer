@@ -91,7 +91,12 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       'scale:Major': { ema: 1000, ema_slow: 1000, count: 5 },
     };
     const html = renderEarStats();
-    return { html, majorRowCount: (html.match(/>Major</g) || []).length, hasPrefixedText: html.includes('chord:Major') || html.includes('scale:Major') };
+    const recognitionSection = html.slice(html.indexOf('Recognition Types'));
+    return {
+      html,
+      majorRowCount: (recognitionSection.match(/>Major</g) || []).length,
+      hasPrefixedText: html.includes('chord:Major') || html.includes('scale:Major'),
+    };
   });
   check('Recognition Types shows two separate "Major" rows (chord + scale, not merged)', renderResult.majorRowCount, 2);
   checkTrue('no category-prefixed text ever appears in rendered HTML', !renderResult.hasPrefixedText, null);
