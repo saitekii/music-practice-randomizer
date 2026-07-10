@@ -3469,6 +3469,19 @@ function getExpectedPCs(key) {
       if (!intervals) return null;
       return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
     }
+    // Fallback: secondary-dominant slash notation "V/<target-numeral>" (e.g. "V/vi", "V/V") --
+    // resolves to the plain Major triad built a perfect 5th above the target degree's root.
+    // Checked before the jazz-suffix fallback below: a slash-containing numeral would otherwise
+    // be wrongly captured by that regex's greedy suffix group and silently fail to resolve.
+    const secondaryMatch = numeral.match(/^V\/(.+)$/);
+    if (secondaryMatch) {
+      const targetEntry = FUNCTIONAL_NUMERALS[modeKey][secondaryMatch[1]];
+      if (!targetEntry) return null;
+      const secondaryOffset = (targetEntry[0] + 7) % 12;
+      const chordRootPC     = (rootIdx + secondaryOffset) % 12;
+      const intervals       = CHORD_INTERVALS['Major'];
+      return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+    }
     // Fallback: a numeral with an explicit jazz quality suffix (e.g. "Imaj7", "V13", "viiø7"),
     // not a bare token FUNCTIONAL_NUMERALS already knows. Split off the base numeral and hand the
     // actual chord construction to Tonal instead of another hand-built lookup table. The degree
