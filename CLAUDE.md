@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project
 
-Single-page static app — no build step, no framework, no dependencies. Open `index.html` in a browser. Everything runs client-side. Three files: `index.html` (structure), `style.css` (dark theme, CSS custom properties), `script.js` (all logic, flat file, no classes).
+Single-page static app — no build step, no framework. Open `index.html` in a browser. Everything runs client-side. Four files: `index.html` (structure), `style.css` (dark theme, CSS custom properties), `script.js` (all logic, flat file, no classes), `tonal.min.js` (vendored [Tonal.js](https://github.com/tonaljs/tonal) music-theory library, used only for jazz-extended chord-quality parsing in Functional Harmony — no other dependencies, no CDN at runtime).
 
 ## Testing
 
