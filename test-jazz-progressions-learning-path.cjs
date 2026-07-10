@@ -35,7 +35,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('stage names in order', stageData.names, [
     'Jazz 7th Chords', 'Extended 9ths, 11ths & 13ths', 'Circle of Fifths & Applied Chords', 'Cadences & Color Chords',
   ]);
-  check('cumulative progression counts (81 base + 8/19/26/31)', stageData.counts, [89, 100, 107, 112]);
+  check('cumulative progression counts (81 base + 8/19/26/31 + 2 secondary-dominant)', stageData.counts, [89, 100, 108, 113]);
   check('all 4 stages are timer off', stageData.timers, ['off', 'off', 'off', 'off']);
   check('all 4 stages are C only (no key ramp needed here)', stageData.notes, [['C'], ['C'], ['C'], ['C']]);
 

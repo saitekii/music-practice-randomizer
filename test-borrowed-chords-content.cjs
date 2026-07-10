@@ -31,7 +31,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }), [[...NEW_MAJOR_STANDALONE, ...NEW_MAJOR_PROGRESSIONS], [...NEW_MINOR_STANDALONE, ...NEW_MINOR_PROGRESSIONS]]);
   checkTrue('FUNCTIONAL.major contains all 53 new major entries', dataCheck.majorHasAll, null);
   checkTrue('FUNCTIONAL.minor contains all 2 new minor entries', dataCheck.minorHasAll, null);
-  check('FUNCTIONAL.major has 110 entries total (79 from tasks 1–2 + 31 jazz from task 3)', dataCheck.majorCount, 110);
+  check('FUNCTIONAL.major has 111 entries total (80 from tasks 1–2 + 31 jazz from task 3)', dataCheck.majorCount, 111);
   check('FUNCTIONAL.minor has 16 entries total (14 existing + 2 new)', dataCheck.minorCount, 16);
 
   const allNewPatterns = [...NEW_MAJOR_STANDALONE, ...NEW_MAJOR_PROGRESSIONS, ...NEW_MINOR_PROGRESSIONS]; // minor ♭II shares the major ♭II checkbox, not counted twice

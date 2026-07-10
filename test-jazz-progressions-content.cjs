@@ -25,7 +25,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     majorCount: FUNCTIONAL.major.length,
   }), NEW_ENTRIES);
   checkTrue('FUNCTIONAL.major contains all 31 new jazz-extended entries', dataCheck.hasAll, null);
-  check('FUNCTIONAL.major has 110 entries total (79 existing + 31 new)', dataCheck.majorCount, 110);
+  check('FUNCTIONAL.major has 111 entries total (80 existing + 31 new)', dataCheck.majorCount, 111);
 
   const checkboxCheck = await page.evaluate((entries) =>
     entries.map(p => {
