@@ -36,13 +36,15 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   checkTrue('all 31 new checkboxes are UNCHECKED by default', checkboxCheck.every(c => c.checked === false), JSON.stringify(checkboxCheck.filter(c => c.checked !== false).map(c => c.pattern)));
 
   const originalCheck = await page.evaluate(() => {
-    const sample = ['ii–V–I', 'I–IV–V', 'I–VI–ii–V', 'i–♭II–VII–i'];
-    return sample.every(p => {
-      const el = document.querySelector(`input[data-pattern="${p}"]`);
-      return el && el.checked === true;
-    });
+    const checkedByDefault = ['ii–V–I', 'I–IV–V']; // the original 8 progressions
+    const uncheckedByDefault = ['I–VI–ii–V', 'i–♭II–VII–i']; // later batches, unchecked-by-default convention
+    return {
+      checkedOk: checkedByDefault.every(p => document.querySelector(`input[data-pattern="${p}"]`)?.checked === true),
+      uncheckedOk: uncheckedByDefault.every(p => document.querySelector(`input[data-pattern="${p}"]`)?.checked === false),
+    };
   });
-  checkTrue('a sample of pre-existing progression checkboxes are unaffected (still checked)', originalCheck, null);
+  checkTrue('the original 8 progressions remain checked by default (unaffected)', originalCheck.checkedOk, null);
+  checkTrue('later-batch progressions remain unchecked by default (unaffected)', originalCheck.uncheckedOk, null);
 
   // Integration: enabledProgressions() correctly gates real new content, and applyStage-style
   // checking makes a jazz progression's steps actually playable end to end.
