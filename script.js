@@ -628,8 +628,20 @@ let adaptWeights = (() => {
 })();
 
 let earAdaptWeights = (() => {
-  try { return JSON.parse(localStorage.getItem('mpr_weights_ear')) || { types: {} }; }
-  catch (_) { return { types: {} }; }
+  let weights;
+  try { weights = JSON.parse(localStorage.getItem('mpr_weights_ear')) || { types: {} }; }
+  catch (_) { weights = { types: {} }; }
+  // One-time cleanup: pre-fix data was keyed by bare label (e.g. 'Major'), shared across
+  // intervals/chords/scales -- 'Major' the chord and 'Major' the scale silently merged into
+  // one bucket. New keys are category-prefixed ('chord:Major'). Any bare (unprefixed) key
+  // still present means this data predates the fix -- reset once; this never fires again
+  // since every key written going forward is prefixed.
+  const hasPreFixKeys = Object.keys(weights.types).some(k => !k.includes(':'));
+  if (hasPreFixKeys) {
+    weights.types = {};
+    localStorage.setItem('mpr_weights_ear', JSON.stringify(weights));
+  }
+  return weights;
 })();
 
 let earTabActive      = false;
@@ -1053,6 +1065,10 @@ function saveEarAdaptWeights() {
   localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
 }
 
+function stripEarCategory(key) {
+  return key.replace(/^(interval|chord|scale):/, '');
+}
+
 function updateEarAdaptWeight(label, ms) {
   const g = earAdaptWeights.types;
   if (!g[label]) {
@@ -1064,9 +1080,9 @@ function updateEarAdaptWeight(label, ms) {
   }
 }
 
-function weightedPickEar(items) {
+function weightedPickEar(items, category) {
   const g      = earAdaptWeights.types;
-  const emas   = items.map(item => { const e = g[item]; return (e && e.count >= 3) ? e.ema : null; });
+  const emas   = items.map(item => { const e = g[`${category}:${item}`]; return (e && e.count >= 3) ? e.ema : null; });
   const withData = emas.filter(v => v !== null);
   const mean   = withData.length ? withData.reduce((a, b) => a + b, 0) / withData.length : null;
   const weights = emas.map(v => (mean && v) ? Math.max(0.5, Math.min(3.0, v / mean)) : 1.0);
@@ -1076,8 +1092,8 @@ function weightedPickEar(items) {
   return items[items.length - 1];
 }
 
-function recordEarResult(label, ms) {
-  updateEarAdaptWeight(label, ms);
+function recordEarResult(category, label, ms) {
+  updateEarAdaptWeight(`${category}:${label}`, ms);
   saveEarAdaptWeights();
 }
 
@@ -1135,7 +1151,7 @@ function genEarInterval() {
   if (pool.length < 2) return null;
   const dirs = enabledEarDirections();
   if (!dirs.length) return null;
-  const correct     = weightedPickEar(pool);
+  const correct     = weightedPickEar(pool, 'interval');
   const root        = pick(NOTES);
   const dir         = pick(dirs);
   const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
@@ -1151,7 +1167,7 @@ function genEarInterval() {
 function genEarChord() {
   const pool = enabledEarChordTypes();
   if (pool.length < 2) return null;
-  const correct     = weightedPickEar(pool);
+  const correct     = weightedPickEar(pool, 'chord');
   const root        = pick(NOTES);
   const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
   const choices     = [...distractors, correct].sort(() => Math.random() - 0.5);
@@ -1166,7 +1182,7 @@ function genEarChord() {
 function genEarScale() {
   const pool = enabledEarScaleTypes();
   if (pool.length < 2) return null;
-  const correct     = weightedPickEar(pool);
+  const correct     = weightedPickEar(pool, 'scale');
   const root        = pick(NOTES);
   const distractors = getDistractors(correct, pool, Math.min(3, pool.length - 1));
   const choices     = [...distractors, correct].sort(() => Math.random() - 0.5);
@@ -1285,7 +1301,7 @@ function handleRadialAnswer(lbl) {
 
   if (validTime) {
     const recordMs = isCorrect ? ms : earPenaltyMs();
-    recordEarResult(earCurrentPrompt.correct, recordMs);
+    recordEarResult(earCurrentPrompt.type, earCurrentPrompt.correct, recordMs);
     updateDailyLog(ms, true);
   }
 
@@ -1371,7 +1387,7 @@ function handleEarAnswer(chosen) {
 
   if (validTime) {
     const recordMs = isCorrect ? ms : earPenaltyMs();
-    recordEarResult(earCurrentPrompt.correct, recordMs);
+    recordEarResult(earCurrentPrompt.type, earCurrentPrompt.correct, recordMs);
     updateDailyLog(ms, true);
   }
 
@@ -1570,7 +1586,7 @@ function renderEarStats() {
         badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
       }
       return `<div class="stats-row${hasData ? '' : ' dim-row'}">
-        <span class="stats-key">${key}</span>
+        <span class="stats-key">${stripEarCategory(key)}</span>
         ${barHtml}
         <span class="stats-time">${secs}</span>
         <span class="stats-count">${entry.count}×</span>
@@ -1589,9 +1605,9 @@ function renderEarStats() {
   const earWeakSpotsHtml = earWeakItems.length ? `<div class="weak-spots-panel">
     <h3 class="stats-section-title">Focus on these</h3>
     ${earWeakItems.map(([k, e]) => `<div class="weak-spot-row">
-      <span class="weak-spot-name">${k}</span>
+      <span class="weak-spot-name">${stripEarCategory(k)}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
-      <button class="drill-btn" data-type="${k}" data-ear="true">Drill</button>
+      <button class="drill-btn" data-type="${stripEarCategory(k)}" data-ear="true">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
