@@ -942,11 +942,13 @@ function renderStats() {
 
   function buildSection(entries, title) {
     if (!entries.length) return '';
-    const sorted   = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
-    const withData = sorted.filter(([, e]) => e.count >= 3);
-    const maxEma   = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
-    const minEma   = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
-    const delta    = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
+    const confirmed = entries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema);
+    const building  = entries.filter(([, e]) => e.count < 3).sort(([, a], [, b]) => b.count - a.count);
+    const sorted    = [...confirmed, ...building];
+    const withData  = confirmed;
+    const maxEma    = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
+    const minEma    = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
+    const delta     = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
 
     const rows = sorted.map(([key, entry]) => {
       const hasData = entry.count >= 3;
@@ -1563,11 +1565,13 @@ function renderEarStats() {
 
   function buildEarSection(entries, title) {
     if (!entries.length) return '';
-    const sorted   = [...entries].sort(([, a], [, b]) => b.ema - a.ema);
-    const withData = sorted.filter(([, e]) => e.count >= 3);
-    const maxEma   = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
-    const minEma   = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
-    const delta    = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
+    const confirmed = entries.filter(([, e]) => e.count >= 3).sort(([, a], [, b]) => b.ema - a.ema);
+    const building  = entries.filter(([, e]) => e.count < 3).sort(([, a], [, b]) => b.count - a.count);
+    const sorted    = [...confirmed, ...building];
+    const withData  = confirmed;
+    const maxEma    = withData.length ? Math.max(...withData.map(([, e]) => e.ema)) : null;
+    const minEma    = withData.length ? Math.min(...withData.map(([, e]) => e.ema)) : null;
+    const delta     = (maxEma && minEma && maxEma !== minEma) ? maxEma - minEma : null;
 
     const rows = sorted.map(([key, entry]) => {
       const hasData = entry.count >= 3;
