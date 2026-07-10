@@ -27,9 +27,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   // 10 total answers, 6 first-try (2+4) -> 60% accuracy
   checkTrue('header shows 60% first-try accuracy', html.includes('60%'), 'expected "60%" somewhere in rendered HTML');
   checkTrue('header labels it "first-try accuracy"', html.includes('first-try accuracy'), null);
-  // today = 12 min, 30-day total = 5 + 12 = 17 min
-  checkTrue('header shows today\'s practice minutes (12 min)', html.includes('12 min'), null);
-  checkTrue('header shows the 30-day practice total (17 min)', html.includes('17 min'), null);
+  // today = 12 min, 30-day total = 5 + 12 = 17 min, shown as "12/17"
+  checkTrue('header shows today\'s practice minutes (12)', html.includes('>12'), null);
+  checkTrue('header shows the 30-day practice total (17)', html.includes('>17<'), null);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

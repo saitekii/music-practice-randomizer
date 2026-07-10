@@ -924,8 +924,8 @@ function renderStats() {
       <span class="stats-header-lbl">first-try accuracy</span>
     </div>
     <div class="stats-header-stat">
-      <span class="stats-header-num">${todayPracticeMin} min</span>
-      <span class="stats-header-lbl">today · ${totalPracticeMin} min (30 days)</span>
+      <span class="stats-header-num">${todayPracticeMin}<span class="stats-header-num-sep">/</span>${totalPracticeMin}</span>
+      <span class="stats-header-lbl">min today / 30d</span>
     </div>
   </div>`;
 

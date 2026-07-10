@@ -2319,6 +2319,13 @@ input[type="number"]:focus-visible {
   line-height: 1.2;
 }
 
+.stats-header-num-sep {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--text-dim);
+  margin: 0 3px;
+}
+
 /* ── Stats: 14-day chart ─────────────────────────────────────────────────────── */
 
 .stats-chart-wrap {
