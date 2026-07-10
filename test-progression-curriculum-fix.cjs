@@ -42,28 +42,28 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   checkTrue('applyStage() on Functional Harmony — C leaves all 26 progression checkboxes unchecked', stage1ApplyCheck, null);
 
   // --- The old 5-stage key ramp and the 2-key borrowed-content stage were removed by the key-ramp
-  //     audit (redundant: key fluency is already established well before Phase 14). Only the 5 C-only
-  //     borrowed-content stages remain between 'More Minor Progressions' and 'Functional, Nat. Keys'. ---
+  //     audit (redundant: key fluency is already established well before Phase 14). The 5 C-only
+  //     borrowed-content stages remain, now followed by 4 new C-only jazz-extended stages (9 total). ---
   const rampCheck = await page.evaluate(([all26]) => {
     const idxMoreMinor = LEARNING_PATH.findIndex(s => s.name === 'More Minor Progressions');
     const idxNatKeys    = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys');
     const between = LEARNING_PATH.slice(idxMoreMinor + 1, idxNatKeys);
-    const expectedNames = ['Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords', 'Raised Mediants', 'Minor Borrowed — ♭II'];
+    const expectedNames = ['Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords', 'Raised Mediants', 'Minor Borrowed — ♭II', 'Jazz 7th Chords', 'Extended 9ths, 11ths & 13ths', 'Circle of Fifths & Applied Chords', 'Cadences & Color Chords'];
     const removedNames  = ['Progressions, Two Keys', 'Progressions, Three Keys', 'Progressions, Add D', 'Progressions, Add A', 'Progressions, Add E', 'Borrowed Content, Two Keys'];
     return {
       count: between.length,
       namesMatch: between.map(s => s.name).every((n, i) => n === expectedNames[i]),
       allCOnly: between.every(s => JSON.stringify(s.notes) === JSON.stringify(['C'])),
       allHaveNoTimer: between.every(s => s.timer === 'off'),
-      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 6,
+      immediatelyAdjacent: idxNatKeys === idxMoreMinor + 10,
       noneOfTheRemovedStagesExist: !LEARNING_PATH.some(s => removedNames.includes(s.name)),
     };
   }, [ALL_26]);
-  check('exactly 5 stages remain between More Minor Progressions and Functional, Nat. Keys (down from 11)', rampCheck.count, 5);
-  checkTrue('the 5 stages are named and ordered correctly', rampCheck.namesMatch, null);
-  checkTrue('all 5 stages are C only (no key ramp needed anymore)', rampCheck.allCOnly, null);
+  check('exactly 9 stages remain between More Minor Progressions and Functional, Nat. Keys (5 borrowed + 4 new jazz)', rampCheck.count, 9);
+  checkTrue('the 9 stages are named and ordered correctly', rampCheck.namesMatch, null);
+  checkTrue('all 9 stages are C only (no key ramp needed anymore)', rampCheck.allCOnly, null);
   checkTrue('each stage has timer: off', rampCheck.allHaveNoTimer, null);
-  checkTrue('Functional, Nat. Keys sits exactly 6 stages after More Minor Progressions (5 between + itself)', rampCheck.immediatelyAdjacent, null);
+  checkTrue('Functional, Nat. Keys sits exactly 10 stages after More Minor Progressions (9 between + itself)', rampCheck.immediatelyAdjacent, null);
   checkTrue('all 6 removed stages (5 old ramp + Borrowed Content, Two Keys) are gone', rampCheck.noneOfTheRemovedStagesExist, null);
 
   // --- 'Functional, Nat. Keys' and 'Functional, All 12' remain unchanged ---

@@ -111,7 +111,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('"Left-Hand Voicing" sits right before "Triad inversions"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') + 1], 'Triad inversions');
   check('LEARNING_PATH_PHASES has 18 entries total', phaseCheck.phaseNames.length, 18);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 120 stages total', phaseCheck.totalStages, 120);
+  check('LEARNING_PATH has 124 stages total (120 + 4 new jazz-extended progression stages)', phaseCheck.totalStages, 124);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

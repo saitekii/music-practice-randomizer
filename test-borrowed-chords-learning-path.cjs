@@ -24,7 +24,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     return {
       idx,
       afterMoreMinor: LEARNING_PATH[idx - 1]?.name === 'More Minor Progressions',
-      beforeNatKeys: LEARNING_PATH[idx + 5]?.name === 'Functional, Nat. Keys',
+      beforeNatKeys: LEARNING_PATH[idx + 9]?.name === 'Functional, Nat. Keys', // 5 borrowed stages + 4 new jazz stages
       names: stages.map(s => s.name),
       counts: stages.map(s => (s.progressions || []).length),
       notes: stages.map(s => s.notes),
@@ -32,7 +32,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   checkTrue('the 5 borrowed-chord stages start right after "More Minor Progressions" (the old 5-stage key ramp and the 2-key stage were removed by the key-ramp audit)', stageData.afterMoreMinor, JSON.stringify(stageData.names));
-  checkTrue('"Functional, Nat. Keys" immediately follows the 5 stages', stageData.beforeNatKeys, null);
+  checkTrue('"Functional, Nat. Keys" comes after the 5 borrowed stages and 4 new jazz stages', stageData.beforeNatKeys, null);
   check('stage names in order', stageData.names, [
     'Borrowed Chords — Intro', 'Single Borrowed Chord Progressions', 'Combining Borrowed Chords',
     'Raised Mediants', 'Minor Borrowed — ♭II',
@@ -78,7 +78,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseCountSum: LEARNING_PATH_PHASES.reduce((s, p) => s + p.count, 0),
     totalStages: LEARNING_PATH.length,
   }));
-  check('Functional harmony phase count is 22 (28 minus the 6 redundant key-ramp stages removed by the key-ramp audit)', phaseCheck.functionalHarmonyCount, 22);
+  check('Functional harmony phase count is 26 (22 + 4 new jazz-extended progression stages)', phaseCheck.functionalHarmonyCount, 26);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
 
   await browser.close();
