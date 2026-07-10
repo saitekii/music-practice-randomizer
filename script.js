@@ -132,6 +132,7 @@ const FUNCTIONAL_NUMERALS = {
     'iv': [5, 'Minor'], '♭II': [1, 'Major'], '♭III': [3, 'Major'],
     '♭VI': [8, 'Major'], '♭VII': [10, 'Major'],
     'II': [2, 'Major'], 'III': [4, 'Major'], 'VI': [9, 'Major'],
+    '♯IV': [6, 'Diminished'],
   },
   minor: {
     'i': [0, 'Minor'], 'ii°': [2, 'Diminished'], 'III': [3, 'Major'], 'iv': [5, 'Minor'],
@@ -3382,6 +3383,17 @@ function getRequiredBassPc(typeLabel, invLabel, pcs) {
   return idx === -1 ? null : (pcs[idx] ?? null);
 }
 
+// Suffix + degree marker (from a jazz-extended numeral like "Imaj7", "V13", "viiø7") -> a quality
+// string Tonal.Chord.getChord() understands. isUpper/degreeMarker come from splitting the numeral
+// in getExpectedPCs()'s func branch -- see the comment there for why they're passed separately
+// rather than re-derived from a combined base string.
+function resolveJazzQuality(degreeMarker, isUpper, suffix) {
+  if (degreeMarker === 'ø' && suffix === '7') return 'm7b5';
+  if (degreeMarker === '°' && suffix === '7') return 'dim7';
+  if (/^\d+(sus\d?)?$/.test(suffix)) return (isUpper ? '' : 'm') + suffix;
+  return suffix.replace(/♯/g, '#').replace(/♭/g, 'b');
+}
+
 function getExpectedPCs(key) {
   if (!key) return null;
   const parts = key.split('|');
@@ -3444,13 +3456,34 @@ function getExpectedPCs(key) {
     if (!numeral) return null;
     const rootIdx = (NOTE_TO_PC[parts[1]] ?? -1);
     const modeKey = parts[2] === 'Major' ? 'major' : 'minor';
-    const entry   = FUNCTIONAL_NUMERALS[modeKey][numeral];
-    if (rootIdx === -1 || !entry) return null;
-    const [offset, quality] = entry;
-    const chordRootPC = (rootIdx + offset) % 12;
-    const intervals   = CHORD_INTERVALS[quality];
-    if (!intervals) return null;
-    return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+    if (rootIdx === -1) return null;
+    const entry = FUNCTIONAL_NUMERALS[modeKey][numeral];
+    if (entry) {
+      const [offset, quality] = entry;
+      const chordRootPC = (rootIdx + offset) % 12;
+      const intervals   = CHORD_INTERVALS[quality];
+      if (!intervals) return null;
+      return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+    }
+    // Fallback: a numeral with an explicit jazz quality suffix (e.g. "Imaj7", "V13", "viiø7"),
+    // not a bare token FUNCTIONAL_NUMERALS already knows. Split off the base numeral and hand the
+    // actual chord construction to Tonal instead of another hand-built lookup table. The degree
+    // marker (°/ø) is parsed separately from the numeral-letters lookup because the table stores
+    // some entries WITH the degree symbol baked into the key (vii°, ii°) and others without --
+    // try the bare accidental+letters form first, then that form with ° appended.
+    const jazzMatch = numeral.match(/^(♭|♯)?(VII|VI|V|IV|III|II|I|vii|vi|v|iv|iii|ii|i)(°|ø)?(.+)$/);
+    if (!jazzMatch) return null;
+    const accLetters   = (jazzMatch[1] || '') + jazzMatch[2];
+    const degreeMarker = jazzMatch[3] || '';
+    const suffix        = jazzMatch[4];
+    const isUpper        = jazzMatch[2] === jazzMatch[2].toUpperCase();
+    const baseEntry = FUNCTIONAL_NUMERALS[modeKey][accLetters] || FUNCTIONAL_NUMERALS[modeKey][accLetters + '°'];
+    if (!baseEntry) return null;
+    const rootNote = NOTES[(rootIdx + baseEntry[0]) % 12];
+    const quality  = resolveJazzQuality(degreeMarker, isUpper, suffix);
+    const chord    = Tonal.Chord.getChord(quality, rootNote);
+    if (!chord || chord.empty || !chord.notes.length) return null;
+    return { type: 'chord', pcs: chord.notes.map(n => Tonal.Note.chroma(n)) };
   }
 
   return null;
