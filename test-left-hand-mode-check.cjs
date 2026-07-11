@@ -78,7 +78,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     // A normal (non-LH) F minor answer right after should still update roots/types/combos as usual.
     recordAdaptiveResult('chord|F|Minor||', 1200);
     results.normalFRootTracked = adaptWeights.roots['F']?.count;
-    results.normalMinorTypeTracked = adaptWeights.types['Minor']?.count;
+    results.normalMinorTypeTracked = adaptWeights.types['chord:Minor']?.count;
 
     return results;
   });

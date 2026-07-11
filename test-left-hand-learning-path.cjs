@@ -89,7 +89,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('a Left Hand stage does NOT show as mastered just because Major chord type is already mastered elsewhere (the bug this task fixes)', masteryIsolationCheck.ready, false);
 
   const regressionMasteryCheck = await page.evaluate(() => {
-    adaptWeights.types = { 'Major': { ema: 1000, ema_slow: 1000, count: 5 } };
+    adaptWeights.types = { 'chord:Major': { ema: 1000, ema_slow: 1000, count: 5 } };
     // 'First Chord' has cats:['catChords'] and notes:['C'], so its mastery items span BOTH
     // the 'types' and 'roots' dimensions (pre-existing, unmodified behavior for non-left-hand
     // stages) -- mock roots.C too so this regression check actually reaches ready:true.
