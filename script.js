@@ -891,7 +891,8 @@ function renderStats() {
   const todayEntry  = log.find(e => e.date === today);
   const totalAns    = log.reduce((s, e) => s + e.answers, 0);
 
-  if (!rootEntries.length && !typeEntries.length && !log.length) {
+  const comboEntriesEarly = Object.entries(adaptWeights.combos || {});
+  if (!rootEntries.length && !typeEntries.length && !log.length && !comboEntriesEarly.length) {
     return `<p class="stats-empty">No data yet. Play prompts with MIDI enabled — each correct answer starts building your profile.</p>`;
   }
 
@@ -967,7 +968,7 @@ function renderStats() {
         badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
       }
       return `<div class="stats-row${hasData ? '' : ' dim-row'}">
-        <span class="stats-key">${key}</span>
+        <span class="stats-key">${stripTypeCategory(key)}</span>
         ${barHtml}
         <span class="stats-time">${secs}</span>
         <span class="stats-count">${entry.count}×</span>
@@ -987,11 +988,15 @@ function renderStats() {
 
   const weakSpotsHtml = weakCombos.length ? `<div class="weak-spots-panel">
     <h3 class="stats-section-title">Focus on these</h3>
-    ${weakCombos.map(([k, e]) => `<div class="weak-spot-row">
-      <span class="weak-spot-name">${k.replace('|', ' ')}</span>
+    ${weakCombos.map(([k, e]) => {
+      const pipe = k.indexOf('|');
+      const displayName = `${k.slice(0, pipe)} ${stripTypeCategory(k.slice(pipe + 1))}`;
+      return `<div class="weak-spot-row">
+      <span class="weak-spot-name">${displayName}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
       <button class="drill-btn" data-type="${k}" data-ear="false" data-combo="true">Drill</button>
-    </div>`).join('')}
+    </div>`;
+    }).join('')}
   </div>` : '';
 
   const calHtml = renderCalendar(log);
@@ -2876,12 +2881,12 @@ function getStageMastery(stageIdx) {
     (stage.chords || []).forEach(id => {
       if (id === 'inversions') return;
       const ct = CHORD_TYPES.find(c => c.id === id);
-      if (ct) items.push({ dim: 'types', key: ct.label });
+      if (ct) items.push({ dim: 'types', key: `chord:${ct.label}` });
     });
   }
   (stage.scales || []).forEach(id => {
     const st = SCALE_TYPES.find(s => s.id === id);
-    if (st && st.label) items.push({ dim: 'types', key: st.label });
+    if (st && st.label) items.push({ dim: 'types', key: `scale:${st.label}` });
   });
   (stage.progressions || []).forEach(p => items.push({ dim: 'variations', key: p }));
   const hasChordOrScale = (stage.cats || []).some(c => c === 'catChords' || c === 'catScales');
@@ -2920,24 +2925,34 @@ let drillIsEar  = false;
 const ALL_PLAY_CATS = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
 const ALL_EAR_CATS  = ['earCatIntervals','earCatChords','earCatScales'];
 
-function findPlayingDrillTarget(label) {
-  const chord = CHORD_TYPES.find(c => c.label === label);
-  if (chord) return { cat: 'catChords', id: chord.id };
-  const scale = SCALE_TYPES.find(s => s.label === label);
-  if (scale) return { cat: 'catScales', id: scale.id };
-  if (MODES.includes(label)) return { cat: 'catScales', id: 'scaleModes' };
-  const interval = INTERVALS.find(i => i.label === label);
-  if (interval) return { cat: 'catIntervals', id: interval.id };
+function findPlayingDrillTarget(label, category) {
+  if (category === 'chord') {
+    const chord = CHORD_TYPES.find(c => c.label === label);
+    return chord ? { cat: 'catChords', id: chord.id } : null;
+  }
+  if (category === 'scale') {
+    const scale = SCALE_TYPES.find(s => s.label === label);
+    if (scale) return { cat: 'catScales', id: scale.id };
+    if (MODES.includes(label)) return { cat: 'catScales', id: 'scaleModes' };
+    return null;
+  }
+  if (category === 'interval') {
+    const interval = INTERVALS.find(i => i.label === label);
+    return interval ? { cat: 'catIntervals', id: interval.id } : null;
+  }
   return null;
 }
 
 function startDrillCombo(comboKey) {
   saveSettings();
   statsModal.classList.add('hidden');
-  const pipe      = comboKey.indexOf('|');
-  const root      = comboKey.slice(0, pipe);
-  const typeLabel = comboKey.slice(pipe + 1);
-  const target    = findPlayingDrillTarget(typeLabel);
+  const pipe         = comboKey.indexOf('|');
+  const root         = comboKey.slice(0, pipe);
+  const categoryType = comboKey.slice(pipe + 1);
+  const colonIdx     = categoryType.indexOf(':');
+  const category      = categoryType.slice(0, colonIdx);
+  const typeLabel      = categoryType.slice(colonIdx + 1);
+  const target        = findPlayingDrillTarget(typeLabel, category);
   if (!target) return;
   ALL_PLAY_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
   document.getElementById(target.cat).checked = true;
