@@ -777,10 +777,10 @@ function updateDailyLog(ms, isEar = false, firstTryCorrect = false) {
   localStorage.setItem('mpr_daily', JSON.stringify(log));
 }
 
-function weightedPick(items, dim) {
+function weightedPick(items, dim, category) {
   if (!adaptiveOn() || items.length <= 1) return pick(items);
   const g = adaptWeights[dim];
-  const emas = items.map(item => { const e = g[item]; return (e && e.count >= 3) ? e.ema : null; });
+  const emas = items.map(item => { const e = g[category ? `${category}:${item}` : item]; return (e && e.count >= 3) ? e.ema : null; });
   const withData = emas.filter(v => v !== null);
   const mean = withData.length ? withData.reduce((a, b) => a + b, 0) / withData.length : null;
   const weights = emas.map(v => (mean && v) ? Math.max(0.5, Math.min(3.0, v / mean)) : 1.0);
@@ -1015,13 +1015,13 @@ function recordAdaptiveResult(key, ms) {
       updateAdaptWeight('variations', 'Left Hand', ms);
     } else {
       updateAdaptWeight('roots', parts[1], ms);
-      updateAdaptWeight('types', parts[2], ms);
-      updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms);
+      updateAdaptWeight('types', `chord:${parts[2]}`, ms);
+      updateAdaptWeight('combos', `${parts[1]}|chord:${parts[2]}`, ms);
       if (parts[3]) updateAdaptWeight('variations', parts[3], ms);
     }
   }
-  else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', parts[2], ms); updateAdaptWeight('combos', parts[1] + '|' + parts[2], ms); }
-  else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', parts[1], ms); }
+  else if (type === 'scale')    { updateAdaptWeight('roots', parts[1], ms); updateAdaptWeight('types', `scale:${parts[2]}`, ms); updateAdaptWeight('combos', `${parts[1]}|scale:${parts[2]}`, ms); }
+  else if (type === 'interval') { updateAdaptWeight('roots', parts[2], ms); updateAdaptWeight('types', `interval:${parts[1]}`, ms); }
   else if (type === 'func')     {
     updateAdaptWeight('roots', parts[1], ms);
     if (parts[3] && parts[3].includes('–')) updateAdaptWeight('variations', parts[3], ms);
@@ -1036,7 +1036,7 @@ function saveEarAdaptWeights() {
   localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
 }
 
-function stripEarCategory(key) {
+function stripTypeCategory(key) {
   return key.replace(/^(interval|chord|scale):/, '');
 }
 
@@ -1559,7 +1559,7 @@ function renderEarStats() {
         badgeHtml = `<span class="stats-badge building">${entry.count}/3</span>`;
       }
       return `<div class="stats-row${hasData ? '' : ' dim-row'}">
-        <span class="stats-key">${stripEarCategory(key)}</span>
+        <span class="stats-key">${stripTypeCategory(key)}</span>
         ${barHtml}
         <span class="stats-time">${secs}</span>
         <span class="stats-count">${entry.count}×</span>
@@ -1578,9 +1578,9 @@ function renderEarStats() {
   const earWeakSpotsHtml = earWeakItems.length ? `<div class="weak-spots-panel">
     <h3 class="stats-section-title">Focus on these</h3>
     ${earWeakItems.map(([k, e]) => `<div class="weak-spot-row">
-      <span class="weak-spot-name">${stripEarCategory(k)}</span>
+      <span class="weak-spot-name">${stripTypeCategory(k)}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
-      <button class="drill-btn" data-type="${stripEarCategory(k)}" data-ear="true">Drill</button>
+      <button class="drill-btn" data-type="${stripTypeCategory(k)}" data-ear="true">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
@@ -2049,7 +2049,7 @@ function genChord() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const typeLabel = weightedPick(types.map(t => t.label), 'types');
+  const typeLabel = weightedPick(types.map(t => t.label), 'types', 'chord');
   const type      = types.find(t => t.label === typeLabel) || pick(types);
   const note      = weightedPick(notes, 'roots');
 
@@ -2081,7 +2081,7 @@ function genScale() {
   let label;
   if (adaptiveOn()) {
     const allLabels = types.flatMap(t => t.label === null ? MODES : [t.label]);
-    label = weightedPick(allLabels, 'types');
+    label = weightedPick(allLabels, 'types', 'scale');
   } else {
     const type = pick(types);
     label = type.label === null ? pick(MODES) : type.label;
@@ -2140,7 +2140,7 @@ function genInterval() {
 
   if (!types.length || !notes.length || !dirs.length) return null;
 
-  const intLabel = weightedPick(types.map(i => i.label), 'types');
+  const intLabel = weightedPick(types.map(i => i.label), 'types', 'interval');
   const interval = types.find(i => i.label === intLabel) || pick(types);
   const note     = weightedPick(notes, 'roots');
   const dir      = pick(dirs);
