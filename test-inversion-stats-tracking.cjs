@@ -34,7 +34,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       firstInvCount: adaptWeights.variations['1st inversion']?.count,
       rootPosCount:  adaptWeights.variations['Root position']?.count,
       totalVariationKeys: Object.keys(adaptWeights.variations).length,
-      typesStillTracked: adaptWeights.types['Major']?.count,
+      typesStillTracked: adaptWeights.types['chord:Major']?.count,
     };
   });
   check('1st inversion tracked across two different chords/roots (count 2)', tracking.firstInvCount, 2);
