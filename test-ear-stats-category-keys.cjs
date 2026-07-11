@@ -84,7 +84,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   });
   checkTrue('weightedPickEar favors the slower ("Major") item well above uniform 50%', pickResult > 240, `Major picked ${pickResult}/400 times`);
 
-  // --- Test 6: rendered Recognition Types / Focus on These show bare labels, not prefixed keys ---
+  // --- Test 6: rendered Recognition Types / Focus on These show bare labels in visible text.
+  // The data-type attribute is a separate concern (Test 7) -- it intentionally DOES carry the
+  // raw prefixed key so startDrill can dispatch by category. ---
   const renderResult = await page3.evaluate(() => {
     earAdaptWeights.types = {
       'chord:Major': { ema: 3000, ema_slow: 3000, count: 5 },
@@ -92,23 +94,26 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
     const html = renderEarStats();
     const recognitionSection = html.slice(html.indexOf('Recognition Types'));
+    const nameTexts = [...html.matchAll(/class="weak-spot-name">([^<]*)</g)].map(m => m[1]);
     return {
-      html,
       majorRowCount: (recognitionSection.match(/>Major</g) || []).length,
-      hasPrefixedText: html.includes('chord:Major') || html.includes('scale:Major'),
+      hasPrefixedVisibleText: nameTexts.some(t => t.includes(':')),
     };
   });
   check('Recognition Types shows two separate "Major" rows (chord + scale, not merged)', renderResult.majorRowCount, 2);
-  checkTrue('no category-prefixed text ever appears in rendered HTML', !renderResult.hasPrefixedText, null);
+  checkTrue('no category-prefixed text appears in the visible weak-spot-name labels', !renderResult.hasPrefixedVisibleText, null);
 
-  // --- Test 7: the critical startDrill regression -- data-type attribute must be the BARE label ---
+  // --- Test 7: the critical startDrill fix -- data-type attribute must be the RAW category-prefixed
+  // key (not the bare label) so startDrill('chord:Major', ...) / startDrill('scale:Major', ...) can
+  // dispatch by category directly, instead of guessing from a bare label that collides across
+  // categories (the original bug). See test-ear-drill-routing.cjs for the full startDrill routing check. ---
   const drillAttr = await page3.evaluate(() => {
     earAdaptWeights.types = { 'chord:Major': { ema: 3000, ema_slow: 3000, count: 5 } };
     document.getElementById('statsContent').innerHTML = renderEarStats();
     const btn = document.querySelector('.drill-btn[data-ear="true"]');
     return btn ? btn.getAttribute('data-type') : null;
   });
-  check('the ear Drill button\'s data-type is the bare label ("Major"), not "chord:Major" -- startDrill() matches against EAR_CHORD_MAP\'s bare values and would silently no-op otherwise', drillAttr, 'Major');
+  check('the ear Drill button\'s data-type is the raw category-prefixed key ("chord:Major"), not the bare label -- startDrill() now parses the category directly instead of guessing', drillAttr, 'chord:Major');
 
   await page3.close();
   await browser.close();

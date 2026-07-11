@@ -1585,7 +1585,7 @@ function renderEarStats() {
     ${earWeakItems.map(([k, e]) => `<div class="weak-spot-row">
       <span class="weak-spot-name">${stripTypeCategory(k)}</span>
       <span class="weak-spot-time">${(e.ema / 1000).toFixed(1)}s avg</span>
-      <button class="drill-btn" data-type="${stripTypeCategory(k)}" data-ear="true">Drill</button>
+      <button class="drill-btn" data-type="${k}" data-ear="true">Drill</button>
     </div>`).join('')}
   </div>` : '';
 
@@ -2968,40 +2968,31 @@ function startDrillCombo(comboKey) {
   showPrompt();
 }
 
-function startDrill(typeLabel, isEar) {
+function startDrill(rawLabel, isEar) {
+  if (!isEar) return;
   saveSettings();
   statsModal.classList.add('hidden');
 
-  if (isEar) {
-    let earTarget = null;
-    for (const [id, lbl] of Object.entries(EAR_INT_MAP))   { if (lbl === typeLabel) { earTarget = { cat: 'earCatIntervals', ids: Object.keys(EAR_INT_MAP)   }; break; } }
-    if (!earTarget) for (const [id, lbl] of Object.entries(EAR_CHORD_MAP)) { if (lbl === typeLabel) { earTarget = { cat: 'earCatChords', ids: Object.keys(EAR_CHORD_MAP) }; break; } }
-    if (!earTarget) for (const [id, lbl] of Object.entries(EAR_SCALE_MAP)) { if (lbl === typeLabel) { earTarget = { cat: 'earCatScales', ids: Object.keys(EAR_SCALE_MAP) }; break; } }
-    if (!earTarget) return;
-    ALL_EAR_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
-    document.getElementById(earTarget.cat).checked = true;
-    earTarget.ids.forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
-    drillIsEar = true;
-    document.getElementById('tabEar')?.click();
-  } else {
-    const target = findPlayingDrillTarget(typeLabel);
-    if (!target) return;
-    ALL_PLAY_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
-    document.getElementById(target.cat).checked = true;
-    document.getElementById(target.id).checked  = true;
-    if (target.cat === 'catIntervals') {
-      document.getElementById('intDirUp').checked   = true;
-      document.getElementById('intDirDown').checked = true;
-    }
-    drillIsEar = false;
-  }
+  const colonIdx  = rawLabel.indexOf(':');
+  const category  = rawLabel.slice(0, colonIdx);
+  const typeLabel = rawLabel.slice(colonIdx + 1);
+
+  let earTarget = null;
+  if      (category === 'interval') earTarget = { cat: 'earCatIntervals', ids: Object.keys(EAR_INT_MAP) };
+  else if (category === 'chord')    earTarget = { cat: 'earCatChords',    ids: Object.keys(EAR_CHORD_MAP) };
+  else if (category === 'scale')    earTarget = { cat: 'earCatScales',    ids: Object.keys(EAR_SCALE_MAP) };
+  if (!earTarget) return;
+  ALL_EAR_CATS.forEach(id => { const el = document.getElementById(id); if (el) el.checked = false; });
+  document.getElementById(earTarget.cat).checked = true;
+  earTarget.ids.forEach(id => { const el = document.getElementById(id); if (el) el.checked = true; });
+  drillIsEar = true;
+  document.getElementById('tabEar')?.click();
 
   syncUI();
   drillActive = true;
   document.getElementById('drillLabel').textContent = `Drilling: ${typeLabel}`;
   document.getElementById('drillBanner').classList.remove('hidden');
-  if (drillIsEar) setTimeout(() => showEarPrompt(), 100);
-  else showPrompt();
+  setTimeout(() => showEarPrompt(), 100);
 }
 
 function stopDrill() {

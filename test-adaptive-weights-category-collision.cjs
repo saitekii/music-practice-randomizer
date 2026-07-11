@@ -83,14 +83,17 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   });
   checkTrue('weightedPick with no category still works for roots dim', rootsPickResult > 240, `C picked ${rootsPickResult}/400 times`);
 
-  // --- stripTypeCategory rename: existing Ear Training rendering still works ---
+  // --- stripTypeCategory rename: existing Ear Training rendering still works.
+  // Note: as of the category-aware startDrill fix, the drill button's data-type attribute
+  // is intentionally the raw category-prefixed key (so startDrill can dispatch by category) --
+  // only the human-visible label text is stripped. See test-ear-drill-routing.cjs. ---
   const earRenderStillWorks = await page.evaluate(() => {
     earAdaptWeights.types = { 'chord:Major': { ema: 1000, ema_slow: 1000, count: 5 } };
     const html = renderEarStats();
-    return { hasStrippedLabel: html.includes('>Major<'), hasPrefixedText: html.includes('chord:Major') };
+    return { hasStrippedLabel: html.includes('>Major<'), hasRawDataType: html.includes('data-type="chord:Major"') };
   });
   checkTrue('post-rename, Ear Training still renders the stripped label', earRenderStillWorks.hasStrippedLabel, null);
-  checkTrue('post-rename, no raw prefixed text leaks into Ear Training HTML', !earRenderStillWorks.hasPrefixedText, null);
+  checkTrue('the drill button\'s data-type attribute carries the raw category-prefixed key', earRenderStillWorks.hasRawDataType, null);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
