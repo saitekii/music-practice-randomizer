@@ -47,7 +47,6 @@ const JAZZ_SYMBOLS = {
   chordDom7:       ['7'],
   chordHalfDim:    ['ø', 'ø7', 'm7♭5'],
   chordDim7:       ['°7', 'dim7'],
-  chordRoot5:      ['5'],
   chordSus2:       ['sus2'],
   chordSus4:       ['sus', 'sus4'],
   chord7sus4:      ['7sus4', '7sus'],
