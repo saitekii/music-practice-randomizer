@@ -27,6 +27,7 @@ const CHORD_TYPES = [
   { id: 'chord7s11',    label: '7♯11',         seventh: true,  formula: '1 – 3 – 5 – ♭7 – ♯11'          },
   { id: 'chordHalfDim', label: 'Minor 7♭5',    seventh: true,  formula: '1 – ♭3 – ♭5 – ♭7'              },
   { id: 'chordDim7',    label: 'Diminished 7', seventh: true,  formula: '1 – ♭3 – ♭5 – ♭♭7'             },
+  { id: 'chordRoot5',   label: 'Root + 5th',   seventh: false, formula: '1 – 5'                         },
 ];
 
 const TRIAD_INVERSIONS   = ['Root position', '1st inversion', '2nd inversion'];
@@ -46,6 +47,7 @@ const JAZZ_SYMBOLS = {
   chordDom7:       ['7'],
   chordHalfDim:    ['ø', 'ø7', 'm7♭5'],
   chordDim7:       ['°7', 'dim7'],
+  chordRoot5:      ['5'],
   chordSus2:       ['sus2'],
   chordSus4:       ['sus', 'sus4'],
   chord7sus4:      ['7sus4', '7sus'],
@@ -172,6 +174,7 @@ const CHORD_INTERVALS = {
   '7♯11':         [0, 4, 6, 7, 10],
   'Minor 7♭5':    [0, 3, 6, 10],
   'Diminished 7': [0, 3, 6, 9],
+  'Root + 5th':   [0, 7],
 };
 
 const SCALE_INTERVALS = {
@@ -232,6 +235,7 @@ const LEARNING_PATH = [
   { name: 'Add C♯',              hint: 'Last accidental — all 12 keys now',                                                                       cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Speed Up',            hint: 'All 12 keys, Major + Minor root position — 5 seconds',                                                    cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
   // ── Phase 5b: Left-Hand Voicing ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  { name: 'Left Hand Shape',     hint: 'Just the left-hand shape by itself — root and 5th, no right hand yet',                                     cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordRoot5'],                                                                  scales: [],                             timer: 'off' },
   { name: 'Meet Left Hand',      hint: 'Left hand plays root + 5th below middle C, right hand plays the full chord — two hands, one chord',        cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','leftHandMode'],                                                   scales: [],                             timer: 'off' },
   { name: 'Left Hand, Nat. Keys',hint: 'Same two-handed voicing — all seven natural keys, Major only',                                             cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','leftHandMode'],                                                   scales: [],                             timer: 'off' },
   { name: 'Add Minor, Left Hand',hint: 'Minor chords added to the two-handed voicing',                                                              cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','leftHandMode'],                                      scales: [],                             timer: 'off' },
@@ -354,7 +358,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Introduce minor', count: 3 },
   { name: 'Add timer pressure', count: 3 },
   { name: 'Accidentals one at a time', count: 6 },
-  { name: 'Left-Hand Voicing', count: 5 },
+  { name: 'Left-Hand Voicing', count: 6 },
   { name: 'Triad inversions', count: 8 },
   { name: 'Major scales', count: 4 },
   { name: 'Combine chords + scales', count: 3 },

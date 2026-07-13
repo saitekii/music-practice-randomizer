@@ -19,31 +19,33 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   };
 
   const stageData = await page.evaluate(() => {
-    const idx = LEARNING_PATH.findIndex(s => s.name === 'Meet Left Hand');
-    const stages = LEARNING_PATH.slice(idx, idx + 5);
+    const idx = LEARNING_PATH.findIndex(s => s.name === 'Left Hand Shape');
+    const stages = LEARNING_PATH.slice(idx, idx + 6);
     return {
       afterSpeedUp: LEARNING_PATH[idx - 1]?.name === 'Speed Up',
-      beforeMeetInversions: LEARNING_PATH[idx + 5]?.name === 'Meet Inversions',
+      beforeMeetInversions: LEARNING_PATH[idx + 6]?.name === 'Meet Inversions',
       names: stages.map(s => s.name),
       notes: stages.map(s => s.notes),
       chords: stages.map(s => s.chords),
       timers: stages.map(s => s.timer),
     };
   });
-  checkTrue('the 5 new stages start right after "Speed Up"', stageData.afterSpeedUp, JSON.stringify(stageData.names));
-  checkTrue('"Meet Inversions" immediately follows the 5 new stages', stageData.beforeMeetInversions, null);
-  check('stage names in order', stageData.names, ['Meet Left Hand', 'Left Hand, Nat. Keys', 'Add Minor, Left Hand', 'Left Hand Timer', 'Left Hand, All 12']);
-  checkTrue('all 5 stages include leftHandMode and chordMajor', stageData.chords.every(c => c.includes('leftHandMode') && c.includes('chordMajor')), null);
-  checkTrue('stages 3-5 also include chordMinor', stageData.chords.slice(2).every(c => c.includes('chordMinor')), null);
-  checkTrue('stages 1-2 do not yet include chordMinor', stageData.chords.slice(0, 2).every(c => !c.includes('chordMinor')), null);
-  check('notes progression: C, 7 naturals, 7 naturals, 7 naturals, 12 keys', stageData.notes, [
+  checkTrue('the 6 stages of Left-Hand Voicing start right after "Speed Up"', stageData.afterSpeedUp, JSON.stringify(stageData.names));
+  checkTrue('"Meet Inversions" immediately follows the 6 Left-Hand Voicing stages', stageData.beforeMeetInversions, null);
+  check('stage names in order', stageData.names, ['Left Hand Shape', 'Meet Left Hand', 'Left Hand, Nat. Keys', 'Add Minor, Left Hand', 'Left Hand Timer', 'Left Hand, All 12']);
+  checkTrue('stage 1 (Left Hand Shape) has only chordRoot5', stageData.chords[0].every(c => c === 'chordRoot5'), null);
+  checkTrue('stages 2-6 include leftHandMode and chordMajor', stageData.chords.slice(1).every(c => c.includes('leftHandMode') && c.includes('chordMajor')), null);
+  checkTrue('stages 4-6 also include chordMinor', stageData.chords.slice(3).every(c => c.includes('chordMinor')), null);
+  checkTrue('stages 2-3 do not yet include chordMinor', stageData.chords.slice(1, 3).every(c => !c.includes('chordMinor')), null);
+  check('notes progression: C (warmup), C, 7 naturals, 7 naturals, 7 naturals, 12 keys', stageData.notes, [
+    ['C'],
     ['C'],
     ['C','D','E','F','G','A','B'],
     ['C','D','E','F','G','A','B'],
     ['C','D','E','F','G','A','B'],
     ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],
   ]);
-  check('timers: off, off, off, 15, 10', stageData.timers, ['off','off','off','15','10']);
+  check('timers: off, off, off, off, 15, 10', stageData.timers, ['off','off','off','off','15','10']);
 
   const applyStageCheck = await page.evaluate(() => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Add Minor, Left Hand');
@@ -106,12 +108,12 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     totalStages: LEARNING_PATH.length,
   }));
   checkTrue('"Left-Hand Voicing" phase exists', !!phaseCheck.lhPhase, null);
-  check('"Left-Hand Voicing" phase has count 5', phaseCheck.lhPhase?.count, 5);
+  check('"Left-Hand Voicing" phase has count 6 (5 + 1 new Left Hand Shape stage)', phaseCheck.lhPhase?.count, 6);
   check('"Left-Hand Voicing" sits right after "Accidentals one at a time"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') - 1], 'Accidentals one at a time');
   check('"Left-Hand Voicing" sits right before "Triad inversions"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') + 1], 'Triad inversions');
   check('LEARNING_PATH_PHASES has 18 entries total', phaseCheck.phaseNames.length, 18);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 124 stages total (120 + 4 new jazz-extended progression stages)', phaseCheck.totalStages, 124);
+  check('LEARNING_PATH has 125 stages total (124 + 1 new Left Hand Shape stage)', phaseCheck.totalStages, 125);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
