@@ -90,7 +90,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('"Left Hand Shape" practices only chordRoot5', pathCheck.chords, ['chordRoot5']);
   check('"Left Hand Shape" is C only', pathCheck.notes, ['C']);
   check('"Left Hand Shape" is untimed', pathCheck.timer, 'off');
-  check('LEARNING_PATH has 125 stages total (124 + 1 new)', pathCheck.totalStages, 125);
+  check('LEARNING_PATH has 128 stages total (124 + 1 Left Hand Shape + 3 First Progressions)', pathCheck.totalStages, 128);
 
   // --- phase count ---
   const phaseCheck = await page.evaluate(() => ({
