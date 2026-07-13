@@ -2831,7 +2831,9 @@ function randomizeSettings() {
 // exclusive to major always qualify; canonical-minor numerals only qualify when no
 // existing (non-canonical, e.g. borrowed-chord) checkbox already owns that bare string --
 // this keeps every stage that already references borrowed iv/III/VI unqualified working
-// exactly as before.
+// exactly as before. Note: 'V' is canonical in both modes and the major check runs first,
+// so a bare 'V' always resolves to major:V -- a minor-only stage wanting single-numeral V
+// isn't supported by a bare string and would need a different mechanism.
 function qualifyStageProgression(pattern) {
   if (CANONICAL_FUNCTIONAL_NUMERALS.major.includes(pattern)) return `major:${pattern}`;
   if (CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(pattern) && !document.querySelector(`input[data-pattern="${pattern}"]`)) return `minor:${pattern}`;
