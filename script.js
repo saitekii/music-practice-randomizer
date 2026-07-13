@@ -2127,8 +2127,11 @@ function genFunctional() {
   const notes = enabledNotes();
   if (!notes.length) return null;
 
-  const majorPatterns = enabledProgressions('major');
-  const minorPatterns = enabledProgressions('minor');
+  const randomNumerals = checked('functionalRandomNumerals');
+  const restrictToSingle = patterns => randomNumerals ? patterns.filter(p => !p.includes('–')) : patterns;
+
+  const majorPatterns = restrictToSingle(enabledProgressions('major'));
+  const minorPatterns = restrictToSingle(enabledProgressions('minor'));
   const eligibleModes = [];
   if (majorPatterns.length) eligibleModes.push({ mode: 'Major', patterns: majorPatterns });
   if (minorPatterns.length) eligibleModes.push({ mode: 'minor', patterns: minorPatterns });
@@ -2644,7 +2647,7 @@ function saveSettings() {
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
     'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
     'intDirUp', 'intDirDown',
-    'adaptiveToggle', 'bandModeToggle',
+    'adaptiveToggle', 'bandModeToggle', 'functionalRandomNumerals',
   ];
 
   const ALL_PROGRESSIONS = checkboxGatedPatterns();
