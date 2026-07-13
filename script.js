@@ -309,7 +309,7 @@ const LEARNING_PATH = [
   { name: 'Jazz Alterations',         hint: '7♭9, 7♯9, and 7♯11 — altered dominants create tension and colour in jazz',                           cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','chordDom7','chord7b9','chord7s9','chord7s11'],                          scales: [],                                       timer: 'off' },
   { name: 'All Extensions, All Keys', hint: 'Every chord type — triads, sevenths, sus, 9ths, 13ths, alterations — 10 seconds',                     cats: ['catChords','catScales'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','chordDiminished','chordAugmented','chordMaj7','chordMin7','chordDom7','chordSus2','chordSus4','chord7sus4','chordDom9','chordMaj9','chordMin9','chordDom13','chord7b9','chord7s9','chord7s11','chordHalfDim','chordDim7','inversions'], scales: ['scaleMajor','scaleNatMinor'], timer: '10' },
   // ── Phase 14: Functional harmony ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  { name: 'Functional Harmony — C',   hint: 'I, ii, iii, IV, V, vi, vii° — every diatonic chord function in the key of C',                       cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                                                scales: [],                                       progressions: [],                                 timer: 'off' },
+  { name: 'Functional Harmony — C',   hint: 'I, ii, iii, IV, V, vi, vii° — every diatonic chord function in the key of C',                       cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                                                scales: [],                                       progressions: ['I','ii','iii','IV','V','vi','vii°'], timer: 'off' },
   { name: 'Progression: I–IV–V',      hint: 'The most common progression in pop, rock, and folk — three chords, no borrowed tones',              cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                                                scales: [],                                       progressions: ['I–IV–V'],                                                                                                        timer: 'off' },
   { name: 'Add IV–V–I',               hint: 'Same three chords, different order — a classic turnaround',                                          cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                                                scales: [],                                       progressions: ['I–IV–V','IV–V–I'],                                                                                               timer: 'off' },
   { name: 'Add I–V–vi–IV',            hint: 'The "four chord pop song" progression — introduces the vi chord',                                    cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                                                scales: [],                                       progressions: ['I–IV–V','IV–V–I','I–V–vi–IV'],                                                                                   timer: 'off' },
@@ -2127,14 +2127,17 @@ function genFunctional() {
   const notes = enabledNotes();
   if (!notes.length) return null;
 
-  const note     = weightedPick(notes, 'roots');
-  const isMinor  = Math.random() < 0.5;
-  const mode     = isMinor ? 'minor' : 'Major';
-  const modeKey  = isMinor ? 'minor' : 'major';
-  const patterns = enabledProgressions(modeKey);
-  if (!patterns.length) return null;
-  const pattern  = pick(patterns);
-  const steps    = pattern.split('–');
+  const majorPatterns = enabledProgressions('major');
+  const minorPatterns = enabledProgressions('minor');
+  const eligibleModes = [];
+  if (majorPatterns.length) eligibleModes.push({ mode: 'Major', patterns: majorPatterns });
+  if (minorPatterns.length) eligibleModes.push({ mode: 'minor', patterns: minorPatterns });
+  if (!eligibleModes.length) return null;
+
+  const note = weightedPick(notes, 'roots');
+  const { mode, patterns } = pick(eligibleModes);
+  const pattern = pick(patterns);
+  const steps   = pattern.split('–');
 
   return {
     line1: `Key: ${note} ${mode}`,
@@ -2821,6 +2824,17 @@ function randomizeSettings() {
 
 // ── Learning Path ────────────────────────────────────────────────────────────
 
+// Maps a bare stage.progressions entry to its checkbox lookup key. Canonical numerals
+// exclusive to major always qualify; canonical-minor numerals only qualify when no
+// existing (non-canonical, e.g. borrowed-chord) checkbox already owns that bare string --
+// this keeps every stage that already references borrowed iv/III/VI unqualified working
+// exactly as before.
+function qualifyStageProgression(pattern) {
+  if (CANONICAL_FUNCTIONAL_NUMERALS.major.includes(pattern)) return `major:${pattern}`;
+  if (CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(pattern) && !document.querySelector(`input[data-pattern="${pattern}"]`)) return `minor:${pattern}`;
+  return pattern;
+}
+
 function applyStage(idx) {
   const stage = LEARNING_PATH[idx];
   const ALL_CATS   = ['catNotes','catChords','catScales','catFunctional','catIntervals','catDiatonic'];
@@ -2831,7 +2845,7 @@ function applyStage(idx) {
   const onChords = new Set(stage.chords);
   const onScales = new Set(stage.scales);
   const onNotes  = new Set(stage.notes);
-  const onProgressions = new Set(stage.progressions ?? ALL_PROGRESSIONS); // no field -> all enabled (backward compatible)
+  const onProgressions = new Set((stage.progressions ?? ALL_PROGRESSIONS).map(qualifyStageProgression)); // no field -> all enabled (backward compatible)
 
   ALL_CATS.forEach(id   => { const el = document.getElementById(id);                              if (el) el.checked = onCats.has(id);   });
   ALL_CHORDS.forEach(id => { const el = document.getElementById(id);                              if (el) el.checked = onChords.has(id); });

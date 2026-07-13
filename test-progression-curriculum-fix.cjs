@@ -30,16 +30,26 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   checkTrue('Functional Harmony — C stage exists', stage1Check.exists, null);
-  check('Functional Harmony — C has zero progressions (no early unlock)', stage1Check.progressionsLength, 0);
+  check('Functional Harmony — C has exactly the 7 canonical numerals as its progressions (Major-only diatonic content)', stage1Check.progressionsLength, 7);
   check('Functional Harmony — C hint no longer mentions ii–V–I', stage1Check.hint, 'I, ii, iii, IV, V, vi, vii° — every diatonic chord function in the key of C');
 
-  // --- applyStage() on that stage must leave every progression checkbox unchecked ---
+  // --- applyStage() on that stage must leave every non-canonical progression checkbox
+  //     unchecked, check all 7 major-canonical numeral checkboxes, and leave all 7
+  //     minor-canonical numeral checkboxes unchecked (Major-only stage). ---
   const stage1ApplyCheck = await page.evaluate(([all26]) => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Functional Harmony — C');
     applyStage(idx);
-    return all26.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === false);
+    const majorCanonical = ['I','ii','iii','IV','V','vi','vii°'].map(p => `major:${p}`);
+    const minorCanonical = ['i','ii°','III','iv','V','VI','VII'].map(p => `minor:${p}`);
+    return {
+      nonCanonicalAllUnchecked: all26.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === false),
+      majorCanonicalAllChecked: majorCanonical.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === true),
+      minorCanonicalAllUnchecked: minorCanonical.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === false),
+    };
   }, [ALL_26]);
-  checkTrue('applyStage() on Functional Harmony — C leaves all 26 progression checkboxes unchecked', stage1ApplyCheck, null);
+  checkTrue('applyStage() on Functional Harmony — C leaves all 26 non-canonical progression checkboxes unchecked', stage1ApplyCheck.nonCanonicalAllUnchecked, null);
+  checkTrue('applyStage() on Functional Harmony — C checks all 7 major-canonical numeral checkboxes', stage1ApplyCheck.majorCanonicalAllChecked, null);
+  checkTrue('applyStage() on Functional Harmony — C leaves all 7 minor-canonical numeral checkboxes unchecked', stage1ApplyCheck.minorCanonicalAllUnchecked, null);
 
   // --- The old 5-stage key ramp and the 2-key borrowed-content stage were removed by the key-ramp
   //     audit (redundant: key fluency is already established well before Phase 14). The 5 C-only
@@ -83,17 +93,20 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   const natKeysApplyCheck = await page.evaluate(([all26]) => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Functional, Nat. Keys');
     applyStage(idx);
+    const allCanonical = [...['I','ii','iii','IV','V','vi','vii°'].map(p => `major:${p}`), ...['i','ii°','III','iv','V','VI','VII'].map(p => `minor:${p}`)];
     return {
       cChecked: document.querySelector('input[data-note="C"]').checked,
       gChecked: document.querySelector('input[data-note="G"]').checked,
       dChecked: document.querySelector('input[data-note="D"]').checked,
       allProgressionsChecked: all26.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === true),
+      allCanonicalChecked: allCanonical.every(p => document.querySelector(`input[data-pattern="${p}"]`).checked === true),
     };
   }, [ALL_26]);
   check('applyStage() on Functional, Nat. Keys checks C', natKeysApplyCheck.cChecked, true);
   check('applyStage() on Functional, Nat. Keys checks G', natKeysApplyCheck.gChecked, true);
   check('applyStage() on Functional, Nat. Keys checks D (all 7 naturals, not a partial ramp)', natKeysApplyCheck.dChecked, true);
   checkTrue('applyStage() on Functional, Nat. Keys checks all 26 original progression checkboxes (fallback still works)', natKeysApplyCheck.allProgressionsChecked, null);
+  checkTrue('applyStage() on Functional, Nat. Keys also checks all 14 canonical numeral checkboxes (fallback covers new canonical content too)', natKeysApplyCheck.allCanonicalChecked, null);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
