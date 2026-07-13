@@ -81,6 +81,8 @@ Added directly in response to the critique's strongest single point: a learner p
 
 Building and testing this phase is also what surfaced a severe, unrelated, **pre-existing** bug — see [Functional harmony](#17-functional-harmony-26-stages) and the "canonical numerals" note below.
 
+**Open issue (progression silence):** after this phase, progressions aren't touched again for 71 stages until Phase 17 picks the concept back up. Since the whole point of this phase is to keep the skill concrete and non-abstract early, it may have gone stale by the time Phase 17 resurfaces it. A light progression check-in somewhere in the middle third (roughly Phase 10-14) could help bridge the gap. Not yet done.
+
 ### 5. Add timer pressure (3 stages)
 `Add a Timer (15s) → A Bit Faster (10s) → Faster Still (5s)`
 
@@ -121,6 +123,8 @@ Critique item: reordering enharmonics (Phase 15 today) to sit right after this p
 Teaches the two-handed Major/minor root-position voicing feature (left hand = root+5th below middle C, right hand = full chord at/above middle C). `Left Hand Shape` (added 2026-07-13, single-key/no-right-hand) exists specifically because the critique flagged that combining "new left-hand shape" with "coordinate two hands simultaneously" in one step skips isolating hand-independence — the actual new skill — from note-finding.
 
 **Still critique-flagged, not fixed:** this phase comes after a learner has already drilled the right hand alone through 30+ stages (inversions, sevenths). If two-handed play is core to what the app teaches, the critique argues for a parallel early track starting around "First Chord" instead of a post-mastery bolt-on. Left unresolved — a bigger restructure than the warmup-stage fix, deliberately deferred. See [[left-hand-mode-deferred]] for the feature's full architecture (deliberately open for real per-inversion voicings and other chord types later — the current root+5th shape does not generalize past Major/Minor root position).
+
+**Open issue (no recurrence):** distinct from the placement issue above — even leaving timing alone, Left-Hand mode appears in exactly these 5 stages and never again across the remaining 93. If two-handed play matters to the product, it's odd that it's a one-time detour rather than something that resurfaces later (e.g. a left-hand variant folded into the Phase 8 inversions or Phase 11-12 seventh-chord content). Not yet done.
 
 ### 8. Triad inversions (8 stages)
 `Meet Inversions → Natural Majors Inv. → Add Minor Inversions → Inversion Timer → Inversions, 10 Sec → All 12, Inverted → Add Dim & Aug → Triad Mastery`
@@ -182,6 +186,8 @@ Teaches the two-handed Major/minor root-position voicing feature (left hand = ro
 | 7th Inv. Full Mix | 7 naturals | Major, Minor, Maj7, Min7, Dom7, (inv) + Major, Nat Minor | 15s |
 | 7th Inv. All Keys | All 12 | Major, Minor, Maj7, Min7, Dom7, (inv) + Major, Nat Minor | 10s |
 
+**Open issue:** `Add Dom 7 Inv.` introduces Dom7 as new content *and* turns the timer on (off → 15s) in the same stage — two axes at once, violating rule 1. Suggested fix: split into "add Dom7, still untimed" then "add the timer," the same pattern used to fix the analogous issues elsewhere. Not yet done.
+
 ### 13. Full Foundation (1 stage)
 A single consolidation checkpoint (5s timer) covering everything through Phase 12 — root-position and inverted triads and 7ths, all natural qualities, all 12 keys.
 
@@ -211,6 +217,8 @@ A single consolidation checkpoint (5s timer) covering everything through Phase 1
 | All Scales, All Keys | All 12 | Major, Nat Minor, Harm Minor, Mel Minor, Maj Pent, Min Pent, Modes | 10s |
 
 Fully ramped as of the first audit's Part 3 fix (Melodic Minor previously had no dedicated 12-key stage; Modes previously had *zero* key ramp — C-only straight to full complexity; Major Pentatonic previously combined adding Minor Pentatonic with a 7-key jump in one step). **Still has the untimed-12-keys gap** (rule 3) at each `…, All 12` stage — those jump straight into the phase's shared timer at `All Scales, All Keys`, same pattern as Phase 11.
+
+**Open issue (no recurrence):** verified directly against every stage after this phase — harmonic minor, melodic minor, both pentatonics, and modes are never referenced again anywhere in the remaining ~35 stages. Neither of the path's two later "everything" checkpoints (`All Extensions, All Keys` in Phase 16, `Full Theory Workout` in Phase 19) includes any scale beyond Major/Nat Minor. A learner who finishes this phase never sees these 4 scale types again for the rest of the curriculum — probably the single biggest retention gap in the path, bigger than anything currently timer/key-ramp related. Worth folding these scale types into at least one of the two capstones. Interval reading (Phase 18) has the identical problem — see that phase's open issue below. Not yet done.
 
 ### 15. Enharmonic spellings (3 stages)
 `Meet Enharmonics → Flat-Key Spellings → Any Spelling, All Keys`
@@ -243,7 +251,7 @@ Fully ramped as of the first audit's Part 3 fix (Melodic Minor previously had no
 
 `Meet Half-Dim & Dim7` was split out (first audit, Part 3) from a single stage that used to debut two new chord qualities directly at full 12-key complexity — mirrors the still-unfixed `Add Dim & Aug` issue in Phase 8, but this one's already fixed. Sus chords and 9th chords each got their own natural-keys warmup added in the same round.
 
-**Open issue:** critique also flags `Meet Sus Chords` and `Meet Half-Dim & Dim7` (despite the fix above) as starting at 7 natural keys rather than C-only, unlike the established "new chord type = C-only first" pattern used everywhere else. Worth re-auditing whether the natural-keys stage should itself be preceded by a C-only one, or whether "natural keys" is an acceptable substitute for "single key" at this later curriculum position (same reasoning as rule 4) — not resolved either way yet.
+**Open issue:** four "Meet X"-style stages in this phase start at 7 natural keys rather than C-only, unlike the established "new chord type = C-only first" pattern used everywhere else: `Meet Sus Chords`, `Meet Half-Dim & Dim7` (despite the fix above), `Meet Dominant 9`, and `Jazz Alterations`. Four out of five new-content debuts in this phase share the same non-standard convention — it reads less like a couple of one-off exceptions and more like this whole phase was authored to a different rule than the rest of the path. Worth re-auditing whether each natural-keys stage should itself be preceded by a C-only one, or whether "natural keys" is an acceptable substitute for "single key" at this later curriculum position (same reasoning as rule 4) — not resolved either way yet.
 
 ### 17. Functional harmony (26 stages)
 `Functional Harmony — C → Progression: I–IV–V → Add IV–V–I → Add I–V–vi–IV → Add vi–IV–I–V → Add ii–V–I → Add i–iv–V (minor) → Add ii°–V–i (minor) → Add i–VI–III–VII (minor) → More Major Progressions I → More Major Progressions II → Introducing iii → More Minor Progressions → Borrowed Chords — Intro → Single Borrowed Chord Progressions → Combining Borrowed Chords → Raised Mediants → Minor Borrowed — ♭II → Jazz 7th Chords → Extended 9ths, 11ths & 13ths → Circle of Fifths & Applied Chords → Cadences & Color Chords → Functional, Nat. Keys → Functional, All 12 → Functional + Chords → Full Functional Mix`
@@ -283,6 +291,10 @@ This phase is the generalization layer Phase 4 (First Progressions) sets up: rom
 
 **Open issue (Diatonic Chords placement):** the critique argues Phase 19 (Diatonic Chords — "here are all 7 chords in a key," a simpler, more fundamental concept) should sit as a bridge in or right before this phase, not as the very last thing in the whole path, since borrowed-chord and applied-dominant concepts here are defined *relative to* diatonic scale degrees. Not yet done.
 
+**Open issue (`Functional, Nat. Keys` two-axis jump):** `Cadences & Color Chords` caps the curated, incrementally-built pool at 113 progressions, C-only. The very next stage, `Functional, Nat. Keys`, jumps to 7 keys *and* drops the restriction entirely via the no-`progressions`-field fallback — unlocking the full `FUNCTIONAL` catalog (127 entries: 111 major + 16 minor, verified directly against the live data, not the "116+" originally guessed), including minor content beyond what the curated buildup ever introduced. It's untimed, which cushions the jump, but it's still the single largest content-pool expansion in the path landing at the same moment as a key-count increase — two axes at once, even though "unlock everything" isn't a "new chord type" in the usual sense rule 1 describes. Not yet done.
+
+**Resolved (not a bug): progression content and Phase 16's extended-chord vocabulary.** It's reasonable to wonder whether playing a jazz-extended progression (e.g. `Imaj9–VI7–ii9–V13`) actually exercises the same chord-quality recognition as Phase 16's dedicated 9th/13th-chord stages, given those stages' `chords` checkbox field rarely includes 9ths/13ths. Checked directly in `getExpectedPCs()`'s `func` branch (script.js:3477+): progression pitch-class resolution reads only the numeral string itself — via `FUNCTIONAL_NUMERALS` for plain numerals, or the jazz-suffix regex → Tonal.js fallback (`resolveJazzQuality`) for suffixed ones like `Imaj9` — and never consults the `chords` checkbox array at all. Playing `Imaj9` in a progression genuinely requires the real maj9 pitch classes, entirely independent of whatever Phase 16's chord-type checkboxes happen to be set to. No missed connection; the two phases' vocabularies are already combined at generation time, just through a mechanism (`chords` field is Chords-generator-only) that isn't obvious from the Learning Path data alone.
+
 **Still-deferred content** (per `Modern Harmony Reference.md`, the load-bearing reference document for this whole area — its Section 4 is the only part left): pedal point, slash chords, quartal harmony, constant structure, and a "Common Modern Chord Colors" vocabulary list. Explicitly scoped by the user as reference/vocabulary for later, not active content to build yet.
 
 ### 18. Interval reading (7 stages)
@@ -300,6 +312,10 @@ This phase is the generalization layer Phase 4 (First Progressions) sets up: rom
 
 **Open issue:** critique suggests a light P5/M3/m3-only interval intro belongs right after Phase 2 ("here's what's inside the chord you just played") rather than the first mention of "interval" being 90+ stages in — while leaving this full unit (all 12 types, both directions, 12 keys) where it is as an advanced ear-training unit. Not yet done — would be an addition to an early phase, not a move of this one.
 
+**Open issue (untimed-12-keys gap, named explicitly):** `Intervals, All 12 Notes` jumps from `Add Descending` (7 naturals, untimed) straight to 12 keys + 10s in one step — the same rule-3 pattern already flagged for Phase 11 and Phase 14, just not previously named for this phase specifically. Relatedly, `Intervals + Chords` is this phase's first category combination (intervals + chords) and starts already timed at 10s — the same shape as the already-tracked `Mix Chords + Scales` issue in Phase 10, not previously cross-referenced here. Not yet done.
+
+**Open issue (no recurrence):** same pattern as Phase 14's scales — verified directly against the live data, zero Phase 19 stages reference any interval type at all. Once a learner finishes this phase, interval reading never comes up again.
+
 ### 19. Diatonic chords (5 stages)
 `Diatonic Chords — C Maj → Diatonic, Major Keys → Diatonic Minor Mode → Diatonic + Functional → Full Theory Workout`
 
@@ -315,16 +331,26 @@ The path's final phase — a cumulative "everything" checkpoint plus the by-key 
 
 ## Open issues summary (not yet built, tracked here so they aren't re-discovered from scratch)
 
-From the critique review (`critique.txt`, independently verified against live code — 7/9 claims confirmed accurate, 2 overstated/wrong before any of this was acted on):
+From the first critique review (`critique.txt`, independently verified against live code — 7/9 claims confirmed accurate, 2 overstated/wrong before any of this was acted on):
 
-- Missing untimed-12-keys rung before several timed 12-key stages (Phases 11, 14, and similar spots) — the most repeated finding.
+- Missing untimed-12-keys rung before several timed 12-key stages (Phases 11, 14, 18 — see the second round below for Phase 18 specifically) — the most repeated finding.
 - `Add Dim & Aug` (Phase 8) introduces two new chord qualities at full complexity in one step — needs a C-only split, mirroring the fix already done for Half-Dim & Dim7 in Phase 16.
 - `Mix Chords + Scales` (Phase 10) starts timed — needs an untimed combine-step first.
-- `Meet Sus Chords` / `Meet Half-Dim & Dim7` (Phase 16) start at 7 keys, not C-only — worth re-checking against the "later phases don't need granular ramps" rule (4) rather than assumed broken.
+- `Meet Sus Chords` / `Meet Half-Dim & Dim7` (Phase 16) start at 7 keys, not C-only — see the second round below, this is actually 4 stages, not 2.
 - Enharmonics (Phase 15) would teach the concept where the confusion is actually created if moved to right after Phase 6.
 - Interval basics (Phase 18) could get a light early taste right after Phase 2, without moving the full unit.
 - Left-hand voicing (Phase 7) is a post-mastery bolt-on rather than a parallel early track — the single biggest unresolved item, and a bigger restructure than anything else on this list.
 - Diatonic Chords (Phase 19) is arguably a bridge concept for Phase 17, not a finale.
+
+From a second critique review (`morecritique.txt`, 2026-07-13, independently verified against live code — 7/8 claims confirmed accurate, 1 resolved as not-a-bug, see Phase 17's "Resolved" note above):
+
+- **Advanced content never recurs after its intro phase — the biggest single finding of this round.** Harmonic minor, melodic minor, both pentatonics, and modes (Phase 14) and all interval types (Phase 18) are never referenced again anywhere in the remaining stages, including both later "everything" checkpoints (`All Extensions, All Keys`, `Full Theory Workout`), which cap scales at Major/Nat Minor only and never mention intervals. Bigger retention gap than anything else on this list.
+- `Add Dom 7 Inv.` (Phase 12) combines new content (Dom7) and turning the timer on in one stage — an untracked instance of the rule-1 violation pattern.
+- The "skip the C-only intro" issue in Phase 16 is 4 stages, not 2: `Meet Sus Chords`, `Meet Half-Dim & Dim7`, `Meet Dominant 9`, and `Jazz Alterations` all start at 7 naturals.
+- Phase 18's `Intervals, All 12 Notes` has the same missing-untimed-12-key-rung gap as Phases 11/14, just not previously named explicitly; `Intervals + Chords` also starts pre-timed on its first category combination, mirroring the already-tracked Phase 10 issue.
+- `Functional, Nat. Keys` (Phase 17) combines dropping the entire progression restriction (113 curated → 127 total, verified) with a key-count increase in one untimed stage — the single largest content-pool jump in the path.
+- Left-Hand mode (Phase 7) never reappears after its own 5-stage phase — distinct from the already-tracked "should be an earlier parallel track" issue.
+- Progressions go silent for 71 stages between Phase 4 and Phase 17 (critique estimated "roughly 90"; the actual count from the live phase data is 71) — a light progression check-in mid-path could keep the Phase 4 win from going stale before Phase 17 resurfaces it.
 
 From `chord-progressions-learning-path-deferred` memory (content, not curriculum-ordering): `Modern Harmony Reference.md` Section 4 — pedal point, slash chords, quartal harmony, constant structure — still explicitly scoped as reference/vocabulary only.
 
