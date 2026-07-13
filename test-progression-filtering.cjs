@@ -36,12 +36,22 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     return {
       allMajorHasIIVV: allMajor.includes('I–IV–V'),
       afterUncheckMissingIIVV: !withOneUnchecked.includes('I–IV–V'),
-      singleNumeralsUnaffected: withOneUnchecked.includes('I') && withOneUnchecked.includes('V'),
+      singleNumeralsUnaffectedByUnrelatedUncheck: withOneUnchecked.includes('I') && withOneUnchecked.includes('V'),
     };
   });
   check('enabledProgressions("major") includes I–IV–V when checked', filtering.allMajorHasIIVV, true);
   check('unchecking I–IV–V removes it from enabledProgressions("major")', filtering.afterUncheckMissingIIVV, true);
-  check('single-chord numerals (I, V) are never filtered out', filtering.singleNumeralsUnaffected, true);
+  check('unchecking I–IV–V does not affect unrelated single-chord numerals I, V', filtering.singleNumeralsUnaffectedByUnrelatedUncheck, true);
+
+  const canonicalFiltering = await page.evaluate(() => {
+    const before = enabledProgressions('major').includes('I');
+    document.querySelector('input[data-pattern="major:I"]').checked = false;
+    const afterUncheck = enabledProgressions('major').includes('I');
+    document.querySelector('input[data-pattern="major:I"]').checked = true; // restore
+    return { before, afterUncheck };
+  });
+  check('enabledProgressions("major") includes single-chord numeral I when its own checkbox is checked', canonicalFiltering.before, true);
+  check('canonical single-chord numeral I IS filtered out once its own checkbox is unchecked (the bug this fix addresses)', canonicalFiltering.afterUncheck, false);
 
   const wireCheck = await page.evaluate(() => {
     const original = enabledProgressions;

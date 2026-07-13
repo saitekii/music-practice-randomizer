@@ -2110,15 +2110,15 @@ function genScale() {
 
 function checkboxGatedPatterns() {
   return [
-    ...FUNCTIONAL.major.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.major.includes(p)),
-    ...FUNCTIONAL.minor.filter(p => !CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(p)),
+    ...FUNCTIONAL.major.map(p => CANONICAL_FUNCTIONAL_NUMERALS.major.includes(p) ? `major:${p}` : p),
+    ...FUNCTIONAL.minor.map(p => CANONICAL_FUNCTIONAL_NUMERALS.minor.includes(p) ? `minor:${p}` : p),
   ];
 }
 
 function enabledProgressions(mode) {
   return FUNCTIONAL[mode].filter(pattern => {
-    if (CANONICAL_FUNCTIONAL_NUMERALS[mode].includes(pattern)) return true; // canonical diatonic numerals are never filtered
-    const el = document.querySelector(`input[data-pattern="${pattern}"]`);
+    const lookupKey = CANONICAL_FUNCTIONAL_NUMERALS[mode].includes(pattern) ? `${mode}:${pattern}` : pattern;
+    const el = document.querySelector(`input[data-pattern="${lookupKey}"]`);
     return el ? el.checked : true;
   });
 }
