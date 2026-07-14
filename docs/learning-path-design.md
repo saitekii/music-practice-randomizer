@@ -4,7 +4,7 @@ This is the living reference for *why* the Learning Path looks the way it does �
 
 **Maintenance rule:** whenever a plan adds, removes, reorders, or renames a stage or phase, update this doc as part of that same plan/commit — the same discipline already applied to keeping `LEARNING_PATH_PHASES` counts in sync with `LEARNING_PATH.length`. A stale version of this doc is worse than no doc; don't let it drift.
 
-As of 2026-07-13: **134 stages across 21 phases.**
+As of 2026-07-13: **136 stages across 21 phases.**
 
 ## How the mechanism works (for context on everything below)
 
@@ -126,8 +126,8 @@ Teaches the two-handed Major/minor root-position voicing feature (left hand = ro
 
 **Open issue (no recurrence):** distinct from the placement issue above — even leaving timing alone, Left-Hand mode appears in exactly these 5 stages and never again across the remaining 96. If two-handed play matters to the product, it's odd that it's a one-time detour rather than something that resurfaces later (e.g. a left-hand variant folded into the Phase 8 inversions or Phase 13-14 seventh-chord content). Not yet done.
 
-### 8. Triad inversions (8 stages)
-`Meet Inversions → Natural Majors Inv. → Add Minor Inversions → Inversion Timer → Inversions, 10 Sec → All 12, Inverted → Add Dim & Aug → Triad Mastery`
+### 8. Triad inversions (10 stages)
+`Meet Inversions → Natural Majors Inv. → Add Minor Inversions → Inversion Timer → Inversions, 10 Sec → All 12, Inverted → Meet Diminished → Meet Augmented → Add Dim & Aug → Triad Mastery`
 
 | Stage | Keys | Content | Timer |
 |---|---|---|---|
@@ -137,10 +137,12 @@ Teaches the two-handed Major/minor root-position voicing feature (left hand = ro
 | Inversion Timer | 7 naturals | Major, Minor, (inv) | 15s |
 | Inversions, 10 Sec | 7 naturals | Major, Minor, (inv) | 10s |
 | All 12, Inverted | All 12 | Major, Minor, (inv) | 10s |
+| Meet Diminished | C | Major, Minor, Dim | off |
+| Meet Augmented | C | Major, Minor, Dim, Aug | off |
 | Add Dim & Aug | All 12 | Major, Minor, Dim, Aug, (inv) | 10s |
 | Triad Mastery | All 12 | Major, Minor, Dim, Aug, (inv) | 5s |
 
-**Open issue, critique's "worst spike in the doc":** `Add Dim & Aug` introduces two brand-new chord qualities simultaneously, at all 12 keys, with inversions on, with a 10-second timer — four difficulty axes at once, violating rule 1 and rule 2 above. Suggested fix (not yet built): split into `Meet Diminished` → `Meet Augmented` (C-only, root position, untimed) before folding both into the existing progression.
+**Fixed 2026-07-13 (was: critique's "worst spike in the doc"):** `Add Dim & Aug` used to introduce two brand-new chord qualities simultaneously, at all 12 keys, with inversions on, with a 10-second timer — four difficulty axes at once. `Meet Diminished` → `Meet Augmented` now give each quality its own C-only, untimed, root-position-only intro first — introduced **separately**, not combined into one intro stage (a deliberate pedagogical choice: diminished and augmented triads are the pair a beginner is most likely to confuse with each other, unlike the Half-Dim/Dim7 precedent in Phase 17, which combined its two new qualities into one intro stage since they're more clearly distinct in character). `Add Dim & Aug` and `Triad Mastery` are unchanged — `Add Dim & Aug` now serves as the "combine with inversions + all keys" step rather than a first exposure.
 
 ### 9. Progressions, Inverted (3 stages) — added 2026-07-13
 `Invert Your First Song → Invert the Turnaround → Four Chords, Inverted`
@@ -281,7 +283,7 @@ Fully ramped as of the first audit's Part 3 fix (Melodic Minor previously had no
 | Jazz Alterations | 7 naturals | Major, Minor, Dom7, 7♭9, 7♯9, 7♯11 | off |
 | All Extensions, All Keys | All 12 | Major, Minor, Dim, Aug, Maj7, Min7, Dom7, sus2, sus4, 7sus4, Dom9, Maj9, Min9, Dom13, 7♭9, 7♯9, 7♯11, Half-Dim, Dim7, (inv) + Major, Nat Minor, Harm Minor, Mel Minor, Maj Pent, Min Pent, Modes | 10s |
 
-`Meet Half-Dim & Dim7` was split out (first audit, Part 3) from a single stage that used to debut two new chord qualities directly at full 12-key complexity — mirrors the still-unfixed `Add Dim & Aug` issue in Phase 8, but this one's already fixed. Sus chords and 9th chords each got their own natural-keys warmup added in the same round.
+`Meet Half-Dim & Dim7` was split out (first audit, Part 3) from a single stage that used to debut two new chord qualities directly at full 12-key complexity — the same class of issue `Add Dim & Aug` had in Phase 8, since fixed too (see Phase 8's note above). Sus chords and 9th chords each got their own natural-keys warmup added in the same round.
 
 **Open issue:** four "Meet X"-style stages in this phase start at 7 natural keys rather than C-only, unlike the established "new chord type = C-only first" pattern used everywhere else: `Meet Sus Chords`, `Meet Half-Dim & Dim7` (despite the fix above), `Meet Dominant 9`, and `Jazz Alterations`. Four out of five new-content debuts in this phase share the same non-standard convention — it reads less like a couple of one-off exceptions and more like this whole phase was authored to a different rule than the rest of the path. Worth re-auditing whether each natural-keys stage should itself be preceded by a C-only one, or whether "natural keys" is an acceptable substitute for "single key" at this later curriculum position (same reasoning as rule 4) — not resolved either way yet.
 
@@ -368,7 +370,7 @@ The path's final phase — a cumulative "everything" checkpoint plus the by-key 
 From the first critique review (`critique.txt`, independently verified against live code — 7/9 claims confirmed accurate, 2 overstated/wrong before any of this was acted on):
 
 - Missing untimed-12-keys rung before several timed 12-key stages (Phases 13, 16, 20 — see the second round below for Phase 20 specifically) — the most repeated finding.
-- `Add Dim & Aug` (Phase 8) introduces two new chord qualities at full complexity in one step — needs a C-only split, mirroring the fix already done for Half-Dim & Dim7 in Phase 18.
+- ~~`Add Dim & Aug` (Phase 8) introduces two new chord qualities at full complexity in one step~~ **Fixed 2026-07-13.** See Phase 8's note above — `Meet Diminished` → `Meet Augmented` now precede it, each C-only and untimed.
 - `Mix Chords + Scales` (Phase 12) starts timed — needs an untimed combine-step first.
 - `Meet Sus Chords` / `Meet Half-Dim & Dim7` (Phase 18) start at 7 keys, not C-only — see the second round below, this is actually 4 stages, not 2.
 - Enharmonics (Phase 17) would teach the concept where the confusion is actually created if moved to right after Phase 6.
