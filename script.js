@@ -2147,11 +2147,13 @@ function genFunctional() {
   const pattern = pick(patterns);
   const steps   = pattern.split('–');
   const invSuffix0 = progressionInversionSuffix(pattern, 0);
+  const modeKey = mode === 'Major' ? 'major' : 'minor';
+  const handMode = checked('leftHandMode') && progressionAllowsLeftHand(modeKey, pattern) ? 'LH' : '';
 
   return {
     line1: `Key: ${note} ${mode}`,
     line2: steps.length > 1 ? `Play: ${steps[0]}${invSuffix0} (chord 1 of ${steps.length})` : `Play: ${pattern}${invSuffix0}`,
-    key:   `func|${note}|${mode}|${pattern}|0`,
+    key:   `func|${note}|${mode}|${pattern}|0|${handMode}`,
   };
 }
 
@@ -3449,6 +3451,18 @@ function progressionInversionSuffix(pattern, stepIndex) {
   return label ? ` (${label})` : '';
 }
 
+// Confirms every numeral in a progression resolves to a plain Major or Minor triad --
+// mirrors genChord()'s existing Left-Hand-mode restriction (type.label === 'Major' ||
+// type.label === 'Minor'). Guards against a future progression built from a quality this
+// two-hand voicing scheme was never designed for (e.g. a borrowed or diminished numeral)
+// silently combining with hand mode.
+function progressionAllowsLeftHand(modeKey, pattern) {
+  return pattern.split('–').every(numeral => {
+    const entry = FUNCTIONAL_NUMERALS[modeKey]?.[numeral];
+    return entry && (entry[1] === 'Major' || entry[1] === 'Minor');
+  });
+}
+
 function getExpectedPCs(key) {
   if (!key) return null;
   const parts = key.split('|');
@@ -3520,6 +3534,12 @@ function getExpectedPCs(key) {
       if (!intervals) return null;
       const pcs = intervals.map(i => (chordRootPC + i) % 12);
       const invLabel = PROGRESSION_INVERSIONS[fullPattern]?.[stepIndex];
+      const handMode = parts[5];
+      if (handMode === 'LH' && (quality === 'Major' || quality === 'Minor')) {
+        const bassPc = checked('functionalRequireInversions') ? getRequiredBassPc(quality, invLabel, pcs) : null;
+        const leftHandPcs = (bassPc != null && bassPc !== pcs[0]) ? [bassPc, pcs[0]] : [pcs[0], pcs[2]];
+        return { type: 'chord', pcs, requiredBassPc: null, leftHandPcs, rightHandPcs: pcs };
+      }
       const requiredBassPc = checked('functionalRequireInversions') ? getRequiredBassPc(quality, invLabel, pcs) : null;
       return { type: 'chord', pcs, requiredBassPc };
     }

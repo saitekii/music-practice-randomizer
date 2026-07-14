@@ -27,7 +27,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const parts  = prompt.key.split('|');
     return { parts, line2: prompt.line2, pattern: parts[3] };
   });
-  check('genFunctional() key always has 5 segments', genResult.parts.length, 5);
+  check('genFunctional() key always has 6 segments', genResult.parts.length, 6);
   check('genFunctional() key starts at step 0', genResult.parts[4], '0');
   const isProgression = genResult.pattern.includes('–');
   const firstNumeral  = genResult.pattern.split('–')[0];
