@@ -251,6 +251,8 @@ const LEARNING_PATH = [
   { name: 'Inversion Timer',     hint: 'Major + Minor inversions — 15 seconds',                                                                   cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','inversions'],                                        scales: [],                             timer: '15' },
   { name: 'Inversions, 10 Sec',  hint: '10 seconds',                                                                                              cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor','inversions'],                                        scales: [],                             timer: '10' },
   { name: 'All 12, Inverted',    hint: 'All 12 keys — Major and Minor, any inversion, 10 seconds',                                                cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','inversions'],                                        scales: [],                             timer: '10' },
+  { name: 'Meet Diminished',     hint: 'Diminished triads — the tense, symmetric sound, root position only',                                      cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','chordMinor','chordDiminished'],                                   scales: [],                             timer: 'off' },
+  { name: 'Meet Augmented',      hint: 'Augmented triads added — the other symmetric sound, still root position',                                 cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','chordMinor','chordDiminished','chordAugmented'],                  scales: [],                             timer: 'off' },
   { name: 'Add Dim & Aug',       hint: 'Diminished and Augmented triads added — all inversions, 10 seconds',                                      cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','chordDiminished','chordAugmented','inversions'],     scales: [],                             timer: '10' },
   { name: 'Triad Mastery',       hint: 'All triads, all inversions, all 12 keys — 5 seconds',                                                     cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor','chordDiminished','chordAugmented','inversions'],     scales: [],                             timer: '5'  },
   // ── Phase 6b: Progressions, Inverted ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -371,7 +373,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Add timer pressure', count: 3 },
   { name: 'Accidentals one at a time', count: 6 },
   { name: 'Left-Hand Voicing', count: 6 },
-  { name: 'Triad inversions', count: 8 },
+  { name: 'Triad inversions', count: 10 },
   { name: 'Progressions, Inverted', count: 3 },
   { name: 'Two-Handed Progressions', count: 3 },
   { name: 'Major scales', count: 4 },

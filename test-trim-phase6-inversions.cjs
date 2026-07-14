@@ -36,10 +36,10 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const idxMastery = LEARNING_PATH.findIndex(s => s.name === 'Triad Mastery');
     return idxMastery - idxMeet + 1;
   });
-  check('Triad inversions phase now has 8 stages (was 9)', stageCount, 8);
+  check('Triad inversions phase now has 10 stages (was 9, +1 audit trim, +2 Dim/Aug warmup)', stageCount, 10);
 
   const phaseCount = await page.evaluate(() => LEARNING_PATH_PHASES.find(p => p.name === 'Triad inversions').count);
-  check('LEARNING_PATH_PHASES "Triad inversions" count is 8', phaseCount, 8);
+  check('LEARNING_PATH_PHASES "Triad inversions" count is 10', phaseCount, 10);
 
   const applyCheck = await page.evaluate(() => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Meet Inversions');

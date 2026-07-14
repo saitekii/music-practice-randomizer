@@ -48,7 +48,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('Functional harmony phase count is unchanged at 26 (no new stage)', phaseCheck.functionalHarmonyCount, 26);
   check('LEARNING_PATH_PHASES has 21 entries', phaseCheck.phaseCount, 21);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 134 stages total', phaseCheck.totalStages, 134);
+  check('LEARNING_PATH has 136 stages total', phaseCheck.totalStages, 136);
 
   const applyStageCheck = await page.evaluate((pattern) => {
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Circle of Fifths & Applied Chords');

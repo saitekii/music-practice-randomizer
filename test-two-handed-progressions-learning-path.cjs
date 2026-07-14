@@ -35,8 +35,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseSum: LEARNING_PATH_PHASES.reduce((sum, p) => sum + p.count, 0),
     newPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Two-Handed Progressions'),
   }));
-  check('LEARNING_PATH has 134 stages total (131 + 3 new)', phaseData.totalStages, 134);
-  check('LEARNING_PATH_PHASES sums to 134', phaseData.phaseSum, 134);
+  check('LEARNING_PATH has 136 stages total (131 + 3 new + 2 Dim/Aug warmup)', phaseData.totalStages, 136);
+  check('LEARNING_PATH_PHASES sums to 136', phaseData.phaseSum, 136);
   check('Two-Handed Progressions phase has count 3', phaseData.newPhase?.count, 3);
 
   // --- applyStage() on each new stage: cumulative progressions, leftHandMode on,

@@ -34,7 +34,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }));
   check('LEARNING_PATH_PHASES has 21 entries', phaseData.phaseCount, 21);
   check('phase counts sum to LEARNING_PATH.length', phaseData.countSum, phaseData.stageCount);
-  check('LEARNING_PATH.length matches the expected 134 stages', phaseData.stageCount, 134);
+  check('LEARNING_PATH.length matches the expected 136 stages', phaseData.stageCount, 136);
   check('first phase is Note Finder', phaseData.firstName, 'Note Finder');
   check('last phase is Diatonic chords', phaseData.lastName, 'Diatonic chords');
 
@@ -68,7 +68,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   });
   check('21 phase headers rendered', groupedView.headerCount, 21);
   check('21 phase bodies rendered', groupedView.bodyCount, 21);
-  check('all 134 stage rows exist in the DOM (even inside collapsed groups)', groupedView.rowCount, 134);
+  check('all 136 stage rows exist in the DOM (even inside collapsed groups)', groupedView.rowCount, 136);
   check('exactly one phase header is open by default', groupedView.openHeaderCount, 1);
   check('exactly one phase body is open by default', groupedView.openBodyCount, 1);
   check('the current stage (idx 20) is marked current', groupedView.currentIdx, 20);
