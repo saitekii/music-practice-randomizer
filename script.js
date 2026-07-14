@@ -3523,6 +3523,10 @@ function getExpectedPCs(key) {
       const requiredBassPc = checked('functionalRequireInversions') ? getRequiredBassPc(quality, invLabel, pcs) : null;
       return { type: 'chord', pcs, requiredBassPc };
     }
+    // Note: the two fallback branches below never populate requiredBassPc -- fine today since
+    // every PROGRESSION_INVERSIONS entry resolves through the plain-numeral branch above, but a
+    // future progression whose numerals resolve via slash notation or a jazz suffix would need
+    // this added here too.
     // Fallback: secondary-dominant slash notation "V/<target-numeral>" (e.g. "V/vi", "V/V") --
     // resolves to the plain Major triad built a perfect 5th above the target degree's root.
     // Checked before the jazz-suffix fallback below: a slash-containing numeral would otherwise
