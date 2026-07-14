@@ -22,7 +22,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Left Hand Shape');
     const stages = LEARNING_PATH.slice(idx, idx + 6);
     return {
-      afterSpeedUp: LEARNING_PATH[idx - 1]?.name === 'Speed Up',
+      afterProgressionsInNewKeys: LEARNING_PATH[idx - 1]?.name === 'First Song, All 12 Keys',
       beforeMeetInversions: LEARNING_PATH[idx + 6]?.name === 'Meet Inversions',
       names: stages.map(s => s.name),
       notes: stages.map(s => s.notes),
@@ -30,7 +30,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       timers: stages.map(s => s.timer),
     };
   });
-  checkTrue('the 6 stages of Left-Hand Voicing start right after "Speed Up"', stageData.afterSpeedUp, JSON.stringify(stageData.names));
+  checkTrue('the 6 stages of Left-Hand Voicing start right after "Progressions in New Keys" (Speed Up, then the new phase, then Left-Hand Voicing)', stageData.afterProgressionsInNewKeys, JSON.stringify(stageData.names));
   checkTrue('"Meet Inversions" immediately follows the 6 Left-Hand Voicing stages', stageData.beforeMeetInversions, null);
   check('stage names in order', stageData.names, ['Left Hand Shape', 'Meet Left Hand', 'Left Hand, Nat. Keys', 'Add Minor, Left Hand', 'Left Hand Timer', 'Left Hand, All 12']);
   checkTrue('stage 1 (Left Hand Shape) has only chordRoot5', stageData.chords[0].every(c => c === 'chordRoot5'), null);
@@ -109,7 +109,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }));
   checkTrue('"Left-Hand Voicing" phase exists', !!phaseCheck.lhPhase, null);
   check('"Left-Hand Voicing" phase has count 6 (5 + 1 new Left Hand Shape stage)', phaseCheck.lhPhase?.count, 6);
-  check('"Left-Hand Voicing" sits right after "Accidentals one at a time"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') - 1], 'Accidentals one at a time');
+  check('"Left-Hand Voicing" sits right after "Progressions in New Keys"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') - 1], 'Progressions in New Keys');
   check('"Left-Hand Voicing" sits right before "Triad inversions"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') + 1], 'Triad inversions');
   check('LEARNING_PATH_PHASES has 22 entries total', phaseCheck.phaseNames.length, 22);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
