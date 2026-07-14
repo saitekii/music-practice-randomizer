@@ -237,6 +237,12 @@ const LEARNING_PATH = [
   { name: 'Add A♭',              hint: 'A flat added',                                                                                            cats: ['catChords'],             notes: ['C','D','Eb','E','F','F#','G','Ab','A','Bb','B'],                chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Add C♯',              hint: 'Last accidental — all 12 keys now',                                                                       cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Speed Up',            hint: 'All 12 keys, Major + Minor root position — 5 seconds',                                                    cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
+  // ── Phase 5c: Progressions in New Keys ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  { name: 'First Song, New Keys',        hint: 'I–IV–V in keys with 0–1 accidentals — C, F, G',            cats: ['catFunctional'], notes: ['C','F','G'],                                        chords: [], scales: [], progressions: ['I–IV–V'], timer: 'off' },
+  { name: 'First Song, More Keys',       hint: 'Add D and B♭ — 2 accidentals',                             cats: ['catFunctional'], notes: ['C','D','F','G','Bb'],                               chords: [], scales: [], progressions: ['I–IV–V'], timer: 'off' },
+  { name: 'First Song, Even More Keys',  hint: 'Add A and E♭ — 3 accidentals',                             cats: ['catFunctional'], notes: ['C','D','Eb','F','G','A','Bb'],                      chords: [], scales: [], progressions: ['I–IV–V'], timer: 'off' },
+  { name: 'First Song, Almost All Keys', hint: 'Add E and A♭ — 4 accidentals',                             cats: ['catFunctional'], notes: ['C','D','Eb','E','F','G','Ab','A','Bb'],             chords: [], scales: [], progressions: ['I–IV–V'], timer: 'off' },
+  { name: 'First Song, All 12 Keys',     hint: 'Remaining keys — all 12 roots now, same I–IV–V',           cats: ['catFunctional'], notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'], chords: [], scales: [], progressions: ['I–IV–V'], timer: 'off' },
   // ── Phase 5b: Left-Hand Voicing ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Left Hand Shape',     hint: 'Just the left-hand shape by itself — root and 5th, no right hand yet',                                     cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordRoot5'],                                                                  scales: [],                             timer: 'off' },
   { name: 'Meet Left Hand',      hint: 'Left hand plays root + 5th below middle C, right hand plays the full chord — two hands, one chord',        cats: ['catChords'],             notes: ['C'],                                                            chords: ['chordMajor','leftHandMode'],                                                   scales: [],                             timer: 'off' },
@@ -372,6 +378,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'First Progressions', count: 3 },
   { name: 'Add timer pressure', count: 3 },
   { name: 'Accidentals one at a time', count: 6 },
+  { name: 'Progressions in New Keys', count: 5 },
   { name: 'Left-Hand Voicing', count: 6 },
   { name: 'Triad inversions', count: 10 },
   { name: 'Progressions, Inverted', count: 3 },
