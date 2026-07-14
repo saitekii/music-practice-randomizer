@@ -230,6 +230,8 @@ const LEARNING_PATH = [
   { name: 'Add a Timer',         hint: 'Same chords — 15 seconds to respond',                                                                     cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '15' },
   { name: 'A Bit Faster',        hint: '10 seconds',                                                                                              cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Faster Still',        hint: '5 seconds',                                                                                               cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
+  // ── Phase 4b: First Minor Progression ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+  { name: 'First Minor Progression', hint: 'First minor-key progression — i–iv–V in A minor, the minor analog of I–IV–V',                         cats: ['catFunctional'],         notes: ['A'],                                                            chords: [],                                                                              scales: [],                             progressions: ['i–iv–V'],                                           timer: 'off' },
   // ── Phase 5: Accidentals one at a time ───────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Add F♯',              hint: 'First accidental — F sharp',                                                                              cats: ['catChords'],             notes: ['C','D','E','F','F#','G','A','B'],                               chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Add B♭',              hint: 'B flat added',                                                                                            cats: ['catChords'],             notes: ['C','D','E','F','F#','G','A','Bb','B'],                          chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
@@ -377,6 +379,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Introduce minor', count: 3 },
   { name: 'First Progressions', count: 3 },
   { name: 'Add timer pressure', count: 3 },
+  { name: 'First Minor Progression', count: 1 },
   { name: 'Accidentals one at a time', count: 6 },
   { name: 'Progressions in New Keys', count: 5 },
   { name: 'Left-Hand Voicing', count: 6 },
