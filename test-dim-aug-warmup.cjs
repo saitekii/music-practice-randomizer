@@ -36,10 +36,10 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     triadInversionsCount: LEARNING_PATH_PHASES.find(p => p.name === 'Triad inversions')?.count,
     totalPhases: LEARNING_PATH_PHASES.length,
   }));
-  check('LEARNING_PATH has 141 stages total (134 + 2 Dim/Aug warmup + 5 Progressions in New Keys)', phaseData.totalStages, 141);
-  check('LEARNING_PATH_PHASES sums to 141', phaseData.phaseSum, 141);
+  check('LEARNING_PATH has 142 stages total (134 + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression)', phaseData.totalStages, 142);
+  check('LEARNING_PATH_PHASES sums to 142', phaseData.phaseSum, 142);
   check('Triad inversions phase count is 10 (8 + 2 new)', phaseData.triadInversionsCount, 10);
-  check('LEARNING_PATH_PHASES has 22 entries (21 + Progressions in New Keys)', phaseData.totalPhases, 22);
+  check('LEARNING_PATH_PHASES has 23 entries (21 + Progressions in New Keys + First Minor Progression)', phaseData.totalPhases, 23);
 
   // --- applyStage() on each new stage: correct content, C-only, no inversions, untimed ---
   const applyChecks = await page.evaluate(() => {
