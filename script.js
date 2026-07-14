@@ -3682,6 +3682,10 @@ function checkScaleStep(note) {
   if (!expected || expected.type !== 'scale') return;
 
   if (note % 12 === expected.seq[scaleCursor]) {
+    // Defensive: clears this specific note from the wrong set in case the same MIDI note
+    // number is retriggered (0x90 with no intervening 0x80) after previously being wrong --
+    // otherwise it could sit in both scaleWrongNotes and scalePlayedNotes at once.
+    scaleWrongNotes.delete(note);
     scaleCursor++;
     scalePlayedNotes.push(note);
     if (scaleCursor === expected.seq.length) completeScalePrompt();
