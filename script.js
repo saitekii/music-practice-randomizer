@@ -3933,9 +3933,15 @@ async function playPromptKey(key, btn) {
       await Promise.all(notes.map(n => doPlay(n, 1600)));
 
     } else if (expected.type === 'scale') {
-      const half  = (expected.seq.length - 1) / 2;
-      const notes = expected.seq.slice(0, half).map(pc => 60 + pc).sort((a, b) => a - b);
-      notes.push(notes[0] + 12);
+      // expected.seq is [...up, up[0], ...reverse(up)] in pitch classes (see getExpectedPCs()'s
+      // 'scale' branch) -- the first half is the plain ascending intervals. Map that half to
+      // absolute MIDI notes near middle C and re-sort (mirrors the existing chord-demo
+      // convention above: naive "60 + pc" can wrap out of ascending order depending on the
+      // root), then rebuild the same up + octave-turnaround + down shape in real registers so
+      // the demo always matches exactly what's now required to play.
+      const half   = (expected.seq.length - 1) / 2;
+      const upMidi = expected.seq.slice(0, half).map(pc => 60 + pc).sort((a, b) => a - b);
+      const notes  = [...upMidi, upMidi[0] + 12, ...[...upMidi].reverse()];
       for (const n of notes) {
         demoNotes.add(n);
         await synthNoteOn(n, 85);
