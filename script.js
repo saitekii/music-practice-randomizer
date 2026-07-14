@@ -616,7 +616,7 @@ let midiAccess        = null;
 let heldNotes         = new Set();
 let scaleCursor       = 0;
 let scalePlayedNotes  = [];
-let scaleWrongNote    = null;
+let scaleWrongNotes   = new Set();
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
@@ -2310,7 +2310,7 @@ function goBack() {
   currentPromptKey = prev ? prev.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
-  scaleWrongNote = null;
+  scaleWrongNotes.clear();
   updateHearBtn();
   renderPrompt(prev);
   updateBackBtn();
@@ -2321,7 +2321,7 @@ function showPrompt() {
   currentPromptKey = prompt ? prompt.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
-  scaleWrongNote = null;
+  scaleWrongNotes.clear();
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -2587,7 +2587,7 @@ function advanceToNextPrompt() {
   currentPromptKey = prompt ? prompt.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
-  scaleWrongNote = null;
+  scaleWrongNotes.clear();
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -3610,7 +3610,7 @@ function onMidiMessage(e) {
       pedalDown = true;
     } else if (velocity < 64 && pedalDown) {
       pedalDown = false;
-      for (const n of sustainedNotes) { heldNotes.delete(n); synthNoteOff(n); }
+      for (const n of sustainedNotes) { heldNotes.delete(n); scaleWrongNotes.delete(n); synthNoteOff(n); }
       sustainedNotes.clear();
       updateKeyboard();
     }
@@ -3630,6 +3630,7 @@ function onMidiMessage(e) {
       sustainedNotes.add(note);
     } else {
       heldNotes.delete(note);
+      scaleWrongNotes.delete(note);
       synthNoteOff(note);
       updateKeyboard();
     }
@@ -3681,12 +3682,11 @@ function checkScaleStep(note) {
   if (!expected || expected.type !== 'scale') return;
 
   if (note % 12 === expected.seq[scaleCursor]) {
-    scaleWrongNote = null;
     scaleCursor++;
     scalePlayedNotes.push(note);
     if (scaleCursor === expected.seq.length) completeScalePrompt();
   } else {
-    scaleWrongNote = note;
+    scaleWrongNotes.add(note);
     scaleCursor = 0;
     scalePlayedNotes = [];
   }
@@ -3884,7 +3884,7 @@ function updateKeyboard() {
     const isHeld         = heldNotes.has(n) || demoNotes.has(n);
     const isScaleCorrect = isScale && scalePlayedNotes.includes(n);
     const isWrong         = isScale
-      ? heldNotes.has(n) && n === scaleWrongNote
+      ? heldNotes.has(n) && scaleWrongNotes.has(n)
       : heldNotes.has(n) && isNoteWrong(n % 12, expected);
     const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
     if (isWrong) promptHadWrongNote = true;
@@ -4005,7 +4005,7 @@ function disableMidi() {
   pedalDown = false;
   scaleCursor = 0;
   scalePlayedNotes = [];
-  scaleWrongNote = null;
+  scaleWrongNotes.clear();
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
   responseTimes = [];
   updateKeyboard();
