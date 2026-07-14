@@ -616,6 +616,7 @@ let midiAccess        = null;
 let heldNotes         = new Set();
 let scaleCursor       = 0;
 let scalePlayedNotes  = [];
+let scaleWrongNote    = null;
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
@@ -2309,6 +2310,7 @@ function goBack() {
   currentPromptKey = prev ? prev.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
+  scaleWrongNote = null;
   updateHearBtn();
   renderPrompt(prev);
   updateBackBtn();
@@ -2319,6 +2321,7 @@ function showPrompt() {
   currentPromptKey = prompt ? prompt.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
+  scaleWrongNote = null;
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -2584,6 +2587,7 @@ function advanceToNextPrompt() {
   currentPromptKey = prompt ? prompt.key : '';
   scaleCursor = 0;
   scalePlayedNotes = [];
+  scaleWrongNote = null;
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -3677,10 +3681,12 @@ function checkScaleStep(note) {
   if (!expected || expected.type !== 'scale') return;
 
   if (note % 12 === expected.seq[scaleCursor]) {
+    scaleWrongNote = null;
     scaleCursor++;
     scalePlayedNotes.push(note);
     if (scaleCursor === expected.seq.length) completeScalePrompt();
   } else {
+    scaleWrongNote = note;
     scaleCursor = 0;
     scalePlayedNotes = [];
   }
@@ -3878,7 +3884,7 @@ function updateKeyboard() {
     const isHeld         = heldNotes.has(n) || demoNotes.has(n);
     const isScaleCorrect = isScale && scalePlayedNotes.includes(n);
     const isWrong         = isScale
-      ? heldNotes.has(n) && !isScaleCorrect
+      ? heldNotes.has(n) && n === scaleWrongNote
       : heldNotes.has(n) && isNoteWrong(n % 12, expected);
     const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
     if (isWrong) promptHadWrongNote = true;
@@ -3999,6 +4005,7 @@ function disableMidi() {
   pedalDown = false;
   scaleCursor = 0;
   scalePlayedNotes = [];
+  scaleWrongNote = null;
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
   responseTimes = [];
   updateKeyboard();
