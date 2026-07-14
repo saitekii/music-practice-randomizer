@@ -3923,7 +3923,8 @@ async function playPromptKey(key, btn) {
       await Promise.all(notes.map(n => doPlay(n, 1600)));
 
     } else if (expected.type === 'scale') {
-      const notes = expected.pcs.map(pc => 60 + pc).sort((a, b) => a - b);
+      const half  = (expected.seq.length - 1) / 2;
+      const notes = expected.seq.slice(0, half).map(pc => 60 + pc).sort((a, b) => a - b);
       notes.push(notes[0] + 12);
       for (const n of notes) {
         demoNotes.add(n);
