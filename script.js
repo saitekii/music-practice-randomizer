@@ -2141,10 +2141,11 @@ function genFunctional() {
   const { mode, patterns } = pick(eligibleModes);
   const pattern = pick(patterns);
   const steps   = pattern.split('–');
+  const invSuffix0 = progressionInversionSuffix(pattern, 0);
 
   return {
     line1: `Key: ${note} ${mode}`,
-    line2: steps.length > 1 ? `Play: ${steps[0]} (chord 1 of ${steps.length})` : `Play: ${pattern}`,
+    line2: steps.length > 1 ? `Play: ${steps[0]}${invSuffix0} (chord 1 of ${steps.length})` : `Play: ${pattern}${invSuffix0}`,
     key:   `func|${note}|${mode}|${pattern}|0`,
   };
 }
@@ -2647,7 +2648,7 @@ function saveSettings() {
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
     'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
     'intDirUp', 'intDirDown',
-    'adaptiveToggle', 'bandModeToggle', 'functionalRandomNumerals',
+    'adaptiveToggle', 'bandModeToggle', 'functionalRandomNumerals', 'functionalRequireInversions',
   ];
 
   const ALL_PROGRESSIONS = checkboxGatedPatterns();
@@ -2868,6 +2869,9 @@ function applyStage(idx) {
   const elDirDown    = document.getElementById('intDirDown');
   if (elDirUp)   elDirUp.checked   = stageIntDirs.includes('up');
   if (elDirDown) elDirDown.checked = stageIntDirs.includes('down');
+
+  const elReqInv = document.getElementById('functionalRequireInversions');
+  if (elReqInv) elReqInv.checked = !!stage.requireProgressionInversions;
 
   if (onCats.has('catDiatonic')) {
     const elDRoot = document.getElementById('diatonicRoot');
@@ -3420,6 +3424,26 @@ function resolveJazzQuality(degreeMarker, isUpper, suffix) {
   return suffix.replace(/♯/g, '#').replace(/♭/g, 'b');
 }
 
+// Voice-led inversion sequences for progressions that opt into requiring them via the
+// functionalRequireInversions checkbox. Chosen for smooth bass motion (common tone held
+// where one exists, otherwise the nearest step) -- see docs/superpowers/specs/2026-07-13-progressions-with-inversions-design.md
+// for the full reasoning per progression. Keys are bare pattern strings (same convention
+// as FUNCTIONAL.major/minor); values are one inversion label per step, in order.
+const PROGRESSION_INVERSIONS = {
+  'I–IV–V':     ['Root position', '2nd inversion', '1st inversion'],
+  'IV–V–I':     ['Root position', 'Root position', '2nd inversion'],
+  'I–V–vi–IV':  ['Root position', '1st inversion', 'Root position', '1st inversion'],
+};
+
+// Builds the " (2nd inversion)"-style suffix for a progression step's display text.
+// Returns '' when the toggle is off or the pattern/step has no registered label --
+// safe to call unconditionally from both genFunctional() and advanceProgressionStep().
+function progressionInversionSuffix(pattern, stepIndex) {
+  if (!checked('functionalRequireInversions')) return '';
+  const label = PROGRESSION_INVERSIONS[pattern]?.[stepIndex];
+  return label ? ` (${label})` : '';
+}
+
 function getExpectedPCs(key) {
   if (!key) return null;
   const parts = key.split('|');
@@ -3489,7 +3513,10 @@ function getExpectedPCs(key) {
       const chordRootPC = (rootIdx + offset) % 12;
       const intervals   = CHORD_INTERVALS[quality];
       if (!intervals) return null;
-      return { type: 'chord', pcs: intervals.map(i => (chordRootPC + i) % 12) };
+      const pcs = intervals.map(i => (chordRootPC + i) % 12);
+      const invLabel = PROGRESSION_INVERSIONS[fullPattern]?.[stepIndex];
+      const requiredBassPc = checked('functionalRequireInversions') ? getRequiredBassPc(quality, invLabel, pcs) : null;
+      return { type: 'chord', pcs, requiredBassPc };
     }
     // Fallback: secondary-dominant slash notation "V/<target-numeral>" (e.g. "V/vi", "V/V") --
     // resolves to the plain Major triad built a perfect 5th above the target degree's root.
@@ -3584,9 +3611,10 @@ function advanceProgressionStep(progInfo) {
   const parts = progInfo.parts.slice();
   parts[4] = String(nextIndex);
   currentPromptKey = parts.join('|');
+  const invSuffix = progressionInversionSuffix(parts[3], nextIndex);
   renderPrompt({
     line1: `Key: ${parts[1]} ${parts[2]}`,
-    line2: `Play: ${progInfo.steps[nextIndex]} (chord ${nextIndex + 1} of ${progInfo.steps.length})`,
+    line2: `Play: ${progInfo.steps[nextIndex]}${invSuffix} (chord ${nextIndex + 1} of ${progInfo.steps.length})`,
     key:   currentPromptKey,
   });
   promptCard.classList.add('midi-success');
