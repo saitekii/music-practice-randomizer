@@ -24,7 +24,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfter: names[speedUpIdx + 6],
     };
   });
-  check('LEARNING_PATH grows to 145 stages', placement.totalStages, 145);
+  check('LEARNING_PATH grows to 150 stages', placement.totalStages, 150);
   check('the 5 new stages sit immediately after Speed Up, in order', placement.between, [
     'First Song, New Keys',
     'First Song, More Keys',
@@ -32,7 +32,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     'First Song, Almost All Keys',
     'First Song, All 12 Keys',
   ]);
-  check("Left Hand Shape immediately follows the 5 new stages", placement.nextAfter, 'Left Hand Shape');
+  check("First Minor Progression, New Keys immediately follows the 5 new stages", placement.nextAfter, 'First Minor Progression, New Keys');
 
   // 2. Each stage's data: fixed I-IV-V, no chords/scales, no timer, and the exact cumulative
   // root-note set per stage (in NOTES array order, matching every other stage in the file).
@@ -73,11 +73,11 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextPhase: names[idx + 1],
     };
   });
-  check('LEARNING_PATH_PHASES grows to 24 entries', phaseData.totalPhases, 24);
-  check('phase counts sum to 145', phaseData.phaseSum, 145);
+  check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
+  check('phase counts sum to 150', phaseData.phaseSum, 150);
   check("new phase's count is 5", phaseData.newPhaseCount, 5);
   check("new phase sits right after 'Accidentals one at a time'", phaseData.prevPhase, 'Accidentals one at a time');
-  check("new phase sits right before 'Left-Hand Voicing'", phaseData.nextPhase, 'Left-Hand Voicing');
+  check("new phase sits right before 'Minor Progressions in New Keys'", phaseData.nextPhase, 'Minor Progressions in New Keys');
 
   // 4. applyStage() on one of the ramped stages sets exactly its cumulative root-note set and
   // nothing else (no chords, no scales, correct category state). Root-note checkboxes are

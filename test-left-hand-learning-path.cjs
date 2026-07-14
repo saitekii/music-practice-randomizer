@@ -22,7 +22,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const idx = LEARNING_PATH.findIndex(s => s.name === 'Left Hand Shape');
     const stages = LEARNING_PATH.slice(idx, idx + 6);
     return {
-      afterProgressionsInNewKeys: LEARNING_PATH[idx - 1]?.name === 'First Song, All 12 Keys',
+      afterMinorProgressionsInNewKeys: LEARNING_PATH[idx - 1]?.name === 'First Minor Progression, All 12 Keys',
       beforeLeftHandProgressions: LEARNING_PATH[idx + 6]?.name === 'Meet Left-Hand Progressions',
       names: stages.map(s => s.name),
       notes: stages.map(s => s.notes),
@@ -30,7 +30,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       timers: stages.map(s => s.timer),
     };
   });
-  checkTrue('the 6 stages of Left-Hand Voicing start right after "Progressions in New Keys" (Speed Up, then the new phase, then Left-Hand Voicing)', stageData.afterProgressionsInNewKeys, JSON.stringify(stageData.names));
+  checkTrue('the 6 stages of Left-Hand Voicing start right after "Minor Progressions in New Keys"', stageData.afterMinorProgressionsInNewKeys, JSON.stringify(stageData.names));
   checkTrue('"Meet Left-Hand Progressions" immediately follows the 6 Left-Hand Voicing stages', stageData.beforeLeftHandProgressions, null);
   check('stage names in order', stageData.names, ['Left Hand Shape', 'Meet Left Hand', 'Left Hand, Nat. Keys', 'Add Minor, Left Hand', 'Left Hand Timer', 'Left Hand, All 12']);
   checkTrue('stage 1 (Left Hand Shape) has only chordRoot5', stageData.chords[0].every(c => c === 'chordRoot5'), null);
@@ -109,11 +109,11 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   }));
   checkTrue('"Left-Hand Voicing" phase exists', !!phaseCheck.lhPhase, null);
   check('"Left-Hand Voicing" phase has count 6 (5 + 1 new Left Hand Shape stage)', phaseCheck.lhPhase?.count, 6);
-  check('"Left-Hand Voicing" sits right after "Progressions in New Keys"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') - 1], 'Progressions in New Keys');
+  check('"Left-Hand Voicing" sits right after "Minor Progressions in New Keys"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') - 1], 'Minor Progressions in New Keys');
   check('"Left-Hand Voicing" sits right before "Left-Hand Progressions"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') + 1], 'Left-Hand Progressions');
-  check('LEARNING_PATH_PHASES has 24 entries total', phaseCheck.phaseNames.length, 24);
+  check('LEARNING_PATH_PHASES has 25 entries total', phaseCheck.phaseNames.length, 25);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 145 stages total (124 + 1 Left Hand Shape + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions)', phaseCheck.totalStages, 145);
+  check('LEARNING_PATH has 150 stages total (124 + 1 Left Hand Shape + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys)', phaseCheck.totalStages, 150);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

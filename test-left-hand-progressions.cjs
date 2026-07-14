@@ -24,7 +24,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfter: names[allTwelveIdx + 4],
     };
   });
-  check('LEARNING_PATH grows to 145 stages', placement.totalStages, 145);
+  check('LEARNING_PATH grows to 150 stages', placement.totalStages, 150);
   check('the 3 new stages sit immediately after Left Hand, All 12, in order', placement.between, [
     'Meet Left-Hand Progressions',
     'Left-Hand Progressions, Nat. Keys',
@@ -70,8 +70,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextPhase: names[idx + 1],
     };
   });
-  check('LEARNING_PATH_PHASES grows to 24 entries', phaseData.totalPhases, 24);
-  check('phase counts sum to 145', phaseData.phaseSum, 145);
+  check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
+  check('phase counts sum to 150', phaseData.phaseSum, 150);
   check("new phase's count is 3", phaseData.newPhaseCount, 3);
   check("new phase sits right after 'Left-Hand Voicing'", phaseData.prevPhase, 'Left-Hand Voicing');
   check("new phase sits right before 'Triad inversions'", phaseData.nextPhase, 'Triad inversions');

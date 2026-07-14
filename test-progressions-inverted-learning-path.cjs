@@ -39,8 +39,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseSum: LEARNING_PATH_PHASES.reduce((sum, p) => sum + p.count, 0),
     invertedPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Progressions, Inverted'),
   }));
-  check('LEARNING_PATH has 145 stages total (128 + 3 new + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions)', phaseData.totalStages, 145);
-  check('LEARNING_PATH_PHASES sums to 145', phaseData.phaseSum, 145);
+  check('LEARNING_PATH has 150 stages total (128 + 3 new + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys)', phaseData.totalStages, 150);
+  check('LEARNING_PATH_PHASES sums to 150', phaseData.phaseSum, 150);
   check('Progressions, Inverted phase has count 3', phaseData.invertedPhase?.count, 3);
 
   // --- applyStage() on each new stage: cumulative progressions, requireProgressionInversions
