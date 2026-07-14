@@ -19,42 +19,39 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     if (!condition) failed = true;
   };
 
-  // --- The 3 new stages exist, immediately after Triad Mastery and before Two-Handed First Song
-  //     (the first stage of the later Two-Handed Progressions phase) ---
+  // --- The 3 new stages exist, immediately after Four Chords, Inverted and before First Scale ---
   const orderCheck = await page.evaluate(() => {
-    const idxTriadMastery = LEARNING_PATH.findIndex(s => s.name === 'Triad Mastery');
-    const idxNextPhase    = LEARNING_PATH.findIndex(s => s.name === 'Two-Handed First Song');
-    const between = LEARNING_PATH.slice(idxTriadMastery + 1, idxNextPhase);
-    return {
-      count: between.length,
-      names: between.map(s => s.name),
-    };
+    const idxFourInv    = LEARNING_PATH.findIndex(s => s.name === 'Four Chords, Inverted');
+    const idxFirstScale = LEARNING_PATH.findIndex(s => s.name === 'First Scale');
+    const between = LEARNING_PATH.slice(idxFourInv + 1, idxFirstScale);
+    return { count: between.length, names: between.map(s => s.name) };
   });
-  check('exactly 3 new stages between Triad Mastery and Two-Handed First Song', orderCheck.count, 3);
-  check('the 3 stages are named and ordered correctly', orderCheck.names, ['Invert Your First Song', 'Invert the Turnaround', 'Four Chords, Inverted']);
+  check('exactly 3 new stages between Four Chords, Inverted and First Scale', orderCheck.count, 3);
+  check('the 3 stages are named and ordered correctly', orderCheck.names, ['Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands']);
 
   // --- Total stage count and the new phase's count ---
   const phaseData = await page.evaluate(() => ({
     totalStages: LEARNING_PATH.length,
     phaseSum: LEARNING_PATH_PHASES.reduce((sum, p) => sum + p.count, 0),
-    invertedPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Progressions, Inverted'),
+    newPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Two-Handed Progressions'),
   }));
-  check('LEARNING_PATH has 134 stages total (128 + 3 new + 3 Two-Handed Progressions)', phaseData.totalStages, 134);
+  check('LEARNING_PATH has 134 stages total (131 + 3 new)', phaseData.totalStages, 134);
   check('LEARNING_PATH_PHASES sums to 134', phaseData.phaseSum, 134);
-  check('Progressions, Inverted phase has count 3', phaseData.invertedPhase?.count, 3);
+  check('Two-Handed Progressions phase has count 3', phaseData.newPhase?.count, 3);
 
-  // --- applyStage() on each new stage: cumulative progressions, requireProgressionInversions
-  //     on, C-only, untimed. ---
+  // --- applyStage() on each new stage: cumulative progressions, leftHandMode on,
+  //     requireProgressionInversions on, C-only, untimed. ---
   const applyChecks = await page.evaluate(() => {
     const results = {};
     for (const [name, expectedProgressions] of [
-      ['Invert Your First Song', ['I–IV–V']],
-      ['Invert the Turnaround', ['I–IV–V', 'IV–V–I']],
-      ['Four Chords, Inverted', ['I–IV–V', 'IV–V–I', 'I–V–vi–IV']],
+      ['Two-Handed First Song', ['I–IV–V']],
+      ['Two-Handed Turnaround', ['I–IV–V', 'IV–V–I']],
+      ['Four Chords, Two Hands', ['I–IV–V', 'IV–V–I', 'I–V–vi–IV']],
     ]) {
       const idx = LEARNING_PATH.findIndex(s => s.name === name);
       applyStage(idx);
       results[name] = {
+        leftHandChecked: document.getElementById('leftHandMode').checked,
         requireInvChecked: document.getElementById('functionalRequireInversions').checked,
         cChecked: document.querySelector('input[data-note="C"]').checked,
         dChecked: document.querySelector('input[data-note="D"]').checked,
@@ -64,7 +61,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     }
     return results;
   });
-  for (const name of ['Invert Your First Song', 'Invert the Turnaround', 'Four Chords, Inverted']) {
+  for (const name of ['Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands']) {
+    checkTrue(`applyStage() on ${name} checks leftHandMode`, applyChecks[name].leftHandChecked, null);
     checkTrue(`applyStage() on ${name} checks functionalRequireInversions`, applyChecks[name].requireInvChecked, null);
     checkTrue(`applyStage() on ${name} checks C`, applyChecks[name].cChecked, null);
     checkTrue(`applyStage() on ${name} leaves D unchecked (C-only)`, !applyChecks[name].dChecked, null);
@@ -72,16 +70,14 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     checkTrue(`applyStage() on ${name} checks its expected progressions`, applyChecks[name].progressionsChecked, null);
   }
 
-  // --- End-to-end sanity: Invert Your First Song actually requires the registered
-  //     inversion, not just root position. ---
+  // --- End-to-end sanity: Two-Handed First Song actually produces a 6-segment
+  //     LH-mode key with the correct left-hand voicing for step 1 (IV, 2nd inversion). ---
   const e2eCheck = await page.evaluate(() => {
-    const idx = LEARNING_PATH.findIndex(s => s.name === 'Invert Your First Song');
+    const idx = LEARNING_PATH.findIndex(s => s.name === 'Two-Handed First Song');
     applyStage(idx);
-    return {
-      step1RequiredBass: getExpectedPCs('func|C|Major|I–IV–V|1').requiredBassPc, // IV, 2nd inversion -> C (0)
-    };
+    return getExpectedPCs('func|C|Major|I–IV–V|1|LH').leftHandPcs;
   });
-  check('Invert Your First Song: step 1 (IV) requires bass C via the registered voicing', e2eCheck.step1RequiredBass, 0);
+  check('Two-Handed First Song: step 1 (IV) left hand is [C,F] via the registered voicing', e2eCheck, [0, 5]);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }
