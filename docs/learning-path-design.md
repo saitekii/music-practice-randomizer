@@ -218,7 +218,7 @@ A single consolidation checkpoint (5s timer) covering everything through Phase 1
 
 Fully ramped as of the first audit's Part 3 fix (Melodic Minor previously had no dedicated 12-key stage; Modes previously had *zero* key ramp — C-only straight to full complexity; Major Pentatonic previously combined adding Minor Pentatonic with a 7-key jump in one step). **Still has the untimed-12-keys gap** (rule 3) at each `…, All 12` stage — those jump straight into the phase's shared timer at `All Scales, All Keys`, same pattern as Phase 11.
 
-**Open issue (no recurrence):** verified directly against every stage after this phase — harmonic minor, melodic minor, both pentatonics, and modes are never referenced again anywhere in the remaining ~35 stages. Neither of the path's two later "everything" checkpoints (`All Extensions, All Keys` in Phase 16, `Full Theory Workout` in Phase 19) includes any scale beyond Major/Nat Minor. A learner who finishes this phase never sees these 4 scale types again for the rest of the curriculum — probably the single biggest retention gap in the path, bigger than anything currently timer/key-ramp related. Worth folding these scale types into at least one of the two capstones. Interval reading (Phase 18) has the identical problem — see that phase's open issue below. Not yet done.
+**Fixed 2026-07-13 (was: "no recurrence" open issue):** harmonic minor, melodic minor, both pentatonics, and modes were never referenced again anywhere after this phase — neither of the path's two later "everything" checkpoints (`All Extensions, All Keys` in Phase 16, `Full Theory Workout` in Phase 19) included any scale beyond Major/Nat Minor, capping content at exactly what Phase 9 already taught. Both checkpoints' `scales` field now includes all 7 scale types (see `docs/superpowers/specs/2026-07-13-scales-recurrence-fix-design.md` and `docs/superpowers/plans/2026-07-13-scales-recurrence-fix.md`) — a pure data widening, no new stages, no `LEARNING_PATH_PHASES` change. Interval reading (Phase 18) has the identical problem and remains unfixed, deliberately deferred as a separate build — see that phase's open issue below.
 
 ### 15. Enharmonic spellings (3 stages)
 `Meet Enharmonics → Flat-Key Spellings → Any Spelling, All Keys`
@@ -247,7 +247,7 @@ Fully ramped as of the first audit's Part 3 fix (Melodic Minor previously had no
 | 9th Chords, All Keys | All 12 | Major, Minor, Maj7, Min7, Dom7, Dom9, Maj9, Min9, (inv) + Major, Nat Minor | 10s |
 | Add Dominant 13 | All 12 | Major, Minor, Maj7, Min7, Dom7, Dom9, Maj9, Min9, Dom13, (inv) + Major, Nat Minor | 10s |
 | Jazz Alterations | 7 naturals | Major, Minor, Dom7, 7♭9, 7♯9, 7♯11 | off |
-| All Extensions, All Keys | All 12 | Major, Minor, Dim, Aug, Maj7, Min7, Dom7, sus2, sus4, 7sus4, Dom9, Maj9, Min9, Dom13, 7♭9, 7♯9, 7♯11, Half-Dim, Dim7, (inv) + Major, Nat Minor | 10s |
+| All Extensions, All Keys | All 12 | Major, Minor, Dim, Aug, Maj7, Min7, Dom7, sus2, sus4, 7sus4, Dom9, Maj9, Min9, Dom13, 7♭9, 7♯9, 7♯11, Half-Dim, Dim7, (inv) + Major, Nat Minor, Harm Minor, Mel Minor, Maj Pent, Min Pent, Modes | 10s |
 
 `Meet Half-Dim & Dim7` was split out (first audit, Part 3) from a single stage that used to debut two new chord qualities directly at full 12-key complexity — mirrors the still-unfixed `Add Dim & Aug` issue in Phase 8, but this one's already fixed. Sus chords and 9th chords each got their own natural-keys warmup added in the same round.
 
@@ -325,9 +325,11 @@ This phase is the generalization layer Phase 4 (First Progressions) sets up: rom
 | Diatonic, Major Keys | G | key G major | off |
 | Diatonic Minor Mode | A | key A minor | off |
 | Diatonic + Functional | All 12 | all progressions (no restriction) + key C major | 10s |
-| Full Theory Workout | All 12 | Major, Minor, Maj7, Min7, Dom7, (inv) + Major, Nat Minor + all progressions (no restriction) + key C major | 10s |
+| Full Theory Workout | All 12 | Major, Minor, Maj7, Min7, Dom7, (inv) + Major, Nat Minor, Harm Minor, Mel Minor, Maj Pent, Min Pent, Modes + all progressions (no restriction) + key C major | 10s |
 
 The path's final phase — a cumulative "everything" checkpoint plus the by-key diatonic-chord explorer. See Phase 17's open issue above for why the critique thinks this phase's core concept is positioned too late.
+
+**Fixed 2026-07-13 (scales recurrence):** `Full Theory Workout` previously capped scales at Major/Nat Minor only — this table row now reflects the fix (see Phase 14's note and the "second critique round" open-issues entry, moved to Resolved below).
 
 ## Open issues summary (not yet built, tracked here so they aren't re-discovered from scratch)
 
@@ -344,7 +346,8 @@ From the first critique review (`critique.txt`, independently verified against l
 
 From a second critique review (`morecritique.txt`, 2026-07-13, independently verified against live code — 7/8 claims confirmed accurate, 1 resolved as not-a-bug, see Phase 17's "Resolved" note above):
 
-- **Advanced content never recurs after its intro phase — the biggest single finding of this round.** Harmonic minor, melodic minor, both pentatonics, and modes (Phase 14) and all interval types (Phase 18) are never referenced again anywhere in the remaining stages, including both later "everything" checkpoints (`All Extensions, All Keys`, `Full Theory Workout`), which cap scales at Major/Nat Minor only and never mention intervals. Bigger retention gap than anything else on this list.
+- ~~**Advanced content never recurs after its intro phase — the biggest single finding of this round.**~~ **Fixed 2026-07-13, scales half only.** Harmonic minor, melodic minor, both pentatonics, and modes (Phase 14) are now included in both later "everything" checkpoints (`All Extensions, All Keys`, `Full Theory Workout`) — see Phase 14's "Fixed" note above. **Intervals (Phase 18) are still unfixed** — deliberately scoped out of this build as a separate follow-up (folding `catIntervals` into the existing 4-category capstones raises its own design question), tracked as its own open issue below.
+- All interval types (Phase 18) are never referenced again anywhere in the remaining stages — neither later checkpoint includes intervals. Deferred as a separate build from the scales fix above (see Phase 18's open issue).
 - `Add Dom 7 Inv.` (Phase 12) combines new content (Dom7) and turning the timer on in one stage — an untracked instance of the rule-1 violation pattern.
 - The "skip the C-only intro" issue in Phase 16 is 4 stages, not 2: `Meet Sus Chords`, `Meet Half-Dim & Dim7`, `Meet Dominant 9`, and `Jazz Alterations` all start at 7 naturals.
 - Phase 18's `Intervals, All 12 Notes` has the same missing-untimed-12-key-rung gap as Phases 11/14, just not previously named explicitly; `Intervals + Chords` also starts pre-timed on its first category combination, mirroring the already-tracked Phase 10 issue.
