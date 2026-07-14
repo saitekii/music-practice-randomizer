@@ -32,16 +32,22 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     notesPlayed.slice(8), [...notesPlayed.slice(0, 7)].reverse());
 
   // The Ear Training scale quiz reuses playPromptKey() with the same 'scale|root|type' key
-  // shape (see genEarScale()'s playKey) -- confirm it isn't broken by this change.
-  const earQuizNotes = await page.evaluate(async () => {
+  // shape (see genEarScale()'s playKey) -- confirm it isn't broken by this change. D Natural
+  // minor is deliberately chosen here (not C): its 7th degree (C, pc 0) is a lower pitch class
+  // than the root (D, pc 2), which is exactly the wraparound case that silently reordered the
+  // demo before this fix.
+  const earQuizResult = await page.evaluate(async () => {
     const seen = [];
     const original = synthNoteOn;
     synthNoteOn = async (n, v) => { seen.push(n); return original(n, v); };
     await playPromptKey('scale|D|Natural minor', null);
     synthNoteOn = original;
-    return seen.length;
+    return { pcs: seen.map(n => n % 12), count: seen.length };
   });
-  check('Ear Training scale-quiz playback (D Natural minor) also plays the full run', earQuizNotes, 15);
+  const expectedDMinorSeq = await page.evaluate(() => getExpectedPCs('scale|D|Natural minor').seq);
+  check('Ear Training scale-quiz playback (D Natural minor) plays the full run', earQuizResult.count, 15);
+  check('D Natural minor demo pitch-class order matches the required seq exactly (catches root-wraparound reordering)',
+    earQuizResult.pcs, expectedDMinorSeq);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

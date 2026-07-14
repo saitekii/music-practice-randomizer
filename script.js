@@ -3934,13 +3934,21 @@ async function playPromptKey(key, btn) {
 
     } else if (expected.type === 'scale') {
       // expected.seq is [...up, up[0], ...reverse(up)] in pitch classes (see getExpectedPCs()'s
-      // 'scale' branch) -- the first half is the plain ascending intervals. Map that half to
-      // absolute MIDI notes near middle C and re-sort (mirrors the existing chord-demo
-      // convention above: naive "60 + pc" can wrap out of ascending order depending on the
-      // root), then rebuild the same up + octave-turnaround + down shape in real registers so
-      // the demo always matches exactly what's now required to play.
+      // 'scale' branch) -- the first half is the plain ascending intervals, in scale-degree
+      // order. Walk them in that order, bumping each note up an octave whenever it wouldn't
+      // otherwise land strictly higher than the previous one -- naive "60 + pc" can wrap below
+      // the root depending on which degrees exceed pc 12 for that root, and sorting by absolute
+      // value (as the chord-demo convention above does, safely, since chord notes play at once)
+      // would silently reorder a melodic run instead of just fixing register. Then rebuild the
+      // same up + octave-turnaround + down shape in real registers so the demo always matches
+      // exactly what's now required to play.
       const half   = (expected.seq.length - 1) / 2;
-      const upMidi = expected.seq.slice(0, half).map(pc => 60 + pc).sort((a, b) => a - b);
+      const upMidi = [];
+      for (const pc of expected.seq.slice(0, half)) {
+        let n = 60 + pc;
+        while (n <= (upMidi[upMidi.length - 1] ?? -Infinity)) n += 12;
+        upMidi.push(n);
+      }
       const notes  = [...upMidi, upMidi[0] + 12, ...[...upMidi].reverse()];
       for (const n of notes) {
         demoNotes.add(n);
