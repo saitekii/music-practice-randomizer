@@ -14,11 +14,6 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     console.log(`${ok ? 'PASS' : 'FAIL'} ${label}: got ${JSON.stringify(actual)}, expected ${JSON.stringify(expected)}`);
     if (!ok) failed = true;
   };
-  const checkTrue = (label, condition, extra) => {
-    console.log(`${condition ? 'PASS' : 'FAIL'} ${label}${extra !== undefined ? ` (${extra})` : ''}`);
-    if (!condition) failed = true;
-  };
-
   // --- Toggle both on: leftHandPcs/rightHandPcs match the design table exactly,
   //     at C, for every step of all 3 progressions. requiredBassPc must be null. ---
   const cChecks = await page.evaluate(() => {
@@ -58,6 +53,22 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   const noHandModeCheck = await page.evaluate(() => getExpectedPCs('func|C|Major|I–IV–V|1|'));
   check('non-LH key: no leftHandPcs', noHandModeCheck.leftHandPcs, undefined);
   check('non-LH key: requiredBassPc is the plain single-hand value (0, C)', noHandModeCheck.requiredBassPc, 0);
+
+  // --- leftHandMode on, functionalRequireInversions OFF: bassPc is always null (the branch
+  //     short-circuits on `checked('functionalRequireInversions')` before ever calling
+  //     getRequiredBassPc), so leftHandPcs always takes the [pcs[0], pcs[2]] (root+5th)
+  //     fallback, regardless of step/inversion. Step 1 of I-IV-V is the IV chord: root F
+  //     (rootIdx 0 + offset 5 = 5), Major triad pcs [0,4,7] transposed -> [5, 9, 0] (F, A, C).
+  //     pcs[0]=5, pcs[2]=0, so the fallback is [5, 0] -- NOT the bass-C voicing
+  //     ([0, 5]) that full-inversions mode would require for a 2nd-inversion IV. ---
+  const noInversionsHandCheck = await page.evaluate(() => {
+    document.getElementById('leftHandMode').checked = true;
+    document.getElementById('functionalRequireInversions').checked = false;
+    return getExpectedPCs('func|C|Major|I–IV–V|1|LH');
+  });
+  check('leftHandMode on + inversions off, IV step: requiredBassPc is null', noInversionsHandCheck.requiredBassPc, null);
+  check('leftHandMode on + inversions off, IV step: leftHandPcs falls back to [5,0] (root+5th, not the inversion-aware bass)', noInversionsHandCheck.leftHandPcs, [5, 0]);
+  check('leftHandMode on + inversions off, IV step: rightHandPcs [5,9,0]', noInversionsHandCheck.rightHandPcs, [5, 9, 0]);
 
   // --- genFunctional() builds a 6-segment key with handMode='LH' when both toggles are on
   //     and the pool is restricted to one of the 3 registered progressions. ---
