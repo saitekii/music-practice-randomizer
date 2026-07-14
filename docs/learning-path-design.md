@@ -22,6 +22,7 @@ These aren't enforced by code — they're patterns that emerged from two audit r
 3. **Key ramp before timer, not simultaneously.** The critique's most-repeated finding: several sections jump from "7 keys, untimed" straight to "12 keys + timer" in one step. Where this has been fixed (progressions, the broader stage audit's 7 additions), an untimed 12-key stage sits between them.
 4. **Once key fluency is well-established elsewhere in the path, later phases don't need their own granular key ramp.** Used deliberately in the borrowed-chords/jazz-extension phase 18 content (2-stage ramp, not the original 5-stage one) and when trimming the second audit round's redundant ramps — by phase 15+, a learner has already drilled all 12 keys many times over in earlier phases.
 5. **A stage's `progressions`/`chords`/`scales` fields should always be explicit**, never rely on the `?? ALL_X` backward-compatibility fallback for a stage that's supposed to be restrictive — this exact bug (`'Functional Harmony — C'` silently unlocking all 26 progressions early) shipped once already.
+6. **A phase that introduces a new skill or element should be followed by a small progression-practice phase exercising that specific skill, where practical** — added 2026-07-13, from the user's own observation after "Two-Handed Progressions" shipped. Reuses the existing progression-generation mechanism (already fully key-agnostic and already supports combining with `leftHandMode`/`functionalRequireInversions`) rather than needing new code each time — the value is in the curriculum touchpoint, not new mechanism. Not retroactive to every phase automatically; each application gets its own scoped design pass. See the open-issues list below for which phases are flagged as candidates and which are already shipped or in progress.
 
 **Reading the stage tables below:** "Keys" is the enabled root notes (or, for Diatonic Chords stages, the single key the by-key explorer is set to — that phase ignores the root-note checkboxes entirely, per the Root Notes vs. Diatonic gotcha in `CLAUDE.md`). "Content" lists enabled chord types / scale types / progressions (`+` joins categories combined in one stage); `(inv)` = inversions on, `(LH)` = Left-Hand mode on. "N progressions" abbreviates a progression list once a stage enables more than 10 of them (the full lists are long and additive — each stage in a cumulative run enables everything the previous one did, plus one more). "all progressions (no restriction)" marks a stage with no `progressions` field at all, falling back to every progression via `applyStage()`'s backward-compatibility default (see rule 5 below) — this is intentional for those specific stages, not the bug rule 5 warns about.
 
@@ -366,6 +367,15 @@ The path's final phase — a cumulative "everything" checkpoint plus the by-key 
 **Fixed 2026-07-13 (scales recurrence):** `Full Theory Workout` previously capped scales at Major/Nat Minor only — this table row now reflects the fix (see Phase 16's note and the "second critique round" open-issues entry, moved to Resolved below).
 
 ## Open issues summary (not yet built, tracked here so they aren't re-discovered from scratch)
+
+**Rule 6 candidates (progression-practice phase after a skill-introducing phase), added 2026-07-13:**
+
+- Phase 6 (Accidentals) → progressions in accidental-heavy keys. **In progress**, next round to be built.
+- Phase 7 (Left-Hand Voicing) → progressions with left-hand voicing (simple root+5th, not full inversions — that combination already exists later as Phase 10 "Two-Handed Progressions"). **In progress**, being built first.
+- Phase 8 (Triad inversions / Dim & Aug) → weaker case; diminished already appears in existing minor progressions (`ii°`, `vii°`) but a full augmented-triad progression isn't obviously musical. Not scoped yet — worth revisiting after the two in-progress builds ship, not before.
+- Phases 13/14 (Seventh chords) → NOT flagged as a gap: jazz/7th-chord-quality progressions already exist later in Phase 19 ("Jazz 7th Chords" onward). A phase here would duplicate that payoff rather than fill a real gap.
+- Phase 18 (Extended chords: sus, 9ths, 13ths) → same reasoning as Phase 13/14, already covered by Phase 19's extended-chord progressions.
+- Phase 16 (Scales beyond natural minor) → doesn't apply; scales aren't a progression-compatible skill in this app's architecture.
 
 From the first critique review (`critique.txt`, independently verified against live code — 7/9 claims confirmed accurate, 2 overstated/wrong before any of this was acted on):
 
