@@ -1528,6 +1528,18 @@ input[type="number"]:focus-visible {
   transform: translateY(1px);
 }
 
+.white-key.scale-correct {
+  background: linear-gradient(180deg, #22c55e 0%, #4ade80 60%, #86efac 100%);
+  border-color: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.55);
+}
+
+.black-key.scale-correct {
+  background: linear-gradient(180deg, #15803d 0%, #22c55e 60%, #4ade80 100%);
+  border-color: #22c55e;
+  box-shadow: 0 0 10px rgba(34, 197, 94, 0.65);
+}
+
 .key-label {
   position: absolute;
   bottom: 5px;

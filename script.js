@@ -614,7 +614,8 @@ let currentPromptKey  = '';
 let midiEnabled       = false;
 let midiAccess        = null;
 let heldNotes         = new Set();
-let scaleNotesPlayed  = new Set();
+let scaleCursor       = 0;
+let scalePlayedNotes  = [];
 let midiCheckTimer    = null;
 let midiSuccessActive = false;
 
@@ -2306,7 +2307,8 @@ function goBack() {
   historyIndex++;
   const prev = promptHistory[promptHistory.length - 1 - historyIndex];
   currentPromptKey = prev ? prev.key : '';
-  scaleNotesPlayed.clear();
+  scaleCursor = 0;
+  scalePlayedNotes = [];
   updateHearBtn();
   renderPrompt(prev);
   updateBackBtn();
@@ -2315,7 +2317,8 @@ function goBack() {
 function showPrompt() {
   const prompt = generatePrompt();
   currentPromptKey = prompt ? prompt.key : '';
-  scaleNotesPlayed.clear();
+  scaleCursor = 0;
+  scalePlayedNotes = [];
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -2579,7 +2582,8 @@ function bandSchedulerTick() {
 function advanceToNextPrompt() {
   const prompt = nextPromptObj || generatePrompt();
   currentPromptKey = prompt ? prompt.key : '';
-  scaleNotesPlayed.clear();
+  scaleCursor = 0;
+  scalePlayedNotes = [];
   updateHearBtn();
   promptStartTime = Date.now();
   promptHadWrongNote = false;
@@ -3497,7 +3501,9 @@ function getExpectedPCs(key) {
     const rootPC    = (NOTE_TO_PC[parts[1]] ?? -1);
     const intervals = SCALE_INTERVALS[parts[2]];
     if (rootPC === -1 || !intervals) return null;
-    return { type: 'scale', pcs: intervals.map(i => (rootPC + i) % 12) };
+    const up  = intervals.map(i => (rootPC + i) % 12);
+    const seq = [...up, up[0], ...[...up].reverse()];
+    return { type: 'scale', seq };
   }
 
   if (type === 'interval') {
@@ -3610,8 +3616,8 @@ function onMidiMessage(e) {
   if (cmd === 0x90 && velocity > 0) {
     heldNotes.add(note);
     sustainedNotes.delete(note);
-    scaleNotesPlayed.add(note % 12);
     synthNoteOn(note, velocity);
+    checkScaleStep(note);
     updateKeyboard();
     clearTimeout(midiCheckTimer);
     midiCheckTimer = setTimeout(checkMidi, 100);
@@ -3660,6 +3666,37 @@ function advanceProgressionStep(progInfo) {
   }, 700);
 }
 
+// Advances scaleCursor when `note`'s pitch class matches the next expected step in the
+// current scale prompt's up-and-down sequence (built by getExpectedPCs()'s 'scale' branch);
+// any other pitch class resets progress back to the very first note, regardless of how far
+// into the run the mistake happened. No-op for any prompt type other than 'scale' -- safe to
+// call unconditionally from onMidiMessage()'s note-on branch for every prompt type.
+function checkScaleStep(note) {
+  if (midiSuccessActive) return;
+  const expected = getExpectedPCs(currentPromptKey);
+  if (!expected || expected.type !== 'scale') return;
+
+  if (note % 12 === expected.seq[scaleCursor]) {
+    scaleCursor++;
+    scalePlayedNotes.push(note);
+    if (scaleCursor === expected.seq.length) completeScalePrompt();
+  } else {
+    scaleCursor = 0;
+    scalePlayedNotes = [];
+  }
+}
+
+// Mirrors checkMidi()'s matched-branch dispatch for the 'scale' type: scale prompts are
+// never multi-chord progressions (getProgressionInfo() only recognizes 'func' keys), so
+// there's no advanceProgressionStep() case to consider here.
+function completeScalePrompt() {
+  if (bandActive) {
+    triggerBandSuccess(getExpectedPCs(currentPromptKey));
+  } else {
+    triggerMidiSuccess();
+  }
+}
+
 function checkMidi() {
   if (!midiEnabled || midiSuccessActive || heldNotes.size === 0) return;
   const expected = getExpectedPCs(currentPromptKey);
@@ -3694,8 +3731,6 @@ function checkMidi() {
       }
     }
     matched = pcsMatch && bassMatch && handMatch;
-  } else if (expected.type === 'scale') {
-    matched = expected.pcs.every(pc => scaleNotesPlayed.has(pc));
   } else if (expected.type === 'interval') {
     matched = heldPCs.has(expected.rootPC) && heldPCs.has(expected.targetPC);
   } else if (expected.type === 'octave') {
@@ -3824,7 +3859,6 @@ function isNoteWrong(pc, expected) {
   switch (expected.type) {
     case 'note':     return pc !== expected.pc;
     case 'chord':    return !expected.pcs.includes(pc);
-    case 'scale':    return !expected.pcs.includes(pc);
     case 'interval': return pc !== expected.rootPC && pc !== expected.targetPC;
     case 'octave':   return pc !== expected.rootPC;
     default:         return false;
@@ -3838,14 +3872,19 @@ function updateKeyboard() {
   const pcsSatisfied = expected?.type === 'chord' && expected.pcs.every(pc => heldPCs.has(pc));
   const wrongBass = expected?.type === 'chord' && expected.requiredBassPc != null
     && pcsSatisfied && sortedHeld.length > 0 && sortedHeld[0] % 12 !== expected.requiredBassPc;
+  const isScale = expected?.type === 'scale';
 
   for (const [n, el] of keyElements) {
-    const isHeld       = heldNotes.has(n) || demoNotes.has(n);
-    const isWrong      = heldNotes.has(n) && isNoteWrong(n % 12, expected);
+    const isHeld         = heldNotes.has(n) || demoNotes.has(n);
+    const isScaleCorrect = isScale && scalePlayedNotes.includes(n);
+    const isWrong         = isScale
+      ? heldNotes.has(n) && !isScaleCorrect
+      : heldNotes.has(n) && isNoteWrong(n % 12, expected);
     const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
     if (isWrong) promptHadWrongNote = true;
-    el.classList.toggle('active', isHeld && !isWrong);
+    el.classList.toggle('active', isHeld && !isWrong && !isScaleCorrect);
     el.classList.toggle('wrong',  isWrong);
+    el.classList.toggle('scale-correct', isScaleCorrect);
     el.classList.toggle('bass-target', isBassTarget);
   }
 }
@@ -3957,7 +3996,8 @@ function disableMidi() {
   heldNotes.clear();
   sustainedNotes.clear();
   pedalDown = false;
-  scaleNotesPlayed.clear();
+  scaleCursor = 0;
+  scalePlayedNotes = [];
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
   responseTimes = [];
   updateKeyboard();
