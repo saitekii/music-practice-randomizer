@@ -2067,20 +2067,29 @@ function getSynthMasterGain() {
   return synthMasterGain;
 }
 
+const pendingNoteOns = new Map(); // note number -> token object; only the most recent synthNoteOn call for a given note is allowed to actually start it
+
 async function synthNoteOn(noteNumber, velocity) {
   synthNoteOff(noteNumber);
+  const token = {};
+  pendingNoteOns.set(noteNumber, token);
   try {
     const ctx = getAudioCtx();
     if (ctx.state !== 'running') await ctx.resume();
+    if (pendingNoteOns.get(noteNumber) !== token) return; // superseded by a note-off (or a newer note-on) while we were waiting
+    pendingNoteOns.delete(noteNumber);
     const freq   = 440 * Math.pow(2, (noteNumber - 69) / 12);
     const vel    = velocity / 127;
     const preset = SYNTH_PRESETS[currentSynthPreset] || SYNTH_PRESETS['Rhodes'];
     const note   = preset.build(ctx, freq, vel, getSynthMasterGain());
     synthNotes.set(noteNumber, note);
-  } catch (_) {}
+  } catch (_) {
+    if (pendingNoteOns.get(noteNumber) === token) pendingNoteOns.delete(noteNumber);
+  }
 }
 
 function synthNoteOff(noteNumber) {
+  pendingNoteOns.delete(noteNumber);
   const note = synthNotes.get(noteNumber);
   if (!note) return;
   synthNotes.delete(noteNumber);
@@ -4071,7 +4080,11 @@ async function enableMidi() {
   // Initialize audio graph now while we still have the user-gesture context.
   // Without this, AudioContext is created later inside a MIDI message handler
   // where Chrome treats it as suspended and produces no sound.
-  try { getSynthMasterGain(); } catch (_) {}
+  try {
+    const ctx = getAudioCtx();
+    getSynthMasterGain();
+    if (ctx.state !== 'running') await ctx.resume();
+  } catch (_) {}
   try {
     midiAccess = await navigator.requestMIDIAccess();
     midiEnabled = true;
