@@ -3105,8 +3105,21 @@ function updateLearningUI() {
   }
 }
 
+function getFavoriteStages() {
+  try { return JSON.parse(localStorage.getItem('mpr_favorite_stages')) || []; }
+  catch (_) { return []; }
+}
+
+function toggleFavoriteStage(name) {
+  const favs = getFavoriteStages();
+  const idx = favs.indexOf(name);
+  if (idx === -1) favs.push(name); else favs.splice(idx, 1);
+  localStorage.setItem('mpr_favorite_stages', JSON.stringify(favs));
+}
+
 function renderStageRow(stage, i) {
   const isCurrent = i === learningStage;
+  const isFavorite = getFavoriteStages().includes(stage.name);
   const mastery = adaptiveOn() ? getStageMastery(i) : null;
   let dotHtml = '';
   if (mastery) {
@@ -3115,6 +3128,7 @@ function renderStageRow(stage, i) {
   }
   return `<div class="stage-list-row${isCurrent ? ' current' : ''}" data-idx="${i}">
     <span class="stage-list-num">${i + 1}</span>
+    <span class="stage-favorite-star${isFavorite ? ' favorited' : ''}" data-name="${stage.name}" role="button" aria-label="${isFavorite ? 'Remove from favorites' : 'Add to favorites'}">${isFavorite ? '★' : '☆'}</span>
     <span class="stage-list-name">${stage.name}</span>
     ${dotHtml}
   </div>`;
@@ -3129,8 +3143,21 @@ function currentPhaseIndex() {
   return -1;
 }
 
-function renderStageList(filterText) {
+function renderStageList(filterText, favoritesOnly) {
   const filter = (filterText || '').trim().toLowerCase();
+
+  if (favoritesOnly) {
+    const favs = getFavoriteStages();
+    if (!favs.length) {
+      return '<div class="stage-list-empty">No favorites yet — tap ☆ on any stage to add it here.</div>';
+    }
+    return LEARNING_PATH
+      .map((stage, i) => ({ stage, i }))
+      .filter(({ stage }) => favs.includes(stage.name))
+      .filter(({ stage }) => !filter || stage.name.toLowerCase().includes(filter))
+      .map(({ stage, i }) => renderStageRow(stage, i))
+      .join('');
+  }
 
   if (filter) {
     return LEARNING_PATH
@@ -3327,8 +3354,12 @@ leavePathBtn.addEventListener('click', () => {
   updateLearningUI();
 });
 
+let stageListFavoritesOnly = false;
+
 document.getElementById('showStageListBtn').addEventListener('click', () => {
   document.getElementById('stageListSearch').value = '';
+  stageListFavoritesOnly = false;
+  document.getElementById('stageListFavoritesBtn').classList.remove('active');
   document.getElementById('stageListContent').innerHTML = renderStageList();
   document.getElementById('stageListModal').classList.remove('hidden');
   const current = document.querySelector('#stageListContent .stage-list-row.current');
@@ -3336,7 +3367,13 @@ document.getElementById('showStageListBtn').addEventListener('click', () => {
 });
 
 document.getElementById('stageListSearch').addEventListener('input', e => {
-  document.getElementById('stageListContent').innerHTML = renderStageList(e.target.value);
+  document.getElementById('stageListContent').innerHTML = renderStageList(e.target.value, stageListFavoritesOnly);
+});
+
+document.getElementById('stageListFavoritesBtn').addEventListener('click', () => {
+  stageListFavoritesOnly = !stageListFavoritesOnly;
+  document.getElementById('stageListFavoritesBtn').classList.toggle('active', stageListFavoritesOnly);
+  document.getElementById('stageListContent').innerHTML = renderStageList(document.getElementById('stageListSearch').value, stageListFavoritesOnly);
 });
 
 document.getElementById('stageListClose').addEventListener('click', () => {
@@ -3349,6 +3386,12 @@ document.getElementById('stageListModal').addEventListener('click', e => {
 });
 
 document.getElementById('stageListContent').addEventListener('click', e => {
+  const star = e.target.closest('.stage-favorite-star');
+  if (star) {
+    toggleFavoriteStage(star.dataset.name);
+    document.getElementById('stageListContent').innerHTML = renderStageList(document.getElementById('stageListSearch').value, stageListFavoritesOnly);
+    return;
+  }
   const header = e.target.closest('.stage-list-phase-header');
   if (header) {
     const body = document.querySelector(`.stage-list-phase-body[data-phase-body="${header.dataset.phase}"]`);
@@ -4149,6 +4192,7 @@ function exportJSON() {
     settings:         rawSettings ? JSON.parse(rawSettings) : null,
     learning_stage:   localStorage.getItem('mpr_learning_stage'),
     theme:            localStorage.getItem('mpr_theme'),
+    favorite_stages:  getFavoriteStages(),
   };
   const a = Object.assign(document.createElement('a'), {
     href: URL.createObjectURL(new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })),
@@ -4232,6 +4276,10 @@ document.getElementById('importFileInput').addEventListener('change', function (
       if (data.theme) {
         applyTheme(data.theme);
         restored.push('theme');
+      }
+      if (data.favorite_stages) {
+        localStorage.setItem('mpr_favorite_stages', JSON.stringify(data.favorite_stages));
+        restored.push('favorite stages');
       }
       updateStreakDisplay();
       const btn = document.getElementById('importJsonBtn');

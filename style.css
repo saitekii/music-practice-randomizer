@@ -2922,13 +2922,16 @@ input[type="number"]:focus-visible {
 }
 
 .stage-list-search-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   padding: 8px 18px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
 
 .stage-list-search-input {
-  width: 100%;
+  flex: 1;
   box-sizing: border-box;
   background: var(--bg);
   border: 1px solid var(--border);
@@ -2936,6 +2939,45 @@ input[type="number"]:focus-visible {
   padding: 6px 10px;
   color: var(--text);
   font-size: 0.85rem;
+}
+
+.stage-list-favorites-btn {
+  flex-shrink: 0;
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 10px;
+  color: var(--text-dim);
+  font-size: 0.8rem;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: border-color 0.15s, color 0.15s;
+}
+
+.stage-list-favorites-btn:hover { color: var(--text); }
+
+.stage-list-favorites-btn.active {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.stage-favorite-star {
+  flex-shrink: 0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-dim);
+  line-height: 1;
+}
+
+.stage-favorite-star.favorited { color: var(--accent); }
+
+.stage-favorite-star:hover { color: var(--accent); }
+
+.stage-list-empty {
+  padding: 24px 18px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--text-dim);
 }
 
 .stage-list-search-input:focus {
