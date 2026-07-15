@@ -4,7 +4,7 @@ This is the living reference for *why* the Learning Path looks the way it does �
 
 **Maintenance rule:** whenever a plan adds, removes, reorders, or renames a stage or phase, update this doc as part of that same plan/commit — the same discipline already applied to keeping `LEARNING_PATH_PHASES` counts in sync with `LEARNING_PATH.length`. A stale version of this doc is worse than no doc; don't let it drift.
 
-As of 2026-07-13: **136 stages across 21 phases.**
+As of 2026-07-13: **136 stages across 21 phases.** **Stale as of 2026-07-15 — live `LEARNING_PATH` is now 154 stages across 25 phases.** Several rounds since 2026-07-13 (Progressions in New Keys, Minor Progressions in New Keys, the 5-round minor-progression initiative, Meet Diminished/Meet Augmented, the Major & Minor Scales reorder below) did not update this doc's phase-by-phase section or its numbering, in violation of this doc's own Maintenance rule above. Section 11 below has been corrected to reflect the 2026-07-15 scales reorder specifically; the rest of the phase list and its numbering has NOT been re-synced against live code and should not be trusted for exact phase numbers/positions until a full regeneration pass is done.
 
 ## How the mechanism works (for context on everything below)
 
@@ -177,15 +177,9 @@ Directly adjacent to Phase 9 with zero stage gap between them — together they 
 
 **Minor, non-blocking note from final review:** `leftHandMode` now affects *any* Functional Harmony prompt in free-play, not just these 3 curated progressions — before this phase, Left-Hand mode had no effect on Functional Harmony at all. Coherent behavior, just wasn't explicitly called out as in-scope beforehand.
 
-### 11. Major scales (4 stages)
-`First Scale → All Natural Scales → Scale Timer → All 12 Scales`
+### 11. Major scales — **deleted 2026-07-15, see below**
 
-| Stage | Keys | Content | Timer |
-|---|---|---|---|
-| First Scale | C | Major | off |
-| All Natural Scales | 7 naturals | Major | off |
-| Scale Timer | 7 naturals | Major | 15s |
-| All 12 Scales | All 12 | Major | 15s |
+~~`First Scale → All Natural Scales → Scale Timer → All 12 Scales`~~ — this phase (major-only, jumped straight from 1 key to 7 with no intermediate ramp) no longer exists. It's been replaced by **"Major & Minor Scales"** (6 stages: `Meet the Scales → Scales, 0–1 Accidentals → Scales, 2 Accidentals → Scales, 3 Accidentals → Scales, All 12 Keys → Scale Timer`), moved much earlier in the path — immediately after `Accidentals one at a time`, immediately before `Progressions in New Keys` — rather than staying in its old position after Two-Handed Progressions. See `docs/superpowers/specs/2026-07-15-scales-ramp-reorder-design.md` for the full design (including why Major and Natural Minor are now taught together as relative-key pairs, reusing the exact same key-signature groupings `Progressions in New Keys`/`Minor Progressions in New Keys` already established). This phase's numbering/position relative to the rest of this doc's phase list has not been reconciled — see the top-of-doc staleness note.
 
 ### 12. Combine chords + scales (3 stages)
 `Mix Chords + Scales → All 12 Combined → Add Minor Scale`
@@ -195,6 +189,8 @@ Directly adjacent to Phase 9 with zero stage gap between them — together they 
 | Mix Chords + Scales | 7 naturals | Major, Minor, (inv) + Major | 15s |
 | All 12 Combined | All 12 | Major, Minor, (inv) + Major | 10s |
 | Add Minor Scale | All 12 | Major, Minor, (inv) + Major, Nat Minor | 10s |
+
+**Updated 2026-07-15:** `Add Minor Scale`'s hint text no longer implies Natural Minor scale itself is new content (it's now taught much earlier, in the new "Major & Minor Scales" phase above) — the hint now correctly frames this stage as "minor scale (already familiar) now combined with chords too." The stage's fields are otherwise unchanged; it remains the first point where minor scale specifically enters combined chord+scale practice.
 
 **Open issue:** `Mix Chords + Scales` starts timed (15s) — the first time a learner switches between categories mid-drill, itself a new skill (context-switching) independent of speed, per the critique. Suggested fix: an untimed natural-keys combine-step before the existing timed one.
 
