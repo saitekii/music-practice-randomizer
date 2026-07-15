@@ -29,7 +29,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfterThat: names[idx + 2],
     };
   });
-  check('LEARNING_PATH grows to 151 stages', placement.totalStages, 151);
+  check('LEARNING_PATH grows to 152 stages', placement.totalStages, 152);
   check("'Invert the Minor Progression' sits immediately after 'Four Chords, Inverted'", placement.nextAfter, 'Invert the Minor Progression');
   check("'Two-Handed First Song' sits immediately after 'Invert the Minor Progression'", placement.nextAfterThat, 'Two-Handed First Song');
 
@@ -51,7 +51,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     invertedCount: LEARNING_PATH_PHASES.find(p => p.name === 'Progressions, Inverted')?.count,
   }));
   check('LEARNING_PATH_PHASES stays at 25 entries (no new phase)', phaseData.totalPhases, 25);
-  check('phase counts sum to 151', phaseData.phaseSum, 151);
+  check('phase counts sum to 152', phaseData.phaseSum, 152);
   check("'Progressions, Inverted' count is now 4", phaseData.invertedCount, 4);
 
   // 4. applyStage() checks exactly the A root, exactly the i-iv-V pattern, requireInversions on,

@@ -26,8 +26,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const between = LEARNING_PATH.slice(idxFourInv + 1, idxFirstScale);
     return { count: between.length, names: between.map(s => s.name) };
   });
-  check('exactly 4 stages between Four Chords, Inverted and First Scale', orderCheck.count, 4);
-  check('the 4 stages are named and ordered correctly', orderCheck.names, ['Invert the Minor Progression', 'Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands']);
+  check('exactly 5 stages between Four Chords, Inverted and First Scale', orderCheck.count, 5);
+  check('the 5 stages are named and ordered correctly', orderCheck.names, ['Invert the Minor Progression', 'Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands', 'Two-Handed Minor Progression']);
 
   // --- Total stage count and the new phase's count ---
   const phaseData = await page.evaluate(() => ({
@@ -35,9 +35,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseSum: LEARNING_PATH_PHASES.reduce((sum, p) => sum + p.count, 0),
     newPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Two-Handed Progressions'),
   }));
-  check('LEARNING_PATH has 151 stages total (131 + 3 new + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression)', phaseData.totalStages, 151);
-  check('LEARNING_PATH_PHASES sums to 151', phaseData.phaseSum, 151);
-  check('Two-Handed Progressions phase has count 3', phaseData.newPhase?.count, 3);
+  check('LEARNING_PATH has 152 stages total (131 + 3 new + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression + 1 Two-Handed Minor Progression)', phaseData.totalStages, 152);
+  check('LEARNING_PATH_PHASES sums to 152', phaseData.phaseSum, 152);
+  check('Two-Handed Progressions phase has count 4', phaseData.newPhase?.count, 4);
 
   // --- applyStage() on each new stage: cumulative progressions, leftHandMode on,
   //     requireProgressionInversions on, C-only, untimed. ---
