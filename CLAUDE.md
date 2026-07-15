@@ -14,6 +14,21 @@ No dev server or test suite runner beyond `run-all-tests.cjs`. For automated tes
 - Always write test scripts as `.cjs` — ESM absolute Windows paths fail in Node
 - Run a single test: `node test-script.cjs`
 - Run the entire suite: `node run-all-tests.cjs` (discovers and runs every `test-*.cjs` file at the repo root sequentially; exits non-zero if anything fails)
+- New test files should use `test-helpers.cjs` instead of inlining the Playwright/reporting boilerplate (existing test files predate this and are not migrated):
+
+  ```js
+  const { createReporter, launchApp } = require('./test-helpers.cjs');
+
+  (async () => {
+    const { browser, page } = await launchApp();
+    const { check, checkTrue, finish } = createReporter();
+
+    // ... test body using check()/checkTrue() ...
+
+    await browser.close();
+    finish();
+  })();
+  ```
 
 ## Architecture
 
@@ -27,7 +42,7 @@ Single `mpr_settings` JSON key in localStorage. Checkbox states by element ID; s
 
 ### Learning Path
 
-`LEARNING_PATH` is a 41-entry array of stage objects. `applyStage(idx)` wipes all categories, chord types, scale types, and root notes, then sets only what the stage specifies plus the timer value. Calls `saveSettings()` + `syncUI()` + `showPrompt()`. Shuffle Settings exits the path. Stage persisted as `mpr_learning_stage` in localStorage.
+`LEARNING_PATH` is a large, still-growing array of stage objects — check `LEARNING_PATH.length` live rather than trusting a hardcoded count in prose (it was wrong here for a long time: this doc said "41-entry" while the live array had grown to 154). `applyStage(idx)` wipes all categories, chord types, scale types, and root notes, then sets only what the stage specifies plus the timer value. Calls `saveSettings()` + `syncUI()` + `showPrompt()`. Shuffle Settings exits the path. Stage persisted as `mpr_learning_stage` in localStorage (by stage **name**, not index — this was fixed 2026-07-09 specifically so stage insertions don't silently shift a learner's saved position). **Adding, removing, or reordering stages/phases**: use the `learning-path-stages` skill (`.claude/skills/learning-path-stages/SKILL.md`) — it covers the column-alignment conventions and pre-flight adjacency-grep discipline this project has learned the hard way.
 
 ### localStorage keys
 
@@ -35,7 +50,20 @@ Single `mpr_settings` JSON key in localStorage. Checkbox states by element ID; s
 |-----|----------|
 | `mpr_settings` | All checkbox/radio/select state |
 | `mpr_theme` | `"dark"` or `"light"` |
-| `mpr_learning_stage` | Current stage index (absent = not on path) |
+| `mpr_learning_stage` | Current stage **name** (not index; absent = not on path) |
+| `mpr_midi` | `"1"` if MIDI was enabled last session |
+| `mpr_daily` | 30-day practice history log |
+| `mpr_weights` | Adaptive-practice weights (Playing mode) |
+| `mpr_weights_ear` | Adaptive-practice weights (Ear Training mode) |
+| `mpr_ear_settings` | Ear Training category checkboxes + label visibility |
+| `mpr_ear_stage` | Current Ear Training learning-path stage index |
+| `mpr_synth_preset` | Selected synth voice preset |
+| `mpr_synth_vol` | Synth master volume (0-100) |
+| `mpr_click_vol` | Metronome click volume (0-100) |
+| `mpr_band_style` | Selected Band Mode groove style |
+| `mpr_auto_backup_enabled` | `"1"` if auto-backup is on (off by default) |
+| `mpr_auto_backup_cadence` | `"daily"` / `"weekly"` / `"monthly"` |
+| `mpr_last_auto_backup` | Timestamp of the last automatic backup |
 
 ### `.hidden` class
 
