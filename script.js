@@ -219,8 +219,8 @@ const LEARNING_PATH = [
   { name: 'Add E Major',         hint: 'C, D, E, F, G, A Major',                                                                                  cats: ['catChords'],             notes: ['C','D','E','F','G','A'],                                        chords: ['chordMajor'],                                                                  scales: [],                             timer: 'off' },
   { name: 'All Natural Majors',  hint: 'Major chord across all seven natural keys',                                                               cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor'],                                                                  scales: [],                             timer: 'off' },
   // ── Phase 3: Introduce minor ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  { name: 'First Minor',         hint: 'C + A — a relative pair (Major and Minor)',                                                               cats: ['catChords'],             notes: ['C','A'],                                                        chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: 'off' },
-  { name: 'More Minors',         hint: 'Six chords: C/G/F Major + A/E/D Minor',                                                                   cats: ['catChords'],             notes: ['C','D','E','F','G','A'],                                        chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: 'off' },
+  { name: 'First Minor',         hint: 'C + A — a relative pair (Major and Minor)',                                                               cats: ['catChords'],             notes: ['C','A'],                                                        chords: ['chordMajor','chordMinor'],                                                     scales: [], pairedChords: true, timer: 'off' },
+  { name: 'More Minors',         hint: 'Six chords: C/G/F Major + A/E/D Minor',                                                                   cats: ['catChords'],             notes: ['C','D','E','F','G','A'],                                        chords: ['chordMajor','chordMinor'],                                                     scales: [], pairedChords: true, timer: 'off' },
   { name: 'All Natural Minor',   hint: 'Major and Minor in every natural key',                                                                    cats: ['catChords'],             notes: ['C','D','E','F','G','A','B'],                                    chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: 'off' },
   // ── Phase 3b: First Progressions ──────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Play Your First Song', hint: 'Your first real chord progression — three chords, one classic sound',                                    cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                              scales: [],                             progressions: ['I–IV–V'],                                           timer: 'off' },
@@ -240,10 +240,10 @@ const LEARNING_PATH = [
   { name: 'Add C♯',              hint: 'Last accidental — all 12 keys now',                                                                       cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '10' },
   { name: 'Speed Up',            hint: 'All 12 keys, Major + Minor root position — 5 seconds',                                                    cats: ['catChords'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: ['chordMajor','chordMinor'],                                                     scales: [],                             timer: '5'  },
   // ── Phase 5d: Major & Minor Scales ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
-  { name: 'Meet the Scales', hint: 'C Major + A Minor — a relative pair, no timer, take your time',                                               cats: ['catScales'],             notes: ['C','A'],                                                        chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: 'off' },
-  { name: 'Scales, 0–1 Accidentals', hint: 'Major + Minor scales in keys with 0–1 accidentals — C, F, G major / A, D, E minor',                   cats: ['catScales'],             notes: ['C','D','E','F','G','A'],                                        chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: 'off' },
-  { name: 'Scales, 2 Accidentals', hint: 'Add D and B♭ major, G and B minor — 2 accidentals',                                                     cats: ['catScales'],             notes: ['C','D','E','F','G','A','Bb','B'],                               chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: 'off' },
-  { name: 'Scales, 3 Accidentals', hint: 'Add A and E♭ major, C and F♯ minor — 3 accidentals',                                                    cats: ['catScales'],             notes: ['C','D','Eb','E','F','F#','G','A','Bb','B'],                     chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: 'off' },
+  { name: 'Meet the Scales', hint: 'C Major + A Minor — a relative pair, no timer, take your time',                                               cats: ['catScales'],             notes: ['C','A'],                                                        chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], pairedScales: true, timer: 'off' },
+  { name: 'Scales, 0–1 Accidentals', hint: 'Major + Minor scales in keys with 0–1 accidentals — C, F, G major / A, D, E minor',                   cats: ['catScales'],             notes: ['C','D','E','F','G','A'],                                        chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], pairedScales: true, timer: 'off' },
+  { name: 'Scales, 2 Accidentals', hint: 'Add D and B♭ major, G and B minor — 2 accidentals',                                                     cats: ['catScales'],             notes: ['C','D','E','F','G','A','Bb','B'],                               chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], pairedScales: true, timer: 'off' },
+  { name: 'Scales, 3 Accidentals', hint: 'Add A and E♭ major, C and F♯ minor — 3 accidentals',                                                    cats: ['catScales'],             notes: ['C','D','Eb','E','F','F#','G','A','Bb','B'],                     chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], pairedScales: true, timer: 'off' },
   { name: 'Scales, All 12 Keys', hint: 'Remaining keys — all 12 roots now, Major and Natural Minor together',                                     cats: ['catScales'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: 'off' },
   { name: 'Scale Timer', hint: 'All 12 keys, both scale types — 15 seconds',                                                                      cats: ['catScales'],             notes: ['C','C#','D','Eb','E','F','F#','G','Ab','A','Bb','B'],           chords: [],                                                                              scales: ['scaleMajor','scaleNatMinor'], timer: '15' },
   // ── Phase 5a: Progressions in New Keys ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
@@ -2107,14 +2107,46 @@ function synthNoteOff(noteNumber) {
 
 // ── Generators ───────────────────────────────────────────────────────────────
 
+function relativeMinorOf(majorRoot) {
+  return NOTES[(NOTES.indexOf(majorRoot) + 9) % 12];
+}
+function relativeMajorOf(minorRoot) {
+  return NOTES[(NOTES.indexOf(minorRoot) + 3) % 12];
+}
+
+// Picks { root, isMajor } such that root's relative partner (the other quality)
+// is ALSO currently enabled -- so a paired-mode prompt can never mismatch a root
+// with a quality it wasn't meant to appear with (e.g. "C Minor" when only C and A
+// are enabled, which should only ever produce C Major / A Natural minor).
+// Returns null if pairing isn't possible (e.g. only one quality has any candidates).
+function pickPairedRoot(notes) {
+  const majorCandidates = notes.filter(n => notes.includes(relativeMinorOf(n)));
+  const minorCandidates = notes.filter(n => notes.includes(relativeMajorOf(n)));
+  if (!majorCandidates.length && !minorCandidates.length) return null;
+  const useMajor = minorCandidates.length === 0 || (majorCandidates.length > 0 && Math.random() < 0.5);
+  return useMajor
+    ? { root: weightedPick(majorCandidates, 'roots'), isMajor: true }
+    : { root: weightedPick(minorCandidates, 'roots'), isMajor: false };
+}
+
 function genChord() {
   const types = CHORD_TYPES.filter(c => checked(c.id));
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  const typeLabel = weightedPick(types.map(t => t.label), 'types', 'chord');
-  const type      = types.find(t => t.label === typeLabel) || pick(types);
-  const note      = weightedPick(notes, 'roots');
+  const hasMajor = types.some(t => t.label === 'Major');
+  const hasMinor = types.some(t => t.label === 'Minor');
+  const paired   = checked('chordPairedRelativeKeys') && hasMajor && hasMinor ? pickPairedRoot(notes) : null;
+
+  let typeLabel, note;
+  if (paired) {
+    typeLabel = paired.isMajor ? 'Major' : 'Minor';
+    note      = paired.root;
+  } else {
+    typeLabel = weightedPick(types.map(t => t.label), 'types', 'chord');
+    note      = weightedPick(notes, 'roots');
+  }
+  const type = types.find(t => t.label === typeLabel) || pick(types);
 
   const useLeftHand = checked('leftHandMode') && (type.label === 'Major' || type.label === 'Minor');
   const useInv = !useLeftHand && checked('inversions');
@@ -2141,15 +2173,23 @@ function genScale() {
   const notes = enabledNotes();
   if (!types.length || !notes.length) return null;
 
-  let label;
-  if (adaptiveOn()) {
+  const hasMajor = types.some(t => t.id === 'scaleMajor');
+  const hasMinor = types.some(t => t.id === 'scaleNatMinor');
+  const paired   = checked('scalePairedRelativeKeys') && hasMajor && hasMinor ? pickPairedRoot(notes) : null;
+
+  let label, note;
+  if (paired) {
+    label = paired.isMajor ? 'Major' : 'Natural minor';
+    note  = paired.root;
+  } else if (adaptiveOn()) {
     const allLabels = types.flatMap(t => t.label === null ? MODES : [t.label]);
     label = weightedPick(allLabels, 'types', 'scale');
+    note  = weightedPick(notes, 'roots');
   } else {
     const type = pick(types);
     label = type.label === null ? pick(MODES) : type.label;
+    note  = weightedPick(notes, 'roots');
   }
-  const note = weightedPick(notes, 'roots');
 
   return {
     line1: `${note} ${label}`,
@@ -2700,9 +2740,9 @@ function saveSettings() {
     'chordSus2', 'chordSus4', 'chord7sus4',
     'chordDom9', 'chordMaj9', 'chordMin9', 'chordDom13',
     'chord7b9', 'chord7s9', 'chord7s11', 'chordHalfDim', 'chordDim7',
-    'inversions', 'jazzSymbols', 'leftHandMode',
+    'inversions', 'jazzSymbols', 'leftHandMode', 'chordPairedRelativeKeys',
     'scaleMajor', 'scaleNatMinor', 'scaleHarmMinor', 'scaleMelMinor',
-    'scaleMajPent', 'scaleMinPent', 'scaleModes',
+    'scaleMajPent', 'scaleMinPent', 'scaleModes', 'scalePairedRelativeKeys',
     'intMin2', 'intMaj2', 'intMin3', 'intMaj3', 'intPerf4', 'intTT',
     'intPerf5', 'intMin6', 'intMaj6', 'intMin7', 'intMaj7', 'intOct',
     'intDirUp', 'intDirDown',
@@ -2930,6 +2970,11 @@ function applyStage(idx) {
 
   const elReqInv = document.getElementById('functionalRequireInversions');
   if (elReqInv) elReqInv.checked = !!stage.requireProgressionInversions;
+
+  const elPairedChords = document.getElementById('chordPairedRelativeKeys');
+  if (elPairedChords) elPairedChords.checked = !!stage.pairedChords;
+  const elPairedScales = document.getElementById('scalePairedRelativeKeys');
+  if (elPairedScales) elPairedScales.checked = !!stage.pairedScales;
 
   if (onCats.has('catDiatonic')) {
     const elDRoot = document.getElementById('diatonicRoot');
