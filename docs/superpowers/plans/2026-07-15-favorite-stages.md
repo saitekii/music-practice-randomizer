@@ -92,7 +92,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       favorites: JSON.parse(localStorage.getItem('mpr_favorite_stages') || '[]'),
       starIsFavorited: document.querySelector('.stage-favorite-star').classList.contains('favorited'),
       modalStillOpen: !document.getElementById('stageListModal').classList.contains('hidden'),
-      learningStageUnchanged: learningStage === -1,
+      learningStageUnchanged: learningStage === 20, // seeded to LEARNING_PATH[20] earlier in this test, via mpr_learning_stage + reload
     };
   });
   check('starring the first stage adds it to mpr_favorite_stages', starResult.favorites, [starResult.stageName]);
