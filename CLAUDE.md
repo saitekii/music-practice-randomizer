@@ -8,11 +8,12 @@ Single-page static app — no build step, no framework. Open `index.html` in a b
 
 ## Testing
 
-No dev server or test suite. For automated testing, Playwright is pre-installed:
+No dev server or test suite runner beyond `run-all-tests.cjs`. For automated testing, Playwright is pre-installed:
 
 - Path: `C:\Users\John\AppData\Local\Temp\pw\node_modules\playwright`
 - Always write test scripts as `.cjs` — ESM absolute Windows paths fail in Node
-- Run: `node test-script.cjs`
+- Run a single test: `node test-script.cjs`
+- Run the entire suite: `node run-all-tests.cjs` (discovers and runs every `test-*.cjs` file at the repo root sequentially; exits non-zero if anything fails)
 
 ## Architecture
 
