@@ -59,6 +59,15 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     if (!condition) failed = true;
   };
 
+  // #showStageListBtn lives inside #pathActive, which is hidden until a Learning Path stage
+  // is active -- seed one and reload, matching the exact pattern test-all-paths-popup-redesign.cjs
+  // already uses for the same button.
+  await page.evaluate(() => {
+    localStorage.setItem('mpr_learning_stage', LEARNING_PATH[20].name); // an arbitrary mid-path stage
+    location.reload();
+  });
+  await page.waitForTimeout(500);
+
   await page.click('#showStageListBtn');
   await page.waitForTimeout(100);
 
