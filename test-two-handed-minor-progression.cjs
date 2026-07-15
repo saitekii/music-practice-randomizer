@@ -14,7 +14,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     if (!ok) failed = true;
   };
 
-  // 1. The new stage exists, immediately after 'Four Chords, Two Hands' and before 'First Scale'.
+  // 1. The new stage exists, immediately after 'Four Chords, Two Hands' and before 'Mix Chords + Scales'.
   const placement = await page.evaluate(() => {
     const names = LEARNING_PATH.map(s => s.name);
     const idx = names.indexOf('Four Chords, Two Hands');
@@ -24,9 +24,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfterThat: names[idx + 2],
     };
   });
-  check('LEARNING_PATH grows to 152 stages', placement.totalStages, 152);
+  check('LEARNING_PATH grows to 154 stages', placement.totalStages, 154);
   check("'Two-Handed Minor Progression' sits immediately after 'Four Chords, Two Hands'", placement.nextAfter, 'Two-Handed Minor Progression');
-  check("'First Scale' sits immediately after 'Two-Handed Minor Progression'", placement.nextAfterThat, 'First Scale');
+  check("'Mix Chords + Scales' sits immediately after 'Two-Handed Minor Progression'", placement.nextAfterThat, 'Mix Chords + Scales');
 
   // 2. The stage's data: A-minor-only i-iv-V, left-hand mode on, required inversions on, no
   // scales, no timer.
@@ -47,7 +47,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     twoHandedCount: LEARNING_PATH_PHASES.find(p => p.name === 'Two-Handed Progressions')?.count,
   }));
   check('LEARNING_PATH_PHASES stays at 25 entries (no new phase)', phaseData.totalPhases, 25);
-  check('phase counts sum to 152', phaseData.phaseSum, 152);
+  check('phase counts sum to 154', phaseData.phaseSum, 154);
   check("'Two-Handed Progressions' count is now 4", phaseData.twoHandedCount, 4);
 
   // 4. applyStage() checks exactly the A root, exactly the i-iv-V pattern, leftHandMode on,

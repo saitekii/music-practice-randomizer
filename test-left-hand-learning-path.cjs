@@ -113,7 +113,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('"Left-Hand Voicing" sits right before "Left-Hand Progressions"', phaseCheck.phaseNames[phaseCheck.phaseNames.indexOf('Left-Hand Voicing') + 1], 'Left-Hand Progressions');
   check('LEARNING_PATH_PHASES has 25 entries total', phaseCheck.phaseNames.length, 25);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 152 stages total (124 + 1 Left Hand Shape + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression + 1 Two-Handed Minor Progression)', phaseCheck.totalStages, 152);
+  check('LEARNING_PATH has 154 stages total (124 + 1 Left Hand Shape + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression + 1 Two-Handed Minor Progression)', phaseCheck.totalStages, 154);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

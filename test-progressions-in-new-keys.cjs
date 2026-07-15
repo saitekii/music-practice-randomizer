@@ -14,17 +14,17 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     if (!ok) failed = true;
   };
 
-  // 1. The 5 new stages exist, in order, immediately between 'Speed Up' and 'Left Hand Shape'.
+  // 1. The 5 new stages exist, in order, immediately after the new "Major & Minor Scales" phase (6 stages) that now sits between 'Speed Up' and here.
   const placement = await page.evaluate(() => {
     const names = LEARNING_PATH.map(s => s.name);
     const speedUpIdx = names.indexOf('Speed Up');
     return {
       totalStages: LEARNING_PATH.length,
-      between: names.slice(speedUpIdx + 1, speedUpIdx + 6),
-      nextAfter: names[speedUpIdx + 6],
+      between: names.slice(speedUpIdx + 7, speedUpIdx + 12),
+      nextAfter: names[speedUpIdx + 12],
     };
   });
-  check('LEARNING_PATH grows to 152 stages', placement.totalStages, 152);
+  check('LEARNING_PATH grows to 154 stages', placement.totalStages, 154);
   check('the 5 new stages sit immediately after Speed Up, in order', placement.between, [
     'First Song, New Keys',
     'First Song, More Keys',
@@ -74,9 +74,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
-  check('phase counts sum to 152', phaseData.phaseSum, 152);
+  check('phase counts sum to 154', phaseData.phaseSum, 154);
   check("new phase's count is 5", phaseData.newPhaseCount, 5);
-  check("new phase sits right after 'Accidentals one at a time'", phaseData.prevPhase, 'Accidentals one at a time');
+  check("new phase sits right after 'Major & Minor Scales'", phaseData.prevPhase, 'Major & Minor Scales');
   check("new phase sits right before 'Minor Progressions in New Keys'", phaseData.nextPhase, 'Minor Progressions in New Keys');
 
   // 4. applyStage() on one of the ramped stages sets exactly its cumulative root-note set and

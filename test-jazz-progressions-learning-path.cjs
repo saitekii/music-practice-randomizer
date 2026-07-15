@@ -76,7 +76,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   check('Functional harmony phase count is 26 (22 + 4 new stages)', phaseCheck.functionalHarmonyCount, 26);
   check('LEARNING_PATH_PHASES has 25 entries', phaseCheck.phaseCount, 25);
   check('LEARNING_PATH_PHASES counts sum to LEARNING_PATH.length', phaseCheck.phaseCountSum, phaseCheck.totalStages);
-  check('LEARNING_PATH has 152 stages total', phaseCheck.totalStages, 152);
+  check('LEARNING_PATH has 154 stages total', phaseCheck.totalStages, 154);
 
   await browser.close();
   if (failed) { console.log('RESULT: FAIL'); process.exit(1); }

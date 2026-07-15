@@ -24,7 +24,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfterThat: names[fasterStillIdx + 2],
     };
   });
-  check('LEARNING_PATH grows to 152 stages', placement.totalStages, 152);
+  check('LEARNING_PATH grows to 154 stages', placement.totalStages, 154);
   check("'First Minor Progression' sits immediately after 'Faster Still'", placement.nextAfterFasterStill, 'First Minor Progression');
   check("'Add F♯' sits immediately after 'First Minor Progression'", placement.nextAfterThat, 'Add F♯');
 
@@ -51,7 +51,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
-  check('phase counts sum to 152', phaseData.phaseSum, 152);
+  check('phase counts sum to 154', phaseData.phaseSum, 154);
   check("new phase's count is 1", phaseData.newPhaseCount, 1);
   check("new phase sits right after 'Add timer pressure'", phaseData.prevPhase, 'Add timer pressure');
   check("new phase sits right before 'Accidentals one at a time'", phaseData.nextPhase, 'Accidentals one at a time');
