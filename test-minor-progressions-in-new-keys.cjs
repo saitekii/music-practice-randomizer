@@ -25,7 +25,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfter: names[allTwelveIdx + 6],
     };
   });
-  check('LEARNING_PATH grows to 150 stages', placement.totalStages, 150);
+  check('LEARNING_PATH grows to 151 stages', placement.totalStages, 151);
   check("the 5 new stages sit immediately after 'First Song, All 12 Keys', in order", placement.between, [
     'First Minor Progression, New Keys',
     'First Minor Progression, More Keys',
@@ -76,7 +76,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
-  check('phase counts sum to 150', phaseData.phaseSum, 150);
+  check('phase counts sum to 151', phaseData.phaseSum, 151);
   check("new phase's count is 5", phaseData.newPhaseCount, 5);
   check("new phase sits right after 'Progressions in New Keys'", phaseData.prevPhase, 'Progressions in New Keys');
   check("new phase sits right before 'Left-Hand Voicing'", phaseData.nextPhase, 'Left-Hand Voicing');

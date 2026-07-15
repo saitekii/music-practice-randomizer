@@ -44,7 +44,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
   ]);
   check('all 3 stages are C only', pathCheck.notes, [['C'], ['C'], ['C']]);
   check('all 3 stages are untimed', pathCheck.timers, ['off', 'off', 'off']);
-  check('LEARNING_PATH has 150 stages total (125 + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys)', pathCheck.totalStages, 150);
+  check('LEARNING_PATH has 151 stages total (125 + 3 First Progressions + 3 Progressions Inverted + 3 Two-Handed Progressions + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression)', pathCheck.totalStages, 151);
 
   // --- No duplicate stage names anywhere in the whole path (the collision risk this plan flagged) ---
   const nameUniqueness = await page.evaluate(() => {

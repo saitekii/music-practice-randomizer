@@ -26,8 +26,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     const between = LEARNING_PATH.slice(idxFourInv + 1, idxFirstScale);
     return { count: between.length, names: between.map(s => s.name) };
   });
-  check('exactly 3 new stages between Four Chords, Inverted and First Scale', orderCheck.count, 3);
-  check('the 3 stages are named and ordered correctly', orderCheck.names, ['Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands']);
+  check('exactly 4 stages between Four Chords, Inverted and First Scale', orderCheck.count, 4);
+  check('the 4 stages are named and ordered correctly', orderCheck.names, ['Invert the Minor Progression', 'Two-Handed First Song', 'Two-Handed Turnaround', 'Four Chords, Two Hands']);
 
   // --- Total stage count and the new phase's count ---
   const phaseData = await page.evaluate(() => ({
@@ -35,8 +35,8 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     phaseSum: LEARNING_PATH_PHASES.reduce((sum, p) => sum + p.count, 0),
     newPhase: LEARNING_PATH_PHASES.find(p => p.name === 'Two-Handed Progressions'),
   }));
-  check('LEARNING_PATH has 150 stages total (131 + 3 new + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys)', phaseData.totalStages, 150);
-  check('LEARNING_PATH_PHASES sums to 150', phaseData.phaseSum, 150);
+  check('LEARNING_PATH has 151 stages total (131 + 3 new + 2 Dim/Aug warmup + 5 Progressions in New Keys + 1 First Minor Progression + 3 Left-Hand Progressions + 5 Minor Progressions in New Keys + 1 Invert the Minor Progression)', phaseData.totalStages, 151);
+  check('LEARNING_PATH_PHASES sums to 151', phaseData.phaseSum, 151);
   check('Two-Handed Progressions phase has count 3', phaseData.newPhase?.count, 3);
 
   // --- applyStage() on each new stage: cumulative progressions, leftHandMode on,

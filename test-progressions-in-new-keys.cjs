@@ -24,7 +24,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
       nextAfter: names[speedUpIdx + 6],
     };
   });
-  check('LEARNING_PATH grows to 150 stages', placement.totalStages, 150);
+  check('LEARNING_PATH grows to 151 stages', placement.totalStages, 151);
   check('the 5 new stages sit immediately after Speed Up, in order', placement.between, [
     'First Song, New Keys',
     'First Song, More Keys',
@@ -74,7 +74,7 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     };
   });
   check('LEARNING_PATH_PHASES grows to 25 entries', phaseData.totalPhases, 25);
-  check('phase counts sum to 150', phaseData.phaseSum, 150);
+  check('phase counts sum to 151', phaseData.phaseSum, 151);
   check("new phase's count is 5", phaseData.newPhaseCount, 5);
   check("new phase sits right after 'Accidentals one at a time'", phaseData.prevPhase, 'Accidentals one at a time');
   check("new phase sits right before 'Minor Progressions in New Keys'", phaseData.nextPhase, 'Minor Progressions in New Keys');
