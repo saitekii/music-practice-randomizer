@@ -277,6 +277,7 @@ const LEARNING_PATH = [
   { name: 'Invert Your First Song', hint: 'Same I–IV–V, now each chord requires its voice-led inversion',                                          cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                              scales: [],                             progressions: ['I–IV–V'],                                           requireProgressionInversions: true, timer: 'off' },
   { name: 'Invert the Turnaround',  hint: 'Add IV–V–I, voiced for a smooth bass line between chords',                                              cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                              scales: [],                             progressions: ['I–IV–V','IV–V–I'],                                  requireProgressionInversions: true, timer: 'off' },
   { name: 'Four Chords, Inverted',  hint: 'All four progressions now require their voice-led inversion',                                           cats: ['catFunctional'],         notes: ['C'],                                                            chords: [],                                                                              scales: [],                             progressions: ['I–IV–V','IV–V–I','I–V–vi–IV'],                     requireProgressionInversions: true, timer: 'off' },
+  { name: 'Invert the Minor Progression', hint: 'i–iv–V now requires its voice-led inversion too',                                                 cats: ['catFunctional'],         notes: ['A'],                                                            chords: [],                                                                              scales: [],                             progressions: ['i–iv–V'],                                           requireProgressionInversions: true, timer: 'off' },
   // ── Phase 6c: Two-Handed Progressions ─────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
   { name: 'Two-Handed First Song', hint: 'Right hand plays the required inversion, left hand plays the actual bass note',                          cats: ['catFunctional'],         notes: ['C'],                                                            chords: ['leftHandMode'],                                                                scales: [],                             progressions: ['I–IV–V'],                                           requireProgressionInversions: true, timer: 'off' },
   { name: 'Two-Handed Turnaround', hint: 'Add IV–V–I — same two-handed voicing across a new progression',                                          cats: ['catFunctional'],         notes: ['C'],                                                            chords: ['leftHandMode'],                                                                scales: [],                             progressions: ['I–IV–V','IV–V–I'],                                  requireProgressionInversions: true, timer: 'off' },
@@ -396,7 +397,7 @@ const LEARNING_PATH_PHASES = [
   { name: 'Left-Hand Voicing', count: 6 },
   { name: 'Left-Hand Progressions', count: 3 },
   { name: 'Triad inversions', count: 10 },
-  { name: 'Progressions, Inverted', count: 3 },
+  { name: 'Progressions, Inverted', count: 4 },
   { name: 'Two-Handed Progressions', count: 3 },
   { name: 'Major scales', count: 4 },
   { name: 'Combine chords + scales', count: 3 },
@@ -3477,6 +3478,7 @@ const PROGRESSION_INVERSIONS = {
   'I–IV–V':     ['Root position', '2nd inversion', '1st inversion'],
   'IV–V–I':     ['Root position', 'Root position', '2nd inversion'],
   'I–V–vi–IV':  ['Root position', '1st inversion', 'Root position', '1st inversion'],
+  'i–iv–V':     ['Root position', '2nd inversion', '1st inversion'],
 };
 
 // Builds the " (2nd inversion)"-style suffix for a progression step's display text.
