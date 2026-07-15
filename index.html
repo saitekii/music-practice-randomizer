@@ -770,6 +770,10 @@
     <button id="undoBtn" type="button">Undo</button>
   </div>
 
+  <div id="backupToast" class="backup-toast" role="status" aria-live="polite">
+    Backup saved to Downloads
+  </div>
+
   <!-- Stats modal -->
   <div class="help-overlay hidden" id="statsModal" role="dialog" aria-modal="true" aria-label="Practice stats">
     <div class="help-panel stats-panel">
@@ -792,6 +796,15 @@
           <span class="stats-footer-label">Import</span>
           <button id="importJsonBtn" class="export-btn" type="button">JSON backup</button>
           <input type="file" id="importFileInput" accept=".json" style="display:none">
+        </div>
+        <div class="stats-export-row">
+          <span class="stats-footer-label">Auto-backup</span>
+          <input type="checkbox" id="autoBackupEnabled">
+          <select id="autoBackupCadence">
+            <option value="daily">Daily</option>
+            <option value="weekly" selected>Weekly</option>
+            <option value="monthly">Monthly</option>
+          </select>
         </div>
         <button id="clearHistoryBtn" class="clear-history-btn" type="button">Clear practice history</button>
       </div>

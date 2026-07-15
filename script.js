@@ -630,9 +630,10 @@ const SCHEDULER_LOOKAHEAD_S  = 0.1;
 const SCHEDULER_INTERVAL_MS  = 25;
 const MAX_CATCHUP_STEPS      = 4; // cap a single tick's backlog processing at 2 beats
 
-let prevSettings  = null;
-let undoTimeout   = null;
-let learningStage = -1;
+let prevSettings      = null;
+let undoTimeout       = null;
+let backupToastTimeout = null;
+let learningStage     = -1;
 
 let currentPromptKey  = '';
 let midiEnabled       = false;
@@ -4319,6 +4320,55 @@ synthPresetSelect.addEventListener('change', () => {
 });
 
 if (localStorage.getItem('mpr_midi') === '1') enableMidi();
+
+// ── Auto-backup ──────────────────────────────────────────────────────────────
+
+const AUTO_BACKUP_CADENCE_MS = { daily: 86400000, weekly: 604800000, monthly: 2592000000 };
+
+function showBackupToast() {
+  const backupToast = document.getElementById('backupToast');
+  clearTimeout(backupToastTimeout);
+  backupToast.classList.remove('visible');
+  void backupToast.offsetWidth; // force reflow so the fade-in restarts cleanly
+  backupToast.classList.add('visible');
+  backupToastTimeout = setTimeout(() => backupToast.classList.remove('visible'), 3000);
+}
+
+function checkAutoBackup() {
+  if (localStorage.getItem('mpr_auto_backup_enabled') !== '1') return;
+  const cadenceMs = AUTO_BACKUP_CADENCE_MS[localStorage.getItem('mpr_auto_backup_cadence') || 'weekly'];
+  const last = parseInt(localStorage.getItem('mpr_last_auto_backup') || '0', 10);
+  if (Date.now() - last < cadenceMs) return;
+  exportJSON();
+  localStorage.setItem('mpr_last_auto_backup', Date.now().toString());
+  showBackupToast();
+}
+
+const autoBackupEnabledCheckbox = document.getElementById('autoBackupEnabled');
+const autoBackupCadenceSelect   = document.getElementById('autoBackupCadence');
+
+autoBackupEnabledCheckbox.checked = localStorage.getItem('mpr_auto_backup_enabled') === '1';
+autoBackupCadenceSelect.value     = localStorage.getItem('mpr_auto_backup_cadence') || 'weekly';
+autoBackupCadenceSelect.disabled  = !autoBackupEnabledCheckbox.checked;
+
+autoBackupEnabledCheckbox.addEventListener('change', () => {
+  autoBackupCadenceSelect.disabled = !autoBackupEnabledCheckbox.checked;
+  if (autoBackupEnabledCheckbox.checked) {
+    localStorage.setItem('mpr_auto_backup_enabled', '1');
+    if (!localStorage.getItem('mpr_auto_backup_cadence')) {
+      localStorage.setItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
+    }
+    checkAutoBackup();
+  } else {
+    localStorage.setItem('mpr_auto_backup_enabled', '0');
+  }
+});
+
+autoBackupCadenceSelect.addEventListener('change', () => {
+  localStorage.setItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
+});
+
+checkAutoBackup();
 
 // ── Ear training init & listeners ─────────────────────────────────────────────
 
