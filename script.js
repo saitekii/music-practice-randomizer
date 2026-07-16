@@ -4247,6 +4247,11 @@ helpBtn.addEventListener('click', () => helpModal.classList.remove('hidden'));
 helpClose.addEventListener('click', () => helpModal.classList.add('hidden'));
 helpModal.addEventListener('click', e => { if (e.target === helpModal) helpModal.classList.add('hidden'); });
 
+// Keep the in-app stage counts (Help modal, ear training path intro) from drifting out of
+// sync with the actual curriculum length, as they repeatedly have in the past.
+document.getElementById('helpLearningPathCount').textContent = LEARNING_PATH.length;
+document.getElementById('earPathStageCount').textContent = EAR_TRAINING_PATH.length;
+
 function exportJSON() {
   const rawSettings = localStorage.getItem('mpr_settings');
   const data = {

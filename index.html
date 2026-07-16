@@ -660,7 +660,7 @@
           <div class="group-body">
             <div class="group-body-inner">
               <div id="earPathStart">
-                <p class="path-intro">New to ear training? Follow the path — 30 stages from the most distinctive intervals to full mixed recognition.</p>
+                <p class="path-intro">New to ear training? Follow the path — <span id="earPathStageCount">30</span> stages from the most distinctive intervals to full mixed recognition.</p>
                 <button id="earStartPathBtn" class="path-start-btn" type="button">Start ear training path</button>
               </div>
               <div id="earPathActive" class="hidden">
@@ -942,14 +942,20 @@
 
       <div class="help-section">
         <h3>Learning Path</h3>
-        <p>New to your instrument? The Learning Path walks you through 41 stages, starting from finding a single note and building step by step to seventh chords and modes. Each stage configures the app's settings exactly right for that skill level — you don't have to think about what to practice, just follow the stages.</p>
-        <p>Clicking <strong>Shuffle Settings</strong> exits the path and returns you to manual control.</p>
+        <p>New to your instrument? The Learning Path walks you through <span id="helpLearningPathCount">41</span> stages, starting from finding a single note and building step by step to seventh chords and modes. Each stage configures the app's settings exactly right for that skill level — you don't have to think about what to practice, just follow the stages.</p>
+        <p>Clicking <strong>Shuffle Settings</strong> exits the path and returns you to manual control. Star any stage in <strong>All stages</strong> to build a quick-access list of favorites for later.</p>
       </div>
 
       <div class="help-section">
         <h3>Adaptive Practice</h3>
         <p>Enable this in Settings → Adaptive Practice. The app tracks how long each MIDI-confirmed answer takes, using an exponential moving average to score each root note and chord / scale type. Categories that take you longer show up more often; ones you've mastered fade back toward normal frequency.</p>
         <p>Weighting activates after at least 3 confirmed answers per category, so initial data doesn't immediately skew anything. The EMA naturally self-corrects over time — a few bad answers won't permanently stack a category. Use <strong>Reset learning data</strong> to start fresh.</p>
+      </div>
+
+      <div class="help-section">
+        <h3>Progress &amp; backups</h3>
+        <p>The stats icon opens your practice history: accuracy and speed by root note, chord/scale type, and inversion, plus a 14-day trend chart. Each weak spot listed under "Focus on These" has a <strong>Drill</strong> button that narrows practice to just that one thing until you stop it.</p>
+        <p>Your history lives only in this browser's localStorage — nothing is sent anywhere, so it won't follow you to another device or survive clearing browser data on its own. Use <strong>Export → JSON backup</strong> to save it and <strong>Import → JSON backup</strong> to restore it; <strong>Auto-backup</strong> can trigger that same JSON export automatically on a daily, weekly, or monthly cadence.</p>
       </div>
 
       <div class="help-section">
