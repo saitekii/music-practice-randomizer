@@ -2352,6 +2352,33 @@ function getPromptFormula(key) {
   return null;
 }
 
+// Live per-prompt key-signature reminder -- reuses getExpectedPCs() (the same resolver
+// checkMidi() uses) rather than a parallel per-category note calculator, so it's automatically
+// correct and up to date for every prompt type, not just the ones this was written for. Reports
+// only the accidentals actually present in THIS prompt's notes (not a chord/numeral's full
+// theoretical key signature), since a triad only touches some of a key's 7 scale degrees --
+// showing unrelated sharps/flats next to a 3-note chord would be more confusing than helpful.
+function getPromptAccidentals(key) {
+  const expected = getExpectedPCs(key);
+  if (!expected) return null;
+  let pcs;
+  if (expected.type === 'note')     pcs = [expected.pc];
+  else if (expected.type === 'chord')  pcs = expected.pcs;
+  else if (expected.type === 'scale')  pcs = expected.seq;
+  else if (expected.type === 'interval') pcs = [expected.rootPC, expected.targetPC];
+  else if (expected.type === 'octave') pcs = [expected.rootPC];
+  else return null;
+
+  // NOTES[] spells each pitch class the same way everywhere in this app (see CLAUDE.md gotcha)
+  // rather than respelling per key, so a single prompt can legitimately mix sharps and flats
+  // (e.g. E major's app-spelling includes both F# and Ab) -- report exactly what's shown, no
+  // attempt to normalize to one accidental type.
+  const names = [...new Set(pcs)].map(pc => NOTES[pc]).filter(n => n.length > 1);
+  if (!names.length) return null;
+  const display = names.map(n => n.replace('#', '♯').replace('b', '♭'));
+  return `${names.length} accidental${names.length > 1 ? 's' : ''} (${display.join(', ')})`;
+}
+
 function renderPrompt(prompt) {
   const noMotion = reducedMotion.matches;
   if (!noMotion) promptCard.classList.add('flash');
@@ -2362,12 +2389,14 @@ function renderPrompt(prompt) {
     promptLine2.textContent = prompt ? prompt.line2 : '';
     if (!noMotion) promptCard.classList.remove('flash');
 
-    const formula   = prompt ? getPromptFormula(prompt.key) : null;
+    const formula     = prompt ? getPromptFormula(prompt.key) : null;
+    const accidentals = prompt ? getPromptAccidentals(prompt.key) : null;
+    const hintText    = [formula, accidentals].filter(Boolean).join('   ·   ');
     const hintRow   = document.getElementById('hintRow');
     const hintEl    = document.getElementById('promptHint');
-    if (hintRow) hintRow.classList.toggle('hidden', !formula);
+    if (hintRow) hintRow.classList.toggle('hidden', !hintText);
     if (hintEl)  {
-      hintEl.textContent = formula || '';
+      hintEl.textContent = hintText;
       hintEl.classList.toggle('hidden', !hintVisible);
     }
   }, noMotion ? 0 : 120);
