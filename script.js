@@ -3806,6 +3806,13 @@ function checkScaleStep(note) {
   const expected = getExpectedPCs(currentPromptKey);
   if (!expected || expected.type !== 'scale') return;
 
+  // Some MIDI keyboards send a duplicate/retriggered note-on for a single physical key
+  // press. If this note matches the step we JUST correctly played (not the one we're
+  // expecting next), treat it as a harmless duplicate and ignore it, rather than failing
+  // the whole attempt -- verified live against a real user's diagnostic trace showing
+  // exactly this double-fire pattern on every single note.
+  if (scaleCursor > 0 && note % 12 === expected.seq[scaleCursor - 1]) return;
+
   if (note % 12 === expected.seq[scaleCursor]) {
     // Defensive: clears this specific note from the wrong set in case the same MIDI note
     // number is retriggered (0x90 with no intervening 0x80) after previously being wrong --
