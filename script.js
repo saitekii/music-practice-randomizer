@@ -2379,6 +2379,28 @@ function getPromptAccidentals(key) {
   return `${names.length} accidental${names.length > 1 ? 's' : ''} (${display.join(', ')})`;
 }
 
+function getHintText(key) {
+  if (!key) return '';
+  const formula     = getPromptFormula(key);
+  const accidentals = getPromptAccidentals(key);
+  return [formula, accidentals].filter(Boolean).join('   ·   ');
+}
+
+// Called from updateKeyboard() whenever a wrong note is held. Shows the hint row/text
+// immediately, bypassing (not overwriting) the manual hintVisible toggle -- next prompt's
+// renderPrompt() call re-hides it unless hintVisible is actually on, so this is a per-attempt
+// reveal, not a persistent change to the user's toggle preference.
+function revealHintOnMistake() {
+  const hintRow = document.getElementById('hintRow');
+  const hintEl  = document.getElementById('promptHint');
+  if (!hintRow || !hintEl || !hintEl.classList.contains('hidden')) return;
+  const hintText = getHintText(currentPromptKey);
+  if (!hintText) return;
+  hintEl.textContent = hintText;
+  hintRow.classList.remove('hidden');
+  hintEl.classList.remove('hidden');
+}
+
 function renderPrompt(prompt) {
   const noMotion = reducedMotion.matches;
   if (!noMotion) promptCard.classList.add('flash');
@@ -2389,9 +2411,7 @@ function renderPrompt(prompt) {
     promptLine2.textContent = prompt ? prompt.line2 : '';
     if (!noMotion) promptCard.classList.remove('flash');
 
-    const formula     = prompt ? getPromptFormula(prompt.key) : null;
-    const accidentals = prompt ? getPromptAccidentals(prompt.key) : null;
-    const hintText    = [formula, accidentals].filter(Boolean).join('   ·   ');
+    const hintText  = prompt ? getHintText(prompt.key) : '';
     const hintRow   = document.getElementById('hintRow');
     const hintEl    = document.getElementById('promptHint');
     if (hintRow) hintRow.classList.toggle('hidden', !hintText);
@@ -4058,6 +4078,7 @@ function updateKeyboard() {
   const wrongBass = expected?.type === 'chord' && expected.requiredBassPc != null
     && pcsSatisfied && sortedHeld.length > 0 && sortedHeld[0] % 12 !== expected.requiredBassPc;
   const isScale = expected?.type === 'scale';
+  let anyWrong = false;
 
   for (const [n, el] of keyElements) {
     const isHeld         = heldNotes.has(n) || demoNotes.has(n);
@@ -4066,12 +4087,14 @@ function updateKeyboard() {
       ? heldNotes.has(n) && scaleWrongNotes.has(n)
       : heldNotes.has(n) && isNoteWrong(n % 12, expected);
     const isBassTarget = wrongBass && heldNotes.has(n) && n % 12 === expected.requiredBassPc;
-    if (isWrong) promptHadWrongNote = true;
+    if (isWrong) { promptHadWrongNote = true; anyWrong = true; }
     el.classList.toggle('active', isHeld && !isWrong && !isScaleCorrect);
     el.classList.toggle('wrong',  isWrong);
     el.classList.toggle('scale-correct', isScaleCorrect);
     el.classList.toggle('bass-target', isBassTarget);
   }
+
+  if (anyWrong) revealHintOnMistake();
 }
 
 function updateHearBtn() {
