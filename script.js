@@ -1,3 +1,17 @@
+// This is a flat top-level script with no module boundaries -- an uncaught exception
+// anywhere stops every statement after it from running. localStorage.setItem() can throw
+// (quota exceeded, private-browsing storage restrictions, disabled storage) and JSON.parse()
+// can throw on corrupted data, so both are routed through these instead of called directly.
+function safeSetItem(key, value) {
+  try { localStorage.setItem(key, value); }
+  catch (e) { console.warn(`localStorage.setItem('${key}') failed:`, e); }
+}
+
+function safeParseJSON(str, fallback) {
+  try { return JSON.parse(str); }
+  catch (e) { console.warn('JSON.parse failed:', e); return fallback; }
+}
+
 const NOTES = ['C', 'C#', 'D', 'Eb', 'E', 'F', 'F#', 'G', 'Ab', 'A', 'Bb', 'B'];
 const ENHARMONIC_NOTES = ['Db', 'D#', 'Gb', 'G#', 'A#'];
 const NOTE_TO_PC = {
@@ -688,7 +702,7 @@ let earAdaptWeights = (() => {
   const hasPreFixKeys = Object.keys(weights.types).some(k => !k.includes(':'));
   if (hasPreFixKeys) {
     weights.types = {};
-    localStorage.setItem('mpr_weights_ear', JSON.stringify(weights));
+    safeSetItem('mpr_weights_ear', JSON.stringify(weights));
   }
   return weights;
 })();
@@ -758,7 +772,7 @@ function adaptiveOn() {
 }
 
 function saveAdaptWeights() {
-  localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
+  safeSetItem('mpr_weights', JSON.stringify(adaptWeights));
 }
 
 function updateAdaptWeight(dim, key, ms) {
@@ -823,7 +837,7 @@ function updateDailyLog(ms, isEar = false, firstTryCorrect = false) {
     }
   }
   while (log.length > 30) log.shift();
-  localStorage.setItem('mpr_daily', JSON.stringify(log));
+  safeSetItem('mpr_daily', JSON.stringify(log));
 }
 
 function weightedPick(items, dim, category) {
@@ -1087,7 +1101,7 @@ function recordAdaptiveResult(key, ms) {
 // ── Ear training adaptive weights ─────────────────────────────────────────────
 
 function saveEarAdaptWeights() {
-  localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
+  safeSetItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
 }
 
 function stripTypeCategory(key) {
@@ -1440,7 +1454,7 @@ function saveEarSettings() {
     const el = document.getElementById(id);
     return [id, el ? el.checked : false];
   }));
-  localStorage.setItem('mpr_ear_settings', JSON.stringify({ checks, showLabels: earShowLabels }));
+  safeSetItem('mpr_ear_settings', JSON.stringify({ checks, showLabels: earShowLabels }));
 }
 
 function loadEarSettings() {
@@ -1519,7 +1533,7 @@ function applyEarStage(idx) {
   }
 
   earLearningStage = idx;
-  localStorage.setItem('mpr_ear_stage', idx);
+  safeSetItem('mpr_ear_stage', idx);
   saveEarSettings();
   syncEarUI();
   updateEarPathUI();
@@ -2751,7 +2765,7 @@ function saveSettings() {
 
   const ALL_PROGRESSIONS = checkboxGatedPatterns();
 
-  localStorage.setItem('mpr_settings', JSON.stringify({
+  safeSetItem('mpr_settings', JSON.stringify({
     timer:            getTimerMode(),
     customTimer:      customTimer.value,
     checks:           Object.fromEntries(ids.map(id => [id, checked(id)])),
@@ -2845,7 +2859,7 @@ function hideUndoToast() {
 
 document.getElementById('undoBtn').addEventListener('click', () => {
   if (prevSettings !== null) {
-    localStorage.setItem('mpr_settings', prevSettings);
+    safeSetItem('mpr_settings', prevSettings);
     loadSettings();
     syncUI();
     showPrompt();
@@ -3168,7 +3182,7 @@ function toggleFavoriteStage(name) {
   const favs = getFavoriteStages();
   const idx = favs.indexOf(name);
   if (idx === -1) favs.push(name); else favs.splice(idx, 1);
-  localStorage.setItem('mpr_favorite_stages', JSON.stringify(favs));
+  safeSetItem('mpr_favorite_stages', JSON.stringify(favs));
 }
 
 function renderStageRow(stage, i) {
@@ -3381,7 +3395,7 @@ sessionStopBtn.addEventListener('click', stopSession);
 
 startPathBtn.addEventListener('click', () => {
   learningStage = 0;
-  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[0].name);
+  safeSetItem('mpr_learning_stage', LEARNING_PATH[0].name);
   updateLearningUI();
   applyStage(0);
 });
@@ -3389,7 +3403,7 @@ startPathBtn.addEventListener('click', () => {
 stagePrevBtn.addEventListener('click', () => {
   if (learningStage <= 0) return;
   learningStage--;
-  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
+  safeSetItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
   updateLearningUI();
   applyStage(learningStage);
 });
@@ -3397,7 +3411,7 @@ stagePrevBtn.addEventListener('click', () => {
 stageNextBtn.addEventListener('click', () => {
   if (learningStage >= LEARNING_PATH.length - 1) return;
   learningStage++;
-  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
+  safeSetItem('mpr_learning_stage', LEARNING_PATH[learningStage].name);
   updateLearningUI();
   applyStage(learningStage);
 });
@@ -3460,7 +3474,7 @@ document.getElementById('stageListContent').addEventListener('click', e => {
   const idx = parseInt(row.dataset.idx);
   if (isNaN(idx)) return;
   learningStage = idx;
-  localStorage.setItem('mpr_learning_stage', LEARNING_PATH[idx].name);
+  safeSetItem('mpr_learning_stage', LEARNING_PATH[idx].name);
   updateLearningUI();
   applyStage(idx);
   document.getElementById('stageListModal').classList.add('hidden');
@@ -3545,7 +3559,7 @@ function applyTheme(theme) {
   themeToggle.setAttribute('aria-label',
     theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'
   );
-  localStorage.setItem('mpr_theme', theme);
+  safeSetItem('mpr_theme', theme);
 }
 
 // ── MIDI ──────────────────────────────────────────────────────────────────────
@@ -4145,7 +4159,7 @@ async function enableMidi() {
       if (e.port.type === 'input') attachMidiListeners();
       updateMidiUI();
     };
-    localStorage.setItem('mpr_midi', '1');
+    safeSetItem('mpr_midi', '1');
   } catch (err) {
     midiStatus.textContent = 'Access denied';
   }
@@ -4259,7 +4273,7 @@ function exportJSON() {
     adaptive_weights: adaptWeights,
     ear_weights:      earAdaptWeights,
     daily_log:        loadDailyLog(),
-    settings:         rawSettings ? JSON.parse(rawSettings) : null,
+    settings:         rawSettings ? safeParseJSON(rawSettings, null) : null,
     learning_stage:   localStorage.getItem('mpr_learning_stage'),
     theme:            localStorage.getItem('mpr_theme'),
     favorite_stages:  getFavoriteStages(),
@@ -4319,26 +4333,26 @@ document.getElementById('importFileInput').addEventListener('change', function (
       if (data.adaptive_weights) {
         adaptWeights = data.adaptive_weights;
         adaptWeights.variations = adaptWeights.variations || {};
-        localStorage.setItem('mpr_weights', JSON.stringify(adaptWeights));
+        safeSetItem('mpr_weights', JSON.stringify(adaptWeights));
         restored.push('adaptive weights');
       }
       if (data.ear_weights) {
         earAdaptWeights = data.ear_weights;
-        localStorage.setItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
+        safeSetItem('mpr_weights_ear', JSON.stringify(earAdaptWeights));
         restored.push('ear weights');
       }
       if (data.daily_log) {
-        localStorage.setItem('mpr_daily', JSON.stringify(data.daily_log));
+        safeSetItem('mpr_daily', JSON.stringify(data.daily_log));
         restored.push('practice history');
       }
       if (data.settings) {
-        localStorage.setItem('mpr_settings', JSON.stringify(data.settings));
+        safeSetItem('mpr_settings', JSON.stringify(data.settings));
         loadSettings();
         syncUI();
         restored.push('settings');
       }
       if (data.learning_stage != null) {
-        localStorage.setItem('mpr_learning_stage', data.learning_stage);
+        safeSetItem('mpr_learning_stage', data.learning_stage);
         learningStage = LEARNING_PATH.findIndex(s => s.name === data.learning_stage);
         updateLearningUI();
         restored.push('learning stage');
@@ -4348,7 +4362,7 @@ document.getElementById('importFileInput').addEventListener('change', function (
         restored.push('theme');
       }
       if (data.favorite_stages) {
-        localStorage.setItem('mpr_favorite_stages', JSON.stringify(data.favorite_stages));
+        safeSetItem('mpr_favorite_stages', JSON.stringify(data.favorite_stages));
         restored.push('favorite stages');
       }
       updateStreakDisplay();
@@ -4417,25 +4431,25 @@ synthVolumeSlider.value = localStorage.getItem('mpr_synth_vol') ?? '70';
 synthVolumeSlider.addEventListener('input', () => {
   const vol = parseInt(synthVolumeSlider.value) / 100;
   if (synthMasterGain) synthMasterGain.gain.value = vol;
-  localStorage.setItem('mpr_synth_vol', synthVolumeSlider.value);
+  safeSetItem('mpr_synth_vol', synthVolumeSlider.value);
 });
 
 clickVolumeSlider.value = localStorage.getItem('mpr_click_vol') ?? '70';
 clickVolumeSlider.addEventListener('input', () => {
   const vol = parseInt(clickVolumeSlider.value) / 100;
   if (clickGain) clickGain.gain.value = vol;
-  localStorage.setItem('mpr_click_vol', clickVolumeSlider.value);
+  safeSetItem('mpr_click_vol', clickVolumeSlider.value);
 });
 
 bandStyleSelect.value = localStorage.getItem('mpr_band_style') ?? 'rock';
 bandStyleSelect.addEventListener('change', () => {
-  localStorage.setItem('mpr_band_style', bandStyleSelect.value);
+  safeSetItem('mpr_band_style', bandStyleSelect.value);
 });
 
 synthPresetSelect.value = currentSynthPreset;
 synthPresetSelect.addEventListener('change', () => {
   currentSynthPreset = synthPresetSelect.value;
-  localStorage.setItem('mpr_synth_preset', currentSynthPreset);
+  safeSetItem('mpr_synth_preset', currentSynthPreset);
   [...synthNotes.keys()].forEach(n => synthNoteOff(n));
 });
 
@@ -4460,7 +4474,7 @@ function checkAutoBackup() {
   const last = parseInt(localStorage.getItem('mpr_last_auto_backup') || '0', 10);
   if (Date.now() - last < cadenceMs) return;
   exportJSON();
-  localStorage.setItem('mpr_last_auto_backup', Date.now().toString());
+  safeSetItem('mpr_last_auto_backup', Date.now().toString());
   showBackupToast();
 }
 
@@ -4474,18 +4488,18 @@ autoBackupCadenceSelect.disabled  = !autoBackupEnabledCheckbox.checked;
 autoBackupEnabledCheckbox.addEventListener('change', () => {
   autoBackupCadenceSelect.disabled = !autoBackupEnabledCheckbox.checked;
   if (autoBackupEnabledCheckbox.checked) {
-    localStorage.setItem('mpr_auto_backup_enabled', '1');
+    safeSetItem('mpr_auto_backup_enabled', '1');
     if (!localStorage.getItem('mpr_auto_backup_cadence')) {
-      localStorage.setItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
+      safeSetItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
     }
     checkAutoBackup();
   } else {
-    localStorage.setItem('mpr_auto_backup_enabled', '0');
+    safeSetItem('mpr_auto_backup_enabled', '0');
   }
 });
 
 autoBackupCadenceSelect.addEventListener('change', () => {
-  localStorage.setItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
+  safeSetItem('mpr_auto_backup_cadence', autoBackupCadenceSelect.value);
 });
 
 checkAutoBackup();
@@ -4571,7 +4585,7 @@ document.querySelectorAll('.onboard-choice').forEach(btn => {
     const c = btn.dataset.choice;
     if (c === 'beginner') {
       learningStage = 0;
-      localStorage.setItem('mpr_learning_stage', LEARNING_PATH[0].name);
+      safeSetItem('mpr_learning_stage', LEARNING_PATH[0].name);
       updateLearningUI();
       applyStage(0);
       document.getElementById('onboardOverlay').classList.add('hidden');
