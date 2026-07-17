@@ -1831,6 +1831,71 @@ const SYNTH_PRESETS = {
       return { trigger: synth, output: synth };
     },
   },
+  'Rhodes': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 1,
+        modulationIndex: 2.5,
+        oscillator: { type: 'sine' },
+        modulation: { type: 'sine' },
+        envelope: { attack: 0.006, decay: 0.5, sustain: 0.15, release: 0.55 },
+        modulationEnvelope: { attack: 0.002, decay: 0.3, sustain: 0.05, release: 0.3 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Piano': {
+    // Deliberately distinct from Rhodes: higher harmonicity/modulationIndex for a brighter,
+    // more inharmonic "hammer" attack transient, faster attack, longer natural decay.
+    make() {
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 3,
+        modulationIndex: 10,
+        oscillator: { type: 'sine' },
+        modulation: { type: 'square' },
+        envelope: { attack: 0.002, decay: 1.2, sustain: 0.05, release: 0.8 },
+        modulationEnvelope: { attack: 0.001, decay: 0.15, sustain: 0, release: 0.2 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Organ': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.AMSynth, {
+        harmonicity: 2,
+        oscillator: { type: 'sine' },
+        modulation: { type: 'square' },
+        envelope: { attack: 0.02, decay: 0.1, sustain: 0.9, release: 0.1 },
+        modulationEnvelope: { attack: 0.02, decay: 0.1, sustain: 0.9, release: 0.1 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Pad': {
+    // First preset needing trigger !== output: the synth feeds a lowpass filter, and the
+    // filter (not the synth) is what connects to getSynthMasterGain().
+    make() {
+      const synth  = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'sawtooth' },
+        envelope: { attack: 1.2, decay: 0.3, sustain: 0.8, release: 1.5 },
+      });
+      const filter = new Tone.Filter(1600, 'lowpass');
+      synth.connect(filter);
+      return { trigger: synth, output: filter };
+    },
+  },
+  'Strings': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.DuoSynth, {
+        vibratoAmount: 0.3,
+        vibratoRate: 4,
+        harmonicity: 1.005,
+        voice0: { oscillator: { type: 'sawtooth' }, envelope: { attack: 0.6, decay: 0.2, sustain: 0.9, release: 1.2 } },
+        voice1: { oscillator: { type: 'sawtooth' }, envelope: { attack: 0.6, decay: 0.2, sustain: 0.9, release: 1.2 } },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
 };
 
 const synthInstruments = {}; // preset name -> cached { trigger, output }
