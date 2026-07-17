@@ -1897,40 +1897,52 @@ const SYNTH_PRESETS = {
     },
   },
   'Vibraphone': {
+    // Two from-scratch MetalSynth tuning attempts both sounded thin/tinny/hi-hat-like by ear
+    // (root cause: MetalSynth's fixed 6-oscillator inharmonic architecture, verified against
+    // the vendored source -- see git history for the full investigation). Replaced with a real,
+    // published preset instead of a third guess: Tone.js's own official example-presets repo
+    // (github.com/Tonejs/Presets, instrument/FMSynth/Kalimba.json) -- a struck/plucked metal-tine
+    // instrument, the closest published analogue to a vibraphone's mechanism. Low modulationIndex
+    // (2, vs. the 6-16 this file's own tuning attempts used) gives a much cleaner, less buzzy FM
+    // tone. Verified constructing and producing valid audio against this app's exact vendored
+    // Tone.js build before use, not trusted blind.
     make() {
-      const synth = new Tone.PolySynth(Tone.MetalSynth, {
-        harmonicity: 3.1,
-        modulationIndex: 16,
-        resonance: 2500,
-        octaves: 1,
-        envelope: { attack: 0.001, decay: 1.4, release: 0.4 },
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 8,
+        modulationIndex: 2,
+        oscillator: { type: 'sine' },
+        envelope: { attack: 0.001, decay: 2, sustain: 0.1, release: 2 },
+        modulation: { type: 'square' },
+        modulationEnvelope: { attack: 0.002, decay: 0.2, sustain: 0, release: 0.2 },
       });
       return { trigger: synth, output: synth };
     },
   },
   'Marimba': {
-    // Shorter, woodier decay than Vibraphone -- lower harmonicity/modulationIndex/resonance.
+    // A real, published preset (github.com/Tonejs/Presets, instrument/Synth/Marimba.json),
+    // literally named Marimba by its original author -- used as-is rather than guessed. Plain
+    // additive Synth with 3 chosen harmonic partials (1st, 3rd, 5th -- no 2nd/4th), no FM, no
+    // inharmonicity at all, which is exactly why it reads as genuinely pitched rather than
+    // metallic/noisy. See Vibraphone's comment for why this app moved off MetalSynth entirely.
     make() {
-      const synth = new Tone.PolySynth(Tone.MetalSynth, {
-        harmonicity: 1.5,
-        modulationIndex: 8,
-        resonance: 1200,
-        octaves: 0.5,
-        envelope: { attack: 0.001, decay: 0.4, release: 0.1 },
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { partials: [1, 0, 2, 0, 3] },
+        envelope: { attack: 0.001, decay: 1.2, sustain: 0, release: 1.2 },
       });
       return { trigger: synth, output: synth };
     },
   },
   'Bell': {
-    // Brighter and longer-ringing than either mallet preset -- higher harmonicity/
-    // modulationIndex/resonance, much longer decay.
+    // A real, published preset (github.com/Tonejs/Presets, instrument/Synth/Steelpan.json) --
+    // steelpan rather than orchestral bell, but both are pitched metallic percussion, and this
+    // was a far closer starting point than another from-scratch MetalSynth attempt. A "fatcustom"
+    // oscillator (a chorused/detuned stack of a custom harmonic-partial waveform) gives a
+    // brighter, richer texture than Marimba's plain additive tone without MetalSynth's
+    // inharmonic-FM harshness. See Vibraphone's comment for the full background.
     make() {
-      const synth = new Tone.PolySynth(Tone.MetalSynth, {
-        harmonicity: 5.1,
-        modulationIndex: 32,
-        resonance: 4000,
-        octaves: 1.5,
-        envelope: { attack: 0.001, decay: 3, release: 1 },
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'fatcustom', partials: [0.2, 1, 0, 0.5, 0.1], spread: 40, count: 3 },
+        envelope: { attack: 0.001, decay: 1.6, sustain: 0, release: 1.6 },
       });
       return { trigger: synth, output: synth };
     },
