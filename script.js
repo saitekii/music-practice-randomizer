@@ -2134,6 +2134,14 @@ function getSynthInstrument(name) {
   if (!synthInstruments[name]) {
     if (!toneContextLinked) {
       Tone.setContext(getAudioCtx());
+      // Tone.js's default lookAhead (100ms) deliberately schedules every Tone.now()-timed
+      // event 100ms into the future -- a real, measurable win for Transport/Part-based
+      // sequencing (none of which this app uses), but pure added latency for a directly
+      // MIDI-triggered note. synthNoteOn/synthNoteOff always pass Tone.now() as the trigger
+      // time, so this was adding a full 100ms of delay between every keypress and its sound.
+      // Setting lookAhead to 0 is Tone.js's own documented way to get the lowest latency for
+      // interactive use (its updateInterval auto-adjusts to a sane ~10ms, not 0).
+      Tone.getContext().lookAhead = 0;
       toneContextLinked = true;
     }
     const def = SYNTH_PRESETS[name] || SYNTH_PRESETS['Bass'];
