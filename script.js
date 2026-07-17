@@ -1815,258 +1815,40 @@ function playHitChime(time) {
   } catch (_) {}
 }
 
+// Tone.js-based instrument definitions. Each entry's make() returns { trigger, output }:
+// trigger has triggerAttack(freq, time, velocity)/triggerRelease(freq, time); output has
+// .connect(destination). They're usually the same object -- kept separate so a preset can
+// insert an effect node (e.g. a filter) between the synth and its output without changing
+// this shape. More presets are added here in later tasks.
 const SYNTH_PRESETS = {
-  'Rhodes': {
-    build(ctx, freq, vel, dest) {
-      const now       = ctx.currentTime;
-      const carrier   = ctx.createOscillator();
-      const modulator = ctx.createOscillator();
-      carrier.type   = 'sine'; carrier.frequency.value   = freq;
-      modulator.type = 'sine'; modulator.frequency.value = freq; // 1:1 ratio -- classic mellow FM e-piano ratio
-
-      const modGain = ctx.createGain(); // modulation index, in Hz of frequency deviation
-      modGain.gain.setValueAtTime(freq * 1.5, now);                                     // bright "tine" attack transient
-      modGain.gain.exponentialRampToValueAtTime(Math.max(freq * 0.15, 0.01), now + 0.3); // settles into a mellow tone
-      modulator.connect(modGain);
-      modGain.connect(carrier.frequency);
-
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.7,  now + 0.006);
-      gain.gain.exponentialRampToValueAtTime(vel * 0.35, now + 0.45);
-
-      carrier.connect(gain); gain.connect(dest);
-      modulator.start(now); carrier.start(now);
-      return { gain, oscs: [carrier, modulator], release: 0.55 };
-    },
-  },
-  'Organ': {
-    build(ctx, freq, vel, dest) {
-      const gain = ctx.createGain();
-      gain.gain.value = vel * 0.45;
-      gain.connect(dest);
-      const oscs = [[1, 0.5], [2, 0.28], [3, 0.14], [4, 0.08]].map(([h, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
-        osc.connect(g); g.connect(gain); osc.start();
-        return osc;
-      });
-      return { gain, oscs, release: 0.03 };
-    },
-  },
-  'Pad': {
-    build(ctx, freq, vel, dest) {
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.frequency.value = 1600; filter.Q.value = 0.8;
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.55, now + 0.1);
-      filter.connect(gain); gain.connect(dest);
-      const oscs = [-8, 8].map(detune => {
-        const osc = ctx.createOscillator();
-        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
-        osc.connect(filter); osc.start(now);
-        return osc;
-      });
-      return { gain, oscs, release: 1.2 };
-    },
-  },
-  'Bell': {
-    build(ctx, freq, vel, dest) {
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.65, now + 0.002);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 3.5);
-      gain.connect(dest);
-      const oscs = [[1, 0.7], [2.756, 0.3]].map(([h, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
-        osc.connect(g); g.connect(gain); osc.start(now); osc.stop(now + 4);
-        return osc;
-      });
-      return { gain, oscs, release: 0, freeDecay: true };
-    },
-  },
-  'Pluck': {
-    build(ctx, freq, vel, dest) {
-      const now = ctx.currentTime;
-
-      // Karplus-Strong plucked string: a short noise burst excites a feedback
-      // loop (a delay tuned to the string's period + a lowpass filter), which
-      // loses a little energy and brightness each pass -- the same way a real
-      // plucked string's vibration decays, rather than a programmed envelope.
-      const period = 1 / freq;
-      const delay  = ctx.createDelay(1.0);
-      delay.delayTime.value = period;
-
-      const loopFilter = ctx.createBiquadFilter();
-      loopFilter.type = 'lowpass';
-      // Scaled to the note's own pitch, not a fixed frequency: a fixed cutoff left
-      // dozens of harmonics almost undamped on low notes (measured: the 16th harmonic
-      // of a 110Hz pluck actually grew *louder relative to* the fundamental over time
-      // instead of dying away faster, the opposite of a real string) -- which is what
-      // reads as a metallic/bell-like ring rather than a warm pluck. Capping at 4500
-      // keeps high notes from sounding artificially muffled.
-      loopFilter.frequency.value = Math.min(4500, freq * 6);
-      loopFilter.Q.value = 0.5; // flat/overdamped response -- no resonant peak near cutoff
-
-      const feedback = ctx.createGain();
-      // < 1 -- guarantees the loop decays, never sustains or grows. Empirically,
-      // this specific delay+filter+feedback cycle in Chromium's Web Audio engine
-      // becomes numerically unstable (runaway exponential growth) once feedback
-      // gain crosses roughly 0.85-0.88, regardless of filter Q/cutoff -- verified
-      // across the app's full pitch range (65-880Hz). 0.78 keeps a ~0.07 safety
-      // margin below that cliff while ringing for several hundred ms (measured
-      // ~670ms at 220Hz) instead of a too-short pluck.
-      feedback.gain.value = 0.78;
-
-      const burst = ctx.createBufferSource();
-      burst.buffer = getNoiseBuffer(ctx);
-
-      const burstGain = ctx.createGain();
-      burstGain.gain.setValueAtTime(1, now);
-      burstGain.gain.setValueAtTime(0, now + period); // one period's worth of noise -- a single "pluck"
-
-      const outGain = ctx.createGain();
-      outGain.gain.value = vel * 0.7;
-
-      burst.connect(burstGain);
-      burstGain.connect(delay);
-      delay.connect(loopFilter);
-      loopFilter.connect(feedback);
-      feedback.connect(delay);      // closes the feedback loop
-      loopFilter.connect(outGain);
-      outGain.connect(dest);
-
-      burst.start(now);
-      burst.stop(now + period + 0.01);
-
-      // DelayNode/BiquadFilterNode/GainNode have no .stop() -- disconnect the
-      // loop explicitly once it has decayed, or it silently processes
-      // near-zero signal for the rest of the session.
-      setTimeout(() => {
-        try {
-          delay.disconnect(); loopFilter.disconnect(); feedback.disconnect(); outGain.disconnect();
-        } catch (_) {}
-      }, 2500);
-
-      return { gain: outGain, oscs: [burst], release: 0, freeDecay: true };
-    },
-  },
-  'Piano': {
-    build(ctx, freq, vel, dest) {
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.85, now + 0.003);
-      gain.gain.exponentialRampToValueAtTime(vel * 0.38, now + 0.12);
-      gain.gain.exponentialRampToValueAtTime(vel * 0.16, now + 1.0);
-      gain.gain.exponentialRampToValueAtTime(0.0001,     now + 4.0);
-      gain.connect(dest);
-      const partials = [[1, 0.6], [2, 0.28], [3, 0.1], [4, 0.06], [6, 0.03]];
-      const oscs = partials.map(([h, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'triangle'; osc.frequency.value = freq * h; g.gain.value = lvl;
-        osc.connect(g); g.connect(gain); osc.start(now);
-        return osc;
-      });
-      return { gain, oscs, release: 0.35 };
-    },
-  },
-  'Marimba': {
-    build(ctx, freq, vel, dest) {
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.8, now + 0.004);
-      gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.2);
-      gain.connect(dest);
-      const partials = [[1, 0.7], [4.07, 0.25], [10.3, 0.05]];
-      const oscs = partials.map(([h, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
-        osc.connect(g); g.connect(gain); osc.start(now); osc.stop(now + 1.5);
-        return osc;
-      });
-      return { gain, oscs, release: 0, freeDecay: true };
-    },
-  },
-  'Vibraphone': {
-    build(ctx, freq, vel, dest) {
-      const now = ctx.currentTime;
-      const dur = 3.0;
-      const envGain = ctx.createGain();
-      envGain.gain.setValueAtTime(0, now);
-      envGain.gain.linearRampToValueAtTime(vel * 0.65, now + 0.006);
-      envGain.gain.exponentialRampToValueAtTime(0.0001, now + dur);
-      const tremGain = ctx.createGain();
-      tremGain.gain.value = 1.0;
-      envGain.connect(tremGain); tremGain.connect(dest);
-      const lfo    = ctx.createOscillator();
-      const lfoAmp = ctx.createGain();
-      lfo.frequency.value = 5.5; lfoAmp.gain.value = 0.15;
-      lfo.connect(lfoAmp); lfoAmp.connect(tremGain.gain);
-      lfo.start(now); lfo.stop(now + dur + 0.1);
-      const partials = [[1, 0.7], [3.915, 0.25], [10.74, 0.05]];
-      const oscs = partials.map(([h, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'sine'; osc.frequency.value = freq * h; g.gain.value = lvl;
-        osc.connect(g); g.connect(envGain); osc.start(now); osc.stop(now + dur + 0.1);
-        return osc;
-      });
-      return { gain: envGain, oscs: [...oscs, lfo], release: 0, freeDecay: true };
-    },
-  },
-  'Strings': {
-    build(ctx, freq, vel, dest) {
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.frequency.value = 2200; filter.Q.value = 1.0;
-      const gain = ctx.createGain();
-      const now  = ctx.currentTime;
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.5, now + 0.32);
-      filter.connect(gain); gain.connect(dest);
-      const parts = [[-14, 0.55], [0, 0.65], [12, 0.3], [7, 0.25]];
-      const oscs = parts.map(([detune, lvl]) => {
-        const osc = ctx.createOscillator();
-        const g   = ctx.createGain();
-        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
-        g.gain.value = lvl;
-        osc.connect(g); g.connect(filter); osc.start(now);
-        return osc;
-      });
-      return { gain, oscs, release: 0.7 };
-    },
-  },
   'Bass': {
-    build(ctx, freq, vel, dest) {
-      const now = ctx.currentTime;
-      const filter = ctx.createBiquadFilter();
-      filter.type = 'lowpass'; filter.Q.value = 2.5;
-      filter.frequency.setValueAtTime(1800, now);
-      filter.frequency.exponentialRampToValueAtTime(500, now + 0.25); // filter envelope: bright pluck -> warm sustain
-      const gain = ctx.createGain();
-      gain.gain.setValueAtTime(0, now);
-      gain.gain.linearRampToValueAtTime(vel * 0.9, now + 0.005);
-      gain.gain.exponentialRampToValueAtTime(vel * 0.45, now + 0.18);
-      filter.connect(gain); gain.connect(dest);
-      const oscs = [0, -6].map(detune => { // subtle 2-osc unison for warmth, matching Pad/Strings' technique
-        const osc = ctx.createOscillator();
-        osc.type = 'sawtooth'; osc.frequency.value = freq; osc.detune.value = detune;
-        osc.connect(filter); osc.start(now);
-        return osc;
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'sawtooth' },
+        envelope: { attack: 0.01, decay: 0.3, sustain: 0.4, release: 0.4 },
+        filterEnvelope: { attack: 0.01, decay: 0.2, sustain: 0.3, release: 0.4, baseFrequency: 80, octaves: 3 },
       });
-      return { gain, oscs, release: 0.15 };
+      return { trigger: synth, output: synth };
     },
   },
 };
+
+const synthInstruments = {}; // preset name -> cached { trigger, output }
+let toneContextLinked = false;
+
+function getSynthInstrument(name) {
+  if (!synthInstruments[name]) {
+    if (!toneContextLinked) {
+      Tone.setContext(getAudioCtx());
+      toneContextLinked = true;
+    }
+    const def = SYNTH_PRESETS[name] || SYNTH_PRESETS['Bass'];
+    const instrument = def.make();
+    instrument.output.connect(getSynthMasterGain());
+    synthInstruments[name] = instrument;
+  }
+  return synthInstruments[name];
+}
 
 function getSynthMasterGain() {
   if (synthMasterGain) return synthMasterGain;
@@ -2092,11 +1874,11 @@ async function synthNoteOn(noteNumber, velocity) {
     if (ctx.state !== 'running') await ctx.resume();
     if (pendingNoteOns.get(noteNumber) !== token) return; // superseded by a note-off (or a newer note-on) while we were waiting
     pendingNoteOns.delete(noteNumber);
-    const freq   = 440 * Math.pow(2, (noteNumber - 69) / 12);
-    const vel    = velocity / 127;
-    const preset = SYNTH_PRESETS[currentSynthPreset] || SYNTH_PRESETS['Rhodes'];
-    const note   = preset.build(ctx, freq, vel, getSynthMasterGain());
-    synthNotes.set(noteNumber, note);
+    const freq       = 440 * Math.pow(2, (noteNumber - 69) / 12);
+    const vel        = velocity / 127;
+    const instrument = getSynthInstrument(currentSynthPreset);
+    instrument.trigger.triggerAttack(freq, Tone.now(), vel);
+    synthNotes.set(noteNumber, { instrument, freq });
   } catch (_) {
     if (pendingNoteOns.get(noteNumber) === token) pendingNoteOns.delete(noteNumber);
   }
@@ -2107,15 +1889,8 @@ function synthNoteOff(noteNumber) {
   const note = synthNotes.get(noteNumber);
   if (!note) return;
   synthNotes.delete(noteNumber);
-  if (note.freeDecay) return;
   try {
-    const ctx = getAudioCtx();
-    const now = ctx.currentTime;
-    const rel = note.release ?? 0.55;
-    note.gain.gain.cancelScheduledValues(now);
-    note.gain.gain.setValueAtTime(Math.max(note.gain.gain.value, 0.001), now);
-    note.gain.gain.exponentialRampToValueAtTime(0.0001, now + rel);
-    note.oscs.forEach(o => { try { o.stop(now + rel + 0.05); } catch (_) {} });
+    note.instrument.trigger.triggerRelease(note.freq, Tone.now());
   } catch (_) {}
 }
 
