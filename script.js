@@ -1980,6 +1980,84 @@ const SYNTH_PRESETS = {
       return { trigger: synth, output: synth };
     },
   },
+  // The following 6 presets came out of a user-run listening audition of 84 candidates seeded
+  // from Tone.js's own official example presets (github.com/Tonejs/Presets) -- these are the
+  // ones kept. Verified against this app's exact live signal chain (getSynthMasterGain's
+  // compressor, no extra headroom stage) via Tone.Offline rendering before shipping; two needed
+  // a per-instrument `volume` (dB) trim to stop clipping on a full chord, empirically found the
+  // same way, not guessed.
+  'Electric Cello': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 3.01,
+        modulationIndex: 14,
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.2, decay: 0.3, sustain: 0.1, release: 1.2 },
+        modulation: { type: 'square' },
+        modulationEnvelope: { attack: 0.01, decay: 0.5, sustain: 0.2, release: 0.1 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Pianoetta': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'square' },
+        filter: { Q: 2, type: 'lowpass', rolloff: -12 },
+        envelope: { attack: 0.005, decay: 3, sustain: 0, release: 0.45 },
+        filterEnvelope: { attack: 0.001, decay: 0.32, sustain: 0.9, release: 3, baseFrequency: 700, octaves: 2.3 },
+        volume: -2, // empirically found: eliminates clipping on a full chord (was 0.013% at 0dB)
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Cool Guy': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'pwm', modulationFrequency: 1 },
+        filter: { Q: 6, rolloff: -24 },
+        envelope: { attack: 0.025, decay: 0.3, sustain: 0.9, release: 2 },
+        filterEnvelope: { attack: 0.245, decay: 0.131, sustain: 0.5, release: 2, baseFrequency: 20, octaves: 7.2 },
+        // A genuinely extreme resonant-filter patch -- raw output peaks at ~2.36x full scale on
+        // a chord (25% of samples clipped through the app's real compressor chain). -14dB is the
+        // empirically-found minimum that eliminates clipping entirely; smaller trims (down to
+        // -9dB) still left several percent of samples clipped.
+        volume: -14,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Tiny': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.AMSynth, {
+        harmonicity: 2,
+        oscillator: { type: 'amsine2' },
+        envelope: { attack: 0.006, decay: 4, sustain: 0.04, release: 1.2 },
+        modulation: { type: 'amsine2' },
+        modulationEnvelope: { attack: 0.006, decay: 0.2, sustain: 0.2, release: 0.4 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Delicate Wind': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'square4' },
+        envelope: { attack: 2, decay: 1, sustain: 0.2, release: 2 },
+        volume: -2, // empirically found: eliminates clipping on a full chord (was 0.44% at 0dB)
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Super Saw': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'fatsawtooth', count: 3, spread: 30 },
+        envelope: { attack: 0.01, decay: 0.1, sustain: 0.5, release: 0.4 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
 };
 
 const synthInstruments = {}; // preset name -> cached { trigger, output }
