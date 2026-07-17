@@ -1896,6 +1896,78 @@ const SYNTH_PRESETS = {
       return { trigger: synth, output: synth };
     },
   },
+  'Vibraphone': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.MetalSynth, {
+        harmonicity: 3.1,
+        modulationIndex: 16,
+        resonance: 2500,
+        octaves: 1,
+        envelope: { attack: 0.001, decay: 1.4, release: 0.4 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Marimba': {
+    // Shorter, woodier decay than Vibraphone -- lower harmonicity/modulationIndex/resonance.
+    make() {
+      const synth = new Tone.PolySynth(Tone.MetalSynth, {
+        harmonicity: 1.5,
+        modulationIndex: 8,
+        resonance: 1200,
+        octaves: 0.5,
+        envelope: { attack: 0.001, decay: 0.4, release: 0.1 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Bell': {
+    // Brighter and longer-ringing than either mallet preset -- higher harmonicity/
+    // modulationIndex/resonance, much longer decay.
+    make() {
+      const synth = new Tone.PolySynth(Tone.MetalSynth, {
+        harmonicity: 5.1,
+        modulationIndex: 32,
+        resonance: 4000,
+        octaves: 1.5,
+        envelope: { attack: 0.001, decay: 3, release: 1 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Pluck': {
+    // Direct replacement for the broken hand-rolled Karplus-Strong implementation.
+    //
+    // Deviation from the original plan, found during implementation, not assumed away:
+    // the plan called for `new Tone.PolySynth(Tone.PluckSynth, ...)`, mirroring the other
+    // presets. That throws "Voice must extend Monophonic class" at construction --
+    // Tone.PluckSynth does not extend Tone.Monophonic like the other voice classes here do,
+    // so Tone.PolySynth rejects it outright. Worse: even used standalone (no PolySynth),
+    // Tone.PluckSynth's internal Karplus-Strong resonator (LowpassCombFilter ->
+    // FeedbackCombFilter) is implemented as an AudioWorkletNode. AudioWorklet module loading
+    // via addModule(blobURL) unconditionally fails with "AbortError: Unable to load a
+    // worklet's module" when the page origin is file:// -- verified with a minimal
+    // Tone.js-free repro (bare AudioContext + blob-URL worklet, no PluckSynth involved) --
+    // and this app is opened via file://, per CLAUDE.md, with no server. So PluckSynth (and
+    // Tone.FeedbackCombFilter, which hits the same worklet path) is silent in this app no
+    // matter how it's wired up; this isn't a PolySynth-compatibility problem, it's a hard
+    // platform restriction with no workaround inside this Tone.js bundle.
+    //
+    // Fix: emulate a plucked string the way many subtractive synths do without true physical
+    // modeling -- a fast-attack, fast-decaying MonoSynth voice (sustain 0, so it always dies
+    // back to silence even if held) with a filter envelope that sweeps from bright to damped
+    // quickly, giving the same "twang settling into warmth" shape a real pluck has. Built the
+    // same way as every other preset here (Tone.PolySynth wrapping a Monophonic voice) --
+    // worklet-free, no raw createOscillator/createBiquadFilter hand-rolling.
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.001, decay: 0.35, sustain: 0, release: 0.1 },
+        filterEnvelope: { attack: 0.001, decay: 0.25, sustain: 0, release: 0.1, baseFrequency: 200, octaves: 4.5 },
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
 };
 
 const synthInstruments = {}; // preset name -> cached { trigger, output }

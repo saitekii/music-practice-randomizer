@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with th
 
 ## Project
 
-Single-page static app — no build step, no framework. Open `index.html` in a browser. Everything runs client-side. Four files: `index.html` (structure), `style.css` (dark theme, CSS custom properties), `script.js` (all logic, flat file, no classes), `tonal.min.js` (vendored [Tonal.js](https://github.com/tonaljs/tonal) music-theory library, used only for jazz-extended chord-quality parsing in Functional Harmony — no other dependencies, no CDN at runtime).
+Single-page static app — no build step, no framework. Open `index.html` in a browser. Everything runs client-side. Four files: `index.html` (structure), `style.css` (dark theme, CSS custom properties), `script.js` (all logic, flat file, no classes), plus two vendored libraries — `tonal.min.js` ([Tonal.js](https://github.com/tonaljs/tonal), used only for jazz-extended chord-quality parsing in Functional Harmony) and `tone.min.js` ([Tone.js](https://tonejs.github.io/), used only for the synth voice presets in `SYNTH_PRESETS` — no other dependencies, no CDN at runtime).
 
 ## Testing
 
@@ -74,3 +74,4 @@ Not global — each element has its own scoped rule (`.hold-btn.hidden`, `.sessi
 - **Playwright radio inputs**: clicking a `.radio-pill` label times out — the label intercepts pointer events. Use `page.evaluate()` to set `.checked` and dispatch a `change` event instead.
 - **Root Notes vs Diatonic**: Root Notes checkboxes apply to Chords, Scales, Note Finder, and Functional Harmony — not Diatonic Chords, which has its own key selector.
 - **NOTES array spelling**: enharmonic choices throughout the codebase follow whatever `NOTES[]` uses (mixes sharps and flats). Don't introduce alternate spellings.
+- **Tone.js classes that need an AudioWorklet are silent under `file://`**: `AudioContext.audioWorklet.addModule()` with a blob URL fails with `AbortError: Unable to load a worklet's module` when the page origin is `file://` (verified with a minimal Tone.js-free repro — this is a Chromium platform restriction, not a Tone.js bug). Since this app is opened via `file://` with no server, any `SYNTH_PRESETS` entry built on a worklet-backed class is effectively dead on arrival — it constructs without throwing and produces true silence. `Tone.PluckSynth` and `Tone.FeedbackCombFilter` both hit this (their Karplus-Strong-style comb filter is worklet-based); there's no worklet-free equivalent in this vendored bundle. Before wiring any new Tone.js class into a preset, check whether it (or something it wraps) is worklet-backed.
