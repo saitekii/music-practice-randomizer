@@ -2058,6 +2058,73 @@ const SYNTH_PRESETS = {
       return { trigger: synth, output: synth };
     },
   },
+  // These 5 come from a second, narrower search after a round of 13 hand-designed presets
+  // (Wurlitzer/Clavinet/Hammond Organ/etc.) was rejected by ear across the board -- confirming
+  // the same lesson MetalSynth already taught: hand-designed synthesis parameters with no real
+  // reference and no ears in the loop are unreliable. These 5 are real, tested values instead,
+  // sourced (MIT license) from github.com/madmonk13/modal-16, a working generative-music
+  // sequencer -- including that project's own volume (dB) trims, verified against this app's
+  // exact live signal chain before being kept. The other 8 categories from that list (Clavinet,
+  // Solina Strings, Prophet Pad, House Stab, Analog Pluck, etc.) had no real preset available
+  // anywhere found and were dropped rather than hand-designed again.
+  'Wurlitzer': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.FMSynth, {
+        harmonicity: 3.5,
+        modulationIndex: 4.2,
+        oscillator: { type: 'triangle' },
+        envelope: { attack: 0.001, decay: 0.28, sustain: 0.32, release: 1.4 },
+        modulation: { type: 'square' },
+        modulationEnvelope: { attack: 0.001, decay: 0.1, sustain: 0.06, release: 0.6 },
+        volume: -9,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Juno Lead': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'fatsquare', count: 2, spread: 15 },
+        envelope: { attack: 0.012, decay: 0.08, sustain: 0.88, release: 0.7 },
+        filterEnvelope: { attack: 0.01, decay: 0.1, sustain: 0.85, release: 0.5, baseFrequency: 500, octaves: 3 },
+        filter: { type: 'lowpass', rolloff: -12, Q: 1.8 },
+        volume: -11,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Brass Stab': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'fatsawtooth', count: 2, spread: 20 },
+        envelope: { attack: 0.005, decay: 0.28, sustain: 0.05, release: 1.2 },
+        volume: -9,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Hammond Organ': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.Synth, {
+        oscillator: { type: 'square' },
+        envelope: { attack: 0.008, decay: 0.01, sustain: 1, release: 0.08 },
+        volume: -19,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
+  'Moog Bass': {
+    make() {
+      const synth = new Tone.PolySynth(Tone.MonoSynth, {
+        oscillator: { type: 'sawtooth' },
+        envelope: { attack: 0.005, decay: 0.2, sustain: 0.22, release: 1.2 },
+        filterEnvelope: { attack: 0.004, decay: 0.16, sustain: 0.05, release: 1.2, baseFrequency: 60, octaves: 4.8 },
+        filter: { type: 'lowpass', rolloff: -24, Q: 9 },
+        volume: -6,
+      });
+      return { trigger: synth, output: synth };
+    },
+  },
 };
 
 const synthInstruments = {}; // preset name -> cached { trigger, output }

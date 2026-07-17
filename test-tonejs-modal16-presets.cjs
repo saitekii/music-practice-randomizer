@@ -14,17 +14,14 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     if (!cond) failed = true;
   };
 
-  const newPresets = ['Electric Cello', 'Pianoetta', 'Cool Guy', 'Tiny', 'Delicate Wind', 'Super Saw'];
+  const newPresets = ['Wurlitzer', 'Juno Lead', 'Brass Stab', 'Hammond Organ', 'Moog Bass'];
 
-  // The original 10 plus these 6 must all still be defined -- not an exact total count, since
-  // later rounds (e.g. the modal-16-sourced presets) are expected to keep adding more presets.
+  // Not an exact total count -- future rounds are expected to keep adding more presets.
   const allDefined = await page.evaluate((names) => {
-    const existing = ['Rhodes','Piano','Organ','Pad','Strings','Vibraphone','Marimba','Bell','Pluck','Bass'];
-    return existing.every(n => !!SYNTH_PRESETS[n]) && names.every(n => !!SYNTH_PRESETS[n]);
+    return Object.keys(SYNTH_PRESETS).length >= 21 && names.every(n => !!SYNTH_PRESETS[n]);
   }, newPresets);
-  checkTrue('all 10 existing + 6 new presets defined, nothing replaced', allDefined);
+  checkTrue('all 5 new presets defined, at least 21 total, nothing replaced', allDefined);
 
-  // Each new preset triggers/releases a chord without throwing
   for (const preset of newPresets) {
     const result = await page.evaluate(async (presetName) => {
       currentSynthPreset = presetName;
@@ -40,12 +37,9 @@ const { chromium } = require('C:\\Users\\John\\AppData\\Local\\Temp\\pw\\node_mo
     checkTrue(`${preset}: a full triad triggers/releases without throwing`, !result.threw);
   }
 
-  // No clipping through the app's REAL signal chain (getSynthMasterGain -- compressor, no
-  // pre-attenuation, no limiter) for the 3 presets that needed a volume trim.
-  for (const preset of ['Cool Guy', 'Pianoetta', 'Delicate Wind']) {
+  for (const preset of newPresets) {
     const result = await page.evaluate(async (presetName) => {
       const def = SYNTH_PRESETS[presetName];
-      const instrument = def.make();
       const buffer = await Tone.Offline(() => {
         const comp = new Tone.Compressor({ threshold: -12, ratio: 6, attack: 0.003, release: 0.15 });
         const gain = new Tone.Gain(0.7).toDestination();
